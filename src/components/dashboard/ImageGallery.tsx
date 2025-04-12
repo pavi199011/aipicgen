@@ -1,16 +1,10 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import ImageCard from "./ImageCard";
-
-interface Image {
-  id: string;
-  prompt: string;
-  image_url: string;
-  model: string;
-}
+import { GeneratedImage } from "@/hooks/useFetchImages";
 
 interface ImageGalleryProps {
-  images: Image[];
+  images: GeneratedImage[];
   loading: boolean;
 }
 
