@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -18,6 +21,8 @@ const Dashboard = () => {
   const [generating, setGenerating] = useState(false);
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   
   useEffect(() => {
@@ -33,6 +38,7 @@ const Dashboard = () => {
   const fetchImages = async () => {
     try {
       setLoading(true);
+      setError(null);
       const { data, error } = await supabase
         .from("generated_images")
         .select("*")
@@ -42,6 +48,7 @@ const Dashboard = () => {
       if (error) throw error;
       setImages(data || []);
     } catch (error: any) {
+      setError("Failed to load your images. Please try refreshing the page.");
       toast({
         title: "Error fetching images",
         description: error.message,
@@ -64,6 +71,9 @@ const Dashboard = () => {
     
     try {
       setGenerating(true);
+      setError(null);
+      setRetryCount(0);
+      
       toast({
         title: "Generating image",
         description: "Your image is being generated. This may take a minute...",
@@ -77,7 +87,15 @@ const Dashboard = () => {
       if (error) throw error;
       
       if (!data.output || (Array.isArray(data.output) && data.output.length === 0)) {
-        throw new Error("No image was generated. Please try again.");
+        throw new Error("No image was generated. Please try again or choose a different model.");
+      }
+      
+      // If we received a note about using a fallback model, inform the user
+      if (data.note && data.note.includes("fallback")) {
+        toast({
+          title: "Used fallback model",
+          description: "The selected model had issues, so we used the Flux model instead.",
+        });
       }
       
       // The output can be either a string or an array of strings depending on the model
@@ -89,7 +107,7 @@ const Dashboard = () => {
         .insert({
           prompt,
           image_url: imageUrl,
-          model,
+          model: data.note?.includes("fallback") ? "flux" : model, // Record the actual model used
           user_id: user.id,
         });
         
@@ -105,9 +123,35 @@ const Dashboard = () => {
       setPrompt("");
     } catch (error: any) {
       console.error("Generation error:", error);
+      setError(error.message || "Failed to generate image");
+      
+      // Check for specific errors and provide helpful messages
+      let errorMessage = error.message || "Failed to generate image. Please try again.";
+      
+      if (error.message?.includes("Invalid model version") || error.message?.includes("not permitted") || error.status === 422) {
+        errorMessage = "The selected model is currently unavailable. Please try a different model.";
+        
+        // Auto-retry with a different model if this is the first retry
+        if (retryCount === 0 && model !== "flux") {
+          setRetryCount(prev => prev + 1);
+          setModel("flux");
+          toast({
+            title: "Retrying with Flux model",
+            description: "The selected model is unavailable. Trying with a different model...",
+          });
+          
+          setTimeout(() => {
+            generateImage();
+          }, 1000);
+          return;
+        }
+      } else if (error.message?.includes("rate limit") || error.status === 429) {
+        errorMessage = "We've hit the rate limit. Please wait a minute and try again.";
+      }
+      
       toast({
         title: "Error generating image",
-        description: error.message || "Failed to generate image. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -124,6 +168,13 @@ const Dashboard = () => {
         </Button>
       </div>
       
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>Generate New Image</CardTitle>
@@ -139,11 +190,12 @@ const Dashboard = () => {
               placeholder="A serene lake at sunset with mountains in the background"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              disabled={generating}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="model">Model</Label>
-            <Select value={model} onValueChange={setModel}>
+            <Select value={model} onValueChange={setModel} disabled={generating}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a model" />
               </SelectTrigger>
@@ -161,7 +213,12 @@ const Dashboard = () => {
             disabled={generating || !prompt.trim()}
             className="w-full"
           >
-            {generating ? "Generating..." : "Generate Image"}
+            {generating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : "Generate Image"}
           </Button>
         </CardFooter>
       </Card>
