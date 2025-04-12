@@ -10,22 +10,22 @@ import { motion } from "framer-motion";
 const Index = () => {
   const { user } = useAuth();
 
-  // Example images for the carousel
+  // Updated example images using the provided high-quality images
   const exampleImages = [
     {
-      url: "https://replicate.delivery/pbxt/4kw2JSufHBuAURSxhRbDDp1l7mT83ogTHyLS9JJZ3uDp6OSE/out-0.png",
+      url: "/mountain-lake-sunset.jpg",
       prompt: "A peaceful mountain landscape with a lake at sunset",
     },
     {
-      url: "https://replicate.delivery/pbxt/I9PH8ygvNqUYLI6JMOZyLEGSIvZ7o0pJ2fkgLNGtFrYw9WVgA/out-0.png",
+      url: "/futuristic-cityscape.jpg",
       prompt: "A futuristic cityscape with flying vehicles",
     },
     {
-      url: "https://replicate.delivery/pbxt/JZv4RvjaHJBTChnhMEbQfcpXGzKZzGqpWXnOevbHWRKh8OSE/out-0.png",
+      url: "/magical-forest.jpg",
       prompt: "A magical forest with glowing plants and floating lanterns",
     },
     {
-      url: "https://replicate.delivery/pbxt/I9KkXUQlfKbXrQlq8JRSp1l7mT83ogTHyLS9JJZ3uDp6OSE/out-0.png",
+      url: "/cyberpunk-street.jpg",
       prompt: "A cyberpunk street scene with neon lights and rain",
     },
   ];
@@ -136,14 +136,18 @@ const Index = () => {
                 {exampleImages.map((image, index) => (
                   <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/2">
                     <div className="p-2">
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                      <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
                         <CardContent className="p-0 relative group">
                           <img
                             src={image.url}
                             alt={image.prompt}
-                            className="w-full h-[350px] object-cover transition-transform duration-500 group-hover:scale-105"
+                            className="w-full h-[400px] object-cover transition-transform duration-500 group-hover:scale-105"
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://via.placeholder.com/800x600?text=Image+Loading+Error";
+                            }}
                           />
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-4 rounded-b-lg transform transition-transform duration-300">
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-4 transform translate-y-full transition-transform duration-300 group-hover:translate-y-0">
                             <p className="text-white text-sm">{image.prompt}</p>
                           </div>
                         </CardContent>
@@ -152,8 +156,8 @@ const Index = () => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
+              <CarouselPrevious className="-left-8 md:flex" />
+              <CarouselNext className="-right-8 md:flex" />
             </Carousel>
           </div>
         </motion.div>
