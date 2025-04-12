@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -26,6 +27,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/admin-auth" element={<AdminAuth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path={`/${ADMIN_ROUTE}`} element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -9,8 +9,10 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<{error?: Error}>;
   signOut: () => Promise<void>;
+  isAdmin: boolean | null;
+  checkAdminStatus: () => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,7 +21,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const { toast } = useToast();
+
+  // Check if user is admin
+  const checkAdminStatus = async () => {
+    if (!user) return false;
+    
+    try {
+      const { data, error } = await supabase.rpc('is_admin');
+      
+      if (error) {
+        console.error("Error checking admin status:", error);
+        setIsAdmin(false);
+        return false;
+      }
+      
+      setIsAdmin(!!data);
+      return !!data;
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      setIsAdmin(false);
+      return false;
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
@@ -27,6 +52,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Use setTimeout to prevent potential recursion with onAuthStateChange
+          setTimeout(() => {
+            checkAdminStatus();
+          }, 0);
+        } else {
+          setIsAdmin(null);
+        }
+        
         setLoading(false);
       }
     );
@@ -35,6 +70,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        checkAdminStatus();
+      }
+      
       setLoading(false);
     });
 
@@ -72,13 +112,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Account created",
         description: "Please check your email to confirm your account.",
       });
+      
+      return {};
     } catch (error: any) {
       toast({
         title: "Error signing up",
         description: error.message,
         variant: "destructive",
       });
-      throw error;
+      return { error };
     }
   };
 
@@ -86,6 +128,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setIsAdmin(null);
     } catch (error: any) {
       toast({
         title: "Error signing out",
@@ -104,6 +147,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signIn,
         signUp,
         signOut,
+        isAdmin,
+        checkAdminStatus,
       }}
     >
       {children}

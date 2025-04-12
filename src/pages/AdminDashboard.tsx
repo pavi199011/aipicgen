@@ -9,11 +9,7 @@ import { UserStatistics } from "@/components/admin/UserStatistics";
 import { useAdminData } from "@/hooks/useAdminData";
 
 const AdminDashboard = () => {
-  const { user, signOut } = useAuth();
-  
-  // Admin Check - this is a simple check for demonstration
-  // In a real app, you'd use proper role-based access
-  const isAdmin = user?.email?.includes("admin");
+  const { user, isAdmin, signOut } = useAuth();
   
   // Custom hook for admin data management
   const {
@@ -25,11 +21,11 @@ const AdminDashboard = () => {
   } = useAdminData(user?.id);
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/admin-auth" replace />;
   }
 
-  if (!isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+  if (isAdmin === false) {
+    return <Navigate to="/admin-auth" replace />;
   }
 
   // Calculate statistics for the dashboard
