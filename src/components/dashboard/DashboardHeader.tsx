@@ -1,10 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { User } from "@/types/admin"; // Import the correct User type
 
 interface DashboardHeaderProps {
   user: {
-    email: string;
+    email?: string; // Make email optional to match the User type
     id: string;
   };
   signOut: () => void;
@@ -22,7 +22,7 @@ const DashboardHeader = ({ user, signOut }: DashboardHeaderProps) => {
         <div className="flex items-center gap-4">
           <div className="hidden md:flex">
             <span className="text-sm text-gray-600 mr-2">
-              Signed in as <span className="font-medium">{user.email}</span>
+              Signed in as <span className="font-medium">{user.email || "User"}</span>
             </span>
           </div>
           <Button onClick={signOut} variant="outline" size="sm">
