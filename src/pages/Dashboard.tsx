@@ -3,21 +3,15 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import ImageGeneratorForm from "@/components/dashboard/ImageGeneratorForm";
+import ImageGallery from "@/components/dashboard/ImageGallery";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
-  const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState("flux");
   const [generating, setGenerating] = useState(false);
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +53,7 @@ const Dashboard = () => {
     }
   };
   
-  const generateImage = async () => {
+  const generateImage = async (prompt: string, model: string) => {
     if (!prompt.trim()) {
       toast({
         title: "Error",
@@ -119,8 +113,6 @@ const Dashboard = () => {
         title: "Success",
         description: "Image generated successfully!",
       });
-      
-      setPrompt("");
     } catch (error: any) {
       console.error("Generation error:", error);
       setError(error.message || "Failed to generate image");
@@ -134,14 +126,14 @@ const Dashboard = () => {
         // Auto-retry with a different model if this is the first retry
         if (retryCount === 0 && model !== "flux") {
           setRetryCount(prev => prev + 1);
-          setModel("flux");
+          
           toast({
             title: "Retrying with Flux model",
             description: "The selected model is unavailable. Trying with a different model...",
           });
           
           setTimeout(() => {
-            generateImage();
+            generateImage(prompt, "flux");
           }, 1000);
           return;
         }
@@ -175,101 +167,14 @@ const Dashboard = () => {
         </Alert>
       )}
       
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Generate New Image</CardTitle>
-          <CardDescription>
-            Enter a prompt to create an AI-generated image
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="prompt">Prompt</Label>
-            <Input
-              id="prompt"
-              placeholder="A serene lake at sunset with mountains in the background"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              disabled={generating}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="model">Model</Label>
-            <Select value={model} onValueChange={setModel} disabled={generating}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="flux">Flux (Fastest)</SelectItem>
-                <SelectItem value="sdxl-turbo">SDXL Turbo (Fast)</SelectItem>
-                <SelectItem value="sdxl">SDXL (High Quality)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button 
-            onClick={generateImage} 
-            disabled={generating || !prompt.trim()}
-            className="w-full"
-          >
-            {generating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : "Generate Image"}
-          </Button>
-        </CardFooter>
-      </Card>
+      <ImageGeneratorForm 
+        onGenerate={generateImage} 
+        generating={generating} 
+      />
       
       <h2 className="text-2xl font-bold mb-4">Your Generated Images</h2>
       
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-0">
-                <Skeleton className="w-full h-64 rounded-t-lg" />
-              </CardContent>
-              <CardFooter className="flex flex-col items-start p-4">
-                <Skeleton className="h-4 w-1/3 mb-2" />
-                <Skeleton className="h-4 w-full" />
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      ) : images.length === 0 ? (
-        <div className="text-center py-10 text-gray-500">
-          You haven't generated any images yet
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {images.map((image) => (
-            <Card key={image.id}>
-              <CardContent className="p-0 relative">
-                <img
-                  src={image.image_url}
-                  alt={image.prompt}
-                  className="w-full h-64 object-cover rounded-t-lg"
-                  loading="lazy"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://via.placeholder.com/512x512?text=Image+Load+Error";
-                  }}
-                />
-              </CardContent>
-              <CardFooter className="flex flex-col items-start p-4">
-                <p className="text-sm font-medium mb-1">
-                  Model: {image.model.toUpperCase()}
-                </p>
-                <p className="text-sm line-clamp-2 text-gray-600">
-                  {image.prompt}
-                </p>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
+      <ImageGallery images={images} loading={loading} />
     </div>
   );
 };
