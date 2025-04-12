@@ -5,16 +5,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SortDirection, SortField, User, UserFilterState, UserSortState } from "@/types/admin";
+import { SortDirection, SortField, User, UserFilterState, UserSortState, UserStats } from "@/types/admin";
 import { ArrowUpDown, Trash2 } from "lucide-react";
+import { UserDetailView } from "./UserDetailView";
 
 interface UserManagementProps {
   users: User[];
   loading: boolean;
   onDeleteUser: (userId: string) => void;
+  userStats?: UserStats[]; // Optional stats for detailed view
 }
 
-export const UserManagement = ({ users, loading, onDeleteUser }: UserManagementProps) => {
+export const UserManagement = ({ 
+  users, 
+  loading, 
+  onDeleteUser,
+  userStats = []
+}: UserManagementProps) => {
   const [sortState, setSortState] = useState<UserSortState>({
     field: "created_at",
     direction: "desc"
@@ -23,6 +30,9 @@ export const UserManagement = ({ users, loading, onDeleteUser }: UserManagementP
   const [filterState, setFilterState] = useState<UserFilterState>({
     username: ""
   });
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [detailViewOpen, setDetailViewOpen] = useState(false);
 
   const handleSort = (field: SortField) => {
     setSortState({
@@ -36,6 +46,23 @@ export const UserManagement = ({ users, loading, onDeleteUser }: UserManagementP
       ...filterState,
       [field]: value
     });
+  };
+
+  const openUserDetail = (user: User) => {
+    setSelectedUser(user);
+    setDetailViewOpen(true);
+  };
+
+  const closeUserDetail = () => {
+    setDetailViewOpen(false);
+    // Clear the selection after animation completes
+    setTimeout(() => setSelectedUser(null), 300);
+  };
+
+  // Find the user stats for the selected user
+  const getSelectedUserStats = (): UserStats | null => {
+    if (!selectedUser) return null;
+    return userStats.find(stat => stat.id === selectedUser.id) || null;
   };
 
   // Filter users based on the filter state
@@ -54,7 +81,7 @@ export const UserManagement = ({ users, loading, onDeleteUser }: UserManagementP
         const usernameB = b.username?.toLowerCase() || '';
         return usernameA.localeCompare(usernameB) * direction;
       case "created_at":
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime() * direction;
+        return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * direction;
       default:
         return 0;
     }
@@ -128,7 +155,14 @@ export const UserManagement = ({ users, loading, onDeleteUser }: UserManagementP
                   ) : (
                     sortedUsers.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell>{user.username || 'No username'}</TableCell>
+                        <TableCell>
+                          <button 
+                            onClick={() => openUserDetail(user)}
+                            className="text-primary hover:underline focus:outline-none focus:underline"
+                          >
+                            {user.username || 'No username'}
+                          </button>
+                        </TableCell>
                         <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <Button 
@@ -152,6 +186,15 @@ export const UserManagement = ({ users, loading, onDeleteUser }: UserManagementP
           </div>
         </div>
       )}
+
+      {/* User Detail View */}
+      <UserDetailView 
+        user={selectedUser}
+        userStats={getSelectedUserStats()}
+        open={detailViewOpen}
+        onClose={closeUserDetail}
+        onDeleteUser={onDeleteUser}
+      />
     </>
   );
 };

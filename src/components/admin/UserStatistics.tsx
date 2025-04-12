@@ -4,15 +4,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SortDirection, SortField, UserFilterState, UserSortState, UserStats } from "@/types/admin";
+import { SortDirection, SortField, User, UserFilterState, UserSortState, UserStats } from "@/types/admin";
 import { ArrowUpDown } from "lucide-react";
+import { UserDetailView } from "./UserDetailView";
 
 interface UserStatisticsProps {
   userStats: UserStats[];
   loadingStats: boolean;
+  onDeleteUser?: (userId: string) => void;
 }
 
-export const UserStatistics = ({ userStats, loadingStats }: UserStatisticsProps) => {
+export const UserStatistics = ({ 
+  userStats, 
+  loadingStats,
+  onDeleteUser = () => {} 
+}: UserStatisticsProps) => {
   const [sortState, setSortState] = useState<UserSortState>({
     field: "imageCount",
     direction: "desc"
@@ -21,6 +27,9 @@ export const UserStatistics = ({ userStats, loadingStats }: UserStatisticsProps)
   const [filterState, setFilterState] = useState<UserFilterState>({
     username: ""
   });
+
+  const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
+  const [detailViewOpen, setDetailViewOpen] = useState(false);
 
   const handleSort = (field: SortField) => {
     setSortState({
@@ -35,6 +44,25 @@ export const UserStatistics = ({ userStats, loadingStats }: UserStatisticsProps)
       [field]: value
     });
   };
+
+  const openUserDetail = (user: UserStats) => {
+    setSelectedUser(user);
+    setDetailViewOpen(true);
+  };
+
+  const closeUserDetail = () => {
+    setDetailViewOpen(false);
+    // Clear the selection after animation completes
+    setTimeout(() => setSelectedUser(null), 300);
+  };
+
+  // Convert UserStats to User for the detail view
+  const selectedUserAsUser = selectedUser ? {
+    id: selectedUser.id,
+    email: selectedUser.email,
+    username: selectedUser.username,
+    created_at: new Date().toISOString() // We don't have this in stats, using current date as fallback
+  } : null;
 
   // Filter users based on the filter state
   const filteredUsers = userStats.filter(user => {
@@ -119,7 +147,14 @@ export const UserStatistics = ({ userStats, loadingStats }: UserStatisticsProps)
                   ) : (
                     sortedUsers.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell>{user.username || 'No username'}</TableCell>
+                        <TableCell>
+                          <button 
+                            onClick={() => openUserDetail(user)}
+                            className="text-primary hover:underline focus:outline-none focus:underline"
+                          >
+                            {user.username || 'No username'}
+                          </button>
+                        </TableCell>
                         <TableCell>{user.imageCount}</TableCell>
                       </TableRow>
                     ))
@@ -133,6 +168,15 @@ export const UserStatistics = ({ userStats, loadingStats }: UserStatisticsProps)
           </div>
         </div>
       )}
+
+      {/* User Detail View */}
+      <UserDetailView 
+        user={selectedUserAsUser}
+        userStats={selectedUser}
+        open={detailViewOpen}
+        onClose={closeUserDetail}
+        onDeleteUser={onDeleteUser}
+      />
     </>
   );
 };

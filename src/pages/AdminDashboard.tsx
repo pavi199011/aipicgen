@@ -68,6 +68,7 @@ const AdminDashboard = () => {
                 users={users}
                 loading={loading}
                 onDeleteUser={deleteUser}
+                userStats={userStats}
               />
             </TabsContent>
             
@@ -75,6 +76,7 @@ const AdminDashboard = () => {
               <UserStatistics 
                 userStats={userStats}
                 loadingStats={loadingStats}
+                onDeleteUser={deleteUser}
               />
             </TabsContent>
           </Tabs>

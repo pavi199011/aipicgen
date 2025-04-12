@@ -24,3 +24,7 @@ export interface UserSortState {
 export interface UserFilterState {
   username: string;
 }
+
+export interface UserDetailData extends User, UserStats {
+  // Combined interface for user details
+}
