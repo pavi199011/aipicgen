@@ -12,3 +12,15 @@ export interface UserStats {
   username?: string;
   imageCount: number;
 }
+
+export type SortDirection = "asc" | "desc";
+export type SortField = "username" | "created_at" | "imageCount";
+
+export interface UserSortState {
+  field: SortField;
+  direction: SortDirection;
+}
+
+export interface UserFilterState {
+  username: string;
+}

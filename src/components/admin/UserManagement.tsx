@@ -1,10 +1,12 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
-import { User } from "@/types/admin";
+import { SortDirection, SortField, User, UserFilterState, UserSortState } from "@/types/admin";
+import { ArrowUpDown, Trash2 } from "lucide-react";
 
 interface UserManagementProps {
   users: User[];
@@ -13,6 +15,56 @@ interface UserManagementProps {
 }
 
 export const UserManagement = ({ users, loading, onDeleteUser }: UserManagementProps) => {
+  const [sortState, setSortState] = useState<UserSortState>({
+    field: "created_at",
+    direction: "desc"
+  });
+  
+  const [filterState, setFilterState] = useState<UserFilterState>({
+    username: ""
+  });
+
+  const handleSort = (field: SortField) => {
+    setSortState({
+      field,
+      direction: sortState.field === field && sortState.direction === "asc" ? "desc" : "asc"
+    });
+  };
+
+  const handleFilterChange = (field: keyof UserFilterState, value: string) => {
+    setFilterState({
+      ...filterState,
+      [field]: value
+    });
+  };
+
+  // Filter users based on the filter state
+  const filteredUsers = users.filter(user => {
+    const username = user.username?.toLowerCase() || '';
+    return username.includes(filterState.username.toLowerCase());
+  });
+
+  // Sort users based on the sort state
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    const direction = sortState.direction === "asc" ? 1 : -1;
+    
+    switch (sortState.field) {
+      case "username":
+        const usernameA = a.username?.toLowerCase() || '';
+        const usernameB = b.username?.toLowerCase() || '';
+        return usernameA.localeCompare(usernameB) * direction;
+      case "created_at":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime() * direction;
+      default:
+        return 0;
+    }
+  });
+
+  const getSortIcon = (field: SortField) => {
+    if (sortState.field !== field) return null;
+    return <ArrowUpDown className={`ml-1 h-4 w-4 ${sortState.direction === "asc" ? "rotate-0" : "rotate-180"}`} />;
+  };
+
   return (
     <>
       <h2 className="text-2xl font-bold mb-6">User Management</h2>
@@ -30,37 +82,75 @@ export const UserManagement = ({ users, loading, onDeleteUser }: UserManagementP
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.username || 'No username'}</TableCell>
-                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => onDeleteUser(user.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
-                    </TableCell>
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <Input
+              placeholder="Filter by username"
+              value={filterState.username}
+              onChange={(e) => handleFilterChange("username", e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead
+                      className="cursor-pointer"
+                      onClick={() => handleSort("username")}
+                    >
+                      <div className="flex items-center">
+                        Username
+                        {getSortIcon("username")}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer"
+                      onClick={() => handleSort("created_at")}
+                    >
+                      <div className="flex items-center">
+                        Created At
+                        {getSortIcon("created_at")}
+                      </div>
+                    </TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {sortedUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                        No users match your filters
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    sortedUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.username || 'No username'}</TableCell>
+                        <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => onDeleteUser(user.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <div className="text-sm text-muted-foreground">
+            Showing {sortedUsers.length} of {users.length} users
+          </div>
+        </div>
       )}
     </>
   );
