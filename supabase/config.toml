@@ -1,1 +1,6 @@
+
+[global]
 project_id = "aaivsyxvtpmottrhqzvf"
+
+[functions.generate-image]
+verify_jwt = true

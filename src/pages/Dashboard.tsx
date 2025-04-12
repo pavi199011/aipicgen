@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState("sdxl");
+  const [model, setModel] = useState("flux");
   const [generating, setGenerating] = useState(false);
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,7 @@ const Dashboard = () => {
       const { data, error } = await supabase
         .from("generated_images")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
         
       if (error) throw error;
@@ -64,42 +66,51 @@ const Dashboard = () => {
       setGenerating(true);
       toast({
         title: "Generating image",
-        description: "Your image is being generated...",
+        description: "Your image is being generated. This may take a minute...",
       });
       
-      // Here we would call our API to generate the image
-      // For now, let's simulate the process
-      setTimeout(() => {
-        const mockImageUrl = "https://via.placeholder.com/512x512";
-        
-        // Save to Supabase
-        supabase
-          .from("generated_images")
-          .insert({
-            prompt,
-            image_url: mockImageUrl,
-            model,
-            user_id: user.id,
-          })
-          .then(({ error }) => {
-            if (error) throw error;
-            fetchImages();
-            toast({
-              title: "Success",
-              description: "Image generated successfully!",
-            });
-          });
-        
-        setGenerating(false);
-        setPrompt("");
-      }, 3000);
+      // Call the Supabase Edge Function to generate an image
+      const { data, error } = await supabase.functions.invoke('generate-image', {
+        body: { prompt, model },
+      });
       
+      if (error) throw error;
+      
+      if (!data.output || (Array.isArray(data.output) && data.output.length === 0)) {
+        throw new Error("No image was generated. Please try again.");
+      }
+      
+      // The output can be either a string or an array of strings depending on the model
+      const imageUrl = Array.isArray(data.output) ? data.output[0] : data.output;
+      
+      // Save the generated image to Supabase
+      const { error: insertError } = await supabase
+        .from("generated_images")
+        .insert({
+          prompt,
+          image_url: imageUrl,
+          model,
+          user_id: user.id,
+        });
+        
+      if (insertError) throw insertError;
+      
+      await fetchImages();
+      
+      toast({
+        title: "Success",
+        description: "Image generated successfully!",
+      });
+      
+      setPrompt("");
     } catch (error: any) {
+      console.error("Generation error:", error);
       toast({
         title: "Error generating image",
-        description: error.message,
+        description: error.message || "Failed to generate image. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setGenerating(false);
     }
   };
@@ -137,9 +148,9 @@ const Dashboard = () => {
                 <SelectValue placeholder="Select a model" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sdxl">Stable Diffusion XL</SelectItem>
-                <SelectItem value="sdxl-turbo">SDXL Turbo</SelectItem>
-                <SelectItem value="flux">Flux</SelectItem>
+                <SelectItem value="flux">Flux (Fastest)</SelectItem>
+                <SelectItem value="sdxl-turbo">SDXL Turbo (Fast)</SelectItem>
+                <SelectItem value="sdxl">SDXL (High Quality)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -158,7 +169,19 @@ const Dashboard = () => {
       <h2 className="text-2xl font-bold mb-4">Your Generated Images</h2>
       
       {loading ? (
-        <div className="text-center py-10">Loading your images...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-0">
+                <Skeleton className="w-full h-64 rounded-t-lg" />
+              </CardContent>
+              <CardFooter className="flex flex-col items-start p-4">
+                <Skeleton className="h-4 w-1/3 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       ) : images.length === 0 ? (
         <div className="text-center py-10 text-gray-500">
           You haven't generated any images yet
@@ -167,11 +190,15 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {images.map((image) => (
             <Card key={image.id}>
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative">
                 <img
                   src={image.image_url}
                   alt={image.prompt}
                   className="w-full h-64 object-cover rounded-t-lg"
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://via.placeholder.com/512x512?text=Image+Load+Error";
+                  }}
                 />
               </CardContent>
               <CardFooter className="flex flex-col items-start p-4">
