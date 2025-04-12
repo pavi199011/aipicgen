@@ -6,6 +6,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { DashboardOverview } from "@/components/admin/DashboardOverview";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { UserStatistics } from "@/components/admin/UserStatistics";
+import { AdminManagement } from "@/components/admin/AdminManagement";
 import { useAdminData } from "@/hooks/useAdminData";
 
 const AdminDashboard = () => {
@@ -34,6 +35,10 @@ const AdminDashboard = () => {
     ? (totalImages / userStats.length).toFixed(1) 
     : '0';
 
+  const currentAdmins = [
+    { id: '1', email: 'admin@example.com' }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
@@ -47,6 +52,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="statistics">Statistics</TabsTrigger>
+              <TabsTrigger value="admins">Admin Management</TabsTrigger>
             </TabsList>
             
             <TabsContent value="dashboard" className="space-y-6">
@@ -73,6 +79,12 @@ const AdminDashboard = () => {
                 userStats={userStats}
                 loadingStats={loadingStats}
                 onDeleteUser={deleteUser}
+              />
+            </TabsContent>
+            
+            <TabsContent value="admins">
+              <AdminManagement 
+                currentAdmins={currentAdmins}
               />
             </TabsContent>
           </Tabs>

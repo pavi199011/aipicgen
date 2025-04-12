@@ -5,16 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, LogIn, Shield, UserPlus } from "lucide-react";
+import { ArrowLeft, LogIn, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminAuthCard } from "@/components/admin/AdminAuthCard";
 import { AdminLoginForm, AdminLoginFormValues } from "@/components/admin/AdminLoginForm";
-import { AdminRegisterForm, AdminRegisterFormValues } from "@/components/admin/AdminRegisterForm";
-import { ADMIN_REGISTRATION_KEY, ADMIN_ROUTE } from "@/components/admin/AdminConstants";
+import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 
 const AdminAuth = () => {
-  const { user, signIn, signUp } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { user, signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const { toast } = useToast();
@@ -68,52 +66,24 @@ const AdminAuth = () => {
   const handleLogin = async (values: AdminLoginFormValues) => {
     try {
       setLoading(true);
-      await signIn(values.email, values.password);
       
-      // After sign in, we'll check if the user is an admin
-      // This will be handled by the conditional above when the user state updates
-      toast({
-        title: "Checking admin credentials",
-        description: "Verifying your admin access...",
-      });
+      // For the fixed admin account
+      if (values.email === "admin" && values.password === "admin123@#") {
+        // Sign in with the actual admin account stored in Supabase
+        await signIn("admin@example.com", "admin123@#");
+        
+        toast({
+          title: "Admin login successful",
+          description: "Accessing admin dashboard...",
+        });
+      } else {
+        throw new Error("Invalid admin credentials");
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
         title: "Admin login failed",
         description: error.message || "Please check your credentials and try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async (values: AdminRegisterFormValues) => {
-    try {
-      // Check if the admin registration key is correct
-      if (values.adminKey !== ADMIN_REGISTRATION_KEY) {
-        throw new Error("Invalid admin registration key");
-      }
-
-      setLoading(true);
-      // Sign up the user
-      const { error: signUpError } = await signUp(values.email, values.password);
-      
-      if (signUpError) throw signUpError;
-
-      // This part will only run if signup is successful
-      toast({
-        title: "Admin account created!",
-        description: "Please check your email to confirm your account.",
-      });
-      
-      // Reset form and switch to login
-      setIsSignUp(false);
-    } catch (error: any) {
-      console.error("Registration error:", error);
-      toast({
-        title: "Admin registration failed",
-        description: error.message || "There was a problem creating your admin account.",
         variant: "destructive",
       });
     } finally {
@@ -128,7 +98,7 @@ const AdminAuth = () => {
           <div className="flex items-center">
             <Shield className="h-6 w-6 text-primary mr-2" />
             <CardTitle className="text-2xl font-bold">
-              {isSignUp ? "Create Admin Account" : "Admin Sign In"}
+              Admin Sign In
             </CardTitle>
           </div>
           <Button variant="ghost" size="icon" onClick={() => window.location.href = "/"}>
@@ -137,40 +107,19 @@ const AdminAuth = () => {
           </Button>
         </div>
         <CardDescription>
-          {isSignUp
-            ? "Enter details to create a new administrator account"
-            : "Enter your credentials to access the admin panel"}
+          Enter your admin credentials to access the admin panel
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        {isSignUp ? (
-          <AdminRegisterForm onSubmit={handleRegister} loading={loading} />
-        ) : (
-          <AdminLoginForm onSubmit={handleLogin} loading={loading} />
-        )}
+        <AdminLoginForm onSubmit={handleLogin} loading={loading} />
       </CardContent>
       
       <CardFooter>
-        <Button
-          variant="link"
-          className="w-full"
-          onClick={() => {
-            setIsSignUp(!isSignUp);
-          }}
-        >
-          {isSignUp ? (
-            <span className="flex items-center">
-              <LogIn className="mr-2 h-4 w-4" />
-              Already have an admin account? Sign in
-            </span>
-          ) : (
-            <span className="flex items-center">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Need an admin account? Sign up
-            </span>
-          )}
-        </Button>
+        <p className="text-sm text-center text-gray-500 w-full">
+          <LogIn className="inline mr-1 h-3 w-3" />
+          Use username: "admin" and password: "admin123@#"
+        </p>
       </CardFooter>
     </AdminAuthCard>
   );

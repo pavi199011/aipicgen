@@ -1,27 +1,38 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Sparkles, Zap, Shield, Image as ImageIcon } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { Link } from "react-router-dom";
 
-const exampleImages = [
+const aiGeneratedImages = [
   {
-    url: "https://images.unsplash.com/photo-1655635949212-1d8f4f103ea1",
+    url: "https://replicate.delivery/pbxt/9ooLFeQ4QJvJ5AhWMTj0XHUCkRzbF0bvF5eEF3qvuVFdPqHiA/out-0.png",
     alt: "AI-generated fantasy landscape",
     style: "fantasy"
   },
   {
-    url: "https://images.unsplash.com/photo-1675426513302-9be2a9adb746",
+    url: "https://replicate.delivery/pbxt/k4PMmMtKSGsZBTOzKMXmdGTcTLyzGRJGNMOyALuHJfLnipJCB/out-0.png",
     alt: "AI-generated portrait",
     style: "portrait"
   },
   {
-    url: "https://images.unsplash.com/photo-1675426513229-2d95e7c67abb",
+    url: "https://replicate.delivery/pbxt/JMqSvg0vXYVci7cQkQtgRNvJHb1zLvFbSVD9kbA18AoXfPdFC/out-0.png",
     alt: "AI-generated abstract art",
     style: "abstract"
   },
   {
-    url: "https://images.unsplash.com/photo-1675426513212-a0e1a7f5a97f",
+    url: "https://replicate.delivery/pbxt/OU9fBF2aCiQMCEoWfk9VVMqLGHXWTHeu3NV4pgnJJwk5nqHiA/out-0.png",
     alt: "AI-generated sci-fi scene",
     style: "sci-fi"
   }
@@ -58,8 +69,119 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Hero Section */}
-      <header className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white">
+      {/* Navigation Bar */}
+      <nav className="bg-white border-b border-gray-200 fixed w-full z-10">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+              PixelPalette
+            </h1>
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Features</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                      <li className="row-span-3">
+                        <NavigationMenuLink asChild>
+                          <a
+                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-purple-500 to-indigo-700 p-6 no-underline outline-none focus:shadow-md"
+                            href="#features"
+                          >
+                            <div className="mt-4 mb-2 text-lg font-medium text-white">
+                              AI Image Generator
+                            </div>
+                            <p className="text-sm leading-tight text-white/90">
+                              Create stunning visuals with our powerful AI models
+                            </p>
+                          </a>
+                        </NavigationMenuLink>
+                      </li>
+                      <li>
+                        <Link
+                          to="#features"
+                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
+                        >
+                          <div className="text-sm font-medium leading-none">
+                            Creative Freedom
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-gray-500">
+                            Describe any image you can imagine
+                          </p>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="#features"
+                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
+                        >
+                          <div className="text-sm font-medium leading-none">
+                            Lightning Fast
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-gray-500">
+                            Generate images in seconds
+                          </p>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="#features"
+                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
+                        >
+                          <div className="text-sm font-medium leading-none">
+                            Commercial Use
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-gray-500">
+                            All images are royalty-free
+                          </p>
+                        </Link>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link to="#testimonials" className={navigationMenuTriggerStyle()}>
+                    Testimonials
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link to="#how-it-works" className={navigationMenuTriggerStyle()}>
+                    How It Works
+                  </Link>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <Button 
+                onClick={() => window.location.href = "/dashboard"}
+                variant="outline"
+              >
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  onClick={() => window.location.href = "/auth"}
+                  variant="outline"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = "/auth"}
+                  className="bg-gradient-to-r from-purple-600 to-blue-500 text-white"
+                >
+                  Get Started
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section - adjusted for nav bar */}
+      <header className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white pt-20">
         <div className="container mx-auto px-4 py-16 flex flex-col md:flex-row items-center justify-between">
           <div className="space-y-8 md:w-1/2">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
@@ -86,20 +208,6 @@ const Index = () => {
                   Get Started
                 </Button>
               )}
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/10"
-                onClick={() => {
-                  const element = document.getElementById('features');
-                  element?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                Learn More
-              </Button>
-            </div>
-            <div className="flex justify-start text-sm">
-              <a href="/admin-auth" className="text-purple-200 hover:text-white transition-colors">Admin Login</a>
             </div>
           </div>
           
@@ -109,7 +217,7 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            {exampleImages.map((image, index) => (
+            {aiGeneratedImages.map((image, index) => (
               <motion.div
                 key={index}
                 className="rounded-lg overflow-hidden shadow-lg"
@@ -175,7 +283,7 @@ const Index = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-gray-50">
+      <section id="how-it-works" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -215,7 +323,7 @@ const Index = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-white">
+      <section id="testimonials" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -283,7 +391,7 @@ const Index = () => {
             <div>
               <h4 className="text-white text-md font-semibold mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
+                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Integration</a></li>
