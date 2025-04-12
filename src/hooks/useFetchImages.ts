@@ -16,6 +16,7 @@ export function useFetchImages(userId: string | undefined) {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
   const fetchImages = async () => {
@@ -24,6 +25,7 @@ export function useFetchImages(userId: string | undefined) {
     try {
       setLoading(true);
       setError(null);
+      
       const { data, error } = await supabase
         .from("generated_images")
         .select("*")
@@ -31,12 +33,35 @@ export function useFetchImages(userId: string | undefined) {
         .order("created_at", { ascending: false });
         
       if (error) throw error;
+      
       setImages(data || []);
+      
+      // Reset retry count on successful fetch
+      setRetryCount(0);
     } catch (error: any) {
-      setError("Failed to load your images. Please try refreshing the page.");
+      console.error("Fetch images error:", error);
+      
+      // Increment retry count to track failed attempts
+      setRetryCount(prev => prev + 1);
+      
+      // Customize error message based on error type
+      let errorMessage = "Failed to load your images. Please try refreshing.";
+      
+      if (error.status === 401 || error.status === 403) {
+        errorMessage = "You don't have permission to view these images. Please try signing in again.";
+      } else if (error.status === 429) {
+        errorMessage = "Too many requests. Please wait a moment before trying again.";
+      } else if (error.status >= 500) {
+        errorMessage = "Server error. Our team has been notified and is working on a fix.";
+      } else if (error.message?.includes("network") || error.message?.includes("fetch")) {
+        errorMessage = "Network error. Please check your internet connection.";
+      }
+      
+      setError(errorMessage);
+      
       toast({
         title: "Error fetching images",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

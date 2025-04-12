@@ -5,20 +5,52 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, RefreshCcw } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 interface ImageGeneratorFormProps {
   onGenerate: (prompt: string, model: string) => Promise<void>;
   generating: boolean;
+  error: string | null;
+  retryGeneration: () => Promise<void>;
+  hasLastPrompt: boolean;
 }
 
-const ImageGeneratorForm = ({ onGenerate, generating }: ImageGeneratorFormProps) => {
+const ImageGeneratorForm = ({ 
+  onGenerate, 
+  generating, 
+  error, 
+  retryGeneration,
+  hasLastPrompt
+}: ImageGeneratorFormProps) => {
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("flux");
+  const [progress, setProgress] = useState(0);
+
+  // Simulated progress for better UX
+  const startProgressSimulation = () => {
+    setProgress(0);
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(interval);
+          return prev;
+        }
+        return prev + 10;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  };
 
   const handleGenerate = async () => {
+    const cleanupProgress = startProgressSimulation();
     await onGenerate(prompt, model);
-    setPrompt("");
+    cleanupProgress();
+    setProgress(100);
+    // Reset progress after a delay
+    setTimeout(() => setProgress(0), 2000);
   };
 
   return (
@@ -30,6 +62,25 @@ const ImageGeneratorForm = ({ onGenerate, generating }: ImageGeneratorFormProps)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+            {hasLastPrompt && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2"
+                onClick={retryGeneration}
+                disabled={generating}
+              >
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Retry
+              </Button>
+            )}
+          </Alert>
+        )}
+        
         <div className="space-y-2">
           <Label htmlFor="prompt">Prompt</Label>
           <Input
@@ -53,6 +104,16 @@ const ImageGeneratorForm = ({ onGenerate, generating }: ImageGeneratorFormProps)
             </SelectContent>
           </Select>
         </div>
+        
+        {generating && (
+          <div className="space-y-2">
+            <div className="flex justify-between mb-1">
+              <span className="text-sm text-muted-foreground">Generating image...</span>
+              <span className="text-sm text-muted-foreground">{progress}%</span>
+            </div>
+            <Progress value={progress} className="w-full" />
+          </div>
+        )}
       </CardContent>
       <CardFooter>
         <Button 

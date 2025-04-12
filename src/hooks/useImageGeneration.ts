@@ -7,6 +7,8 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [lastPrompt, setLastPrompt] = useState<string | null>(null);
+  const [lastModel, setLastModel] = useState<string | null>(null);
   const { toast } = useToast();
 
   const generateImage = async (prompt: string, model: string) => {
@@ -23,6 +25,9 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
       setGenerating(true);
       setError(null);
       setRetryCount(0);
+      // Save the prompt and model for potential retry
+      setLastPrompt(prompt);
+      setLastModel(model);
       
       toast({
         title: "Generating image",
@@ -71,7 +76,6 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
       });
     } catch (error: any) {
       console.error("Generation error:", error);
-      setError(error.message || "Failed to generate image");
       
       // Check for specific errors and provide helpful messages
       let errorMessage = error.message || "Failed to generate image. Please try again.";
@@ -95,7 +99,13 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
         }
       } else if (error.message?.includes("rate limit") || error.status === 429) {
         errorMessage = "We've hit the rate limit. Please wait a minute and try again.";
+      } else if (error.status === 500 || error.status === 503) {
+        errorMessage = "The image generation service is currently experiencing issues. Please try again in a few minutes.";
+      } else if (error.message?.includes("timeout") || error.message?.includes("deadline")) {
+        errorMessage = "The request timed out. The image generation service might be overloaded. Please try again later.";
       }
+      
+      setError(errorMessage);
       
       toast({
         title: "Error generating image",
@@ -107,5 +117,24 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
     }
   };
 
-  return { generateImage, generating, error };
+  // Function to retry the last generation with the same parameters
+  const retryLastGeneration = async () => {
+    if (lastPrompt && lastModel) {
+      await generateImage(lastPrompt, lastModel);
+    } else {
+      toast({
+        title: "Cannot retry",
+        description: "No previous generation attempt found.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return { 
+    generateImage, 
+    generating, 
+    error, 
+    retryLastGeneration,
+    hasLastPrompt: !!lastPrompt
+  };
 }
