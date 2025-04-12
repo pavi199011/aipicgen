@@ -25,18 +25,17 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GeneratedImage } from "@/hooks/useFetchImages";
 
 interface User {
   id: string;
-  email: string;
-  created_at: string;
+  email?: string;
   username?: string;
+  created_at: string;
 }
 
 interface UserStats {
   id: string;
-  email: string;
+  email?: string;
   username?: string;
   imageCount: number;
 }
@@ -64,11 +63,22 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("auth.users")
-        .select("id, email, created_at");
+        .from("profiles")
+        .select("id, username, created_at");
         
       if (error) throw error;
-      setUsers(data || []);
+      
+      // If we have auth data, add it to our user objects
+      const enhancedUsers = data?.map(profile => {
+        return {
+          id: profile.id,
+          username: profile.username,
+          created_at: profile.created_at,
+          email: profile.id === user?.id ? user.email : undefined
+        };
+      }) || [];
+      
+      setUsers(enhancedUsers);
     } catch (error: any) {
       console.error("Error fetching users:", error);
       toast({
@@ -85,25 +95,26 @@ const AdminDashboard = () => {
     try {
       setLoadingStats(true);
       
-      // Fetch users
-      const { data: usersData, error: usersError } = await supabase
-        .from("auth.users")
-        .select("id, email");
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username");
         
-      if (usersError) throw usersError;
+      if (profilesError) throw profilesError;
       
-      // For each user, fetch their image count
-      const statsPromises = (usersData || []).map(async (user) => {
+      // For each profile, fetch their image count
+      const statsPromises = (profilesData || []).map(async (profile) => {
         const { count, error } = await supabase
           .from("generated_images")
           .select("id", { count: "exact" })
-          .eq("user_id", user.id);
+          .eq("user_id", profile.id);
           
         if (error) throw error;
         
         return {
-          id: user.id,
-          email: user.email,
+          id: profile.id,
+          username: profile.username,
+          email: profile.id === user?.id ? user.email : undefined,
           imageCount: count || 0,
         };
       });
@@ -131,14 +142,17 @@ const AdminDashboard = () => {
         .delete()
         .eq("user_id", userId);
         
-      // Then delete the user
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      // Then delete the profile (cannot directly delete auth.users from client)
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
       
       if (error) throw error;
       
       toast({
         title: "Success",
-        description: "User deleted successfully",
+        description: "User data deleted successfully. Note: In this demo, the auth user remains.",
       });
       
       // Refresh user list
@@ -294,7 +308,7 @@ const AdminDashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Email</TableHead>
+                          <TableHead>Username</TableHead>
                           <TableHead>Created At</TableHead>
                           <TableHead>Action</TableHead>
                         </TableRow>
@@ -302,7 +316,7 @@ const AdminDashboard = () => {
                       <TableBody>
                         {users.map((user) => (
                           <TableRow key={user.id}>
-                            <TableCell>{user.email}</TableCell>
+                            <TableCell>{user.username || 'No username'}</TableCell>
                             <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                             <TableCell>
                               <Button 
@@ -338,14 +352,14 @@ const AdminDashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Email</TableHead>
+                          <TableHead>Username</TableHead>
                           <TableHead>Images Generated</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {userStats.map((user) => (
                           <TableRow key={user.id}>
-                            <TableCell>{user.email}</TableCell>
+                            <TableCell>{user.username || 'No username'}</TableCell>
                             <TableCell>{user.imageCount}</TableCell>
                           </TableRow>
                         ))}
