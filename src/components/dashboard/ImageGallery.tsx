@@ -42,6 +42,10 @@ const ImageGallery = ({ images, loading, error, onRetry }: ImageGalleryProps) =>
             <div className="p-4">
               <Skeleton className="h-4 w-1/3 mb-2" />
               <Skeleton className="h-4 w-full" />
+              <div className="flex justify-between mt-3">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-3 w-20" />
+              </div>
             </div>
           </div>
         ))}
@@ -69,6 +73,7 @@ const ImageGallery = ({ images, loading, error, onRetry }: ImageGalleryProps) =>
           imageUrl={image.image_url}
           prompt={image.prompt}
           model={image.model}
+          createdAt={image.created_at}
         />
       ))}
     </div>

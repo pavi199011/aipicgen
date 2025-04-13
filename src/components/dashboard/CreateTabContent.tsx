@@ -8,7 +8,11 @@ interface CreateTabContentProps {
   images: GeneratedImage[];
   imagesLoading: boolean;
   fetchError: string | null;
-  generateImage: (prompt: string, model: string) => Promise<void>;
+  generateImage: (prompt: string, model: string, settings: {
+    aspectRatio: string;
+    numOutputs: number;
+    inferenceSteps: number;
+  }) => Promise<void>;
   generating: boolean;
   generationError: string | null;
   retryLastGeneration: () => Promise<void>;
@@ -52,6 +56,10 @@ const CreateTabContent = ({
                   <div className="p-4">
                     <div className="h-4 w-1/3 bg-gray-200 mb-2 rounded"></div>
                     <div className="h-4 w-full bg-gray-200 rounded"></div>
+                    <div className="flex justify-between mt-3">
+                      <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                      <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                    </div>
                   </div>
                 </div>
               ))

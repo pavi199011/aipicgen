@@ -3,15 +3,30 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+interface GenerationSettings {
+  aspectRatio: string;
+  numOutputs: number;
+  inferenceSteps: number;
+}
+
 export function useImageGeneration(userId: string | undefined, onSuccess: () => Promise<void>) {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [lastPrompt, setLastPrompt] = useState<string | null>(null);
   const [lastModel, setLastModel] = useState<string | null>(null);
+  const [lastSettings, setLastSettings] = useState<GenerationSettings | null>(null);
   const { toast } = useToast();
 
-  const generateImage = async (prompt: string, model: string) => {
+  const generateImage = async (
+    prompt: string, 
+    model: string, 
+    settings: GenerationSettings = {
+      aspectRatio: "1:1",
+      numOutputs: 1,
+      inferenceSteps: 4
+    }
+  ) => {
     if (!userId || !prompt.trim()) {
       toast({
         title: "Error",
@@ -28,6 +43,7 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
       // Save the prompt and model for potential retry
       setLastPrompt(prompt);
       setLastModel(model);
+      setLastSettings(settings);
       
       toast({
         title: "Generating image",
@@ -36,7 +52,13 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
       
       // Call the Supabase Edge Function to generate an image
       const { data, error } = await supabase.functions.invoke('generate-image', {
-        body: { prompt, model },
+        body: { 
+          prompt, 
+          model,
+          aspectRatio: settings.aspectRatio,
+          numOutputs: settings.numOutputs,
+          inferenceSteps: settings.inferenceSteps
+        },
       });
       
       if (error) throw error;
@@ -93,7 +115,7 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
           });
           
           setTimeout(() => {
-            generateImage(prompt, "flux");
+            generateImage(prompt, "flux", settings);
           }, 1000);
           return;
         }
@@ -120,7 +142,7 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
   // Function to retry the last generation with the same parameters
   const retryLastGeneration = async () => {
     if (lastPrompt && lastModel) {
-      await generateImage(lastPrompt, lastModel);
+      await generateImage(lastPrompt, lastModel, lastSettings || undefined);
     } else {
       toast({
         title: "Cannot retry",
