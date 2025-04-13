@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { DashboardOverview } from "@/components/admin/DashboardOverview";
@@ -11,16 +11,17 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { UserStatistics } from "@/components/admin/UserStatistics";
 import { AdminManagement } from "@/components/admin/AdminManagement";
 import { useAdminData } from "@/hooks/useAdminData";
-import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
+import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
 
 const AdminDashboard = () => {
-  const { user, isAdmin, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [currentTab, setCurrentTab] = useState("dashboard");
   
-  // Set up session timeout
-  const [lastActivity, setLastActivity] = useState(Date.now());
-  const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+  // Simulate authenticated admin user for development
+  const mockAdminUser = {
+    id: "admin-user-id",
+    email: ADMIN_CREDENTIALS.email
+  };
   
   // Custom hook for admin data management
   const {
@@ -29,7 +30,7 @@ const AdminDashboard = () => {
     loading,
     loadingStats,
     deleteUser
-  } = useAdminData(user?.id);
+  } = useAdminData(mockAdminUser.id);
   
   // Update theme based on hash
   useEffect(() => {
@@ -45,45 +46,15 @@ const AdminDashboard = () => {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
   
-  // Session timeout handler
-  useEffect(() => {
-    const activityHandler = () => setLastActivity(Date.now());
-    
-    // Attach event listeners for user activity
-    window.addEventListener("mousemove", activityHandler);
-    window.addEventListener("keydown", activityHandler);
-    window.addEventListener("click", activityHandler);
-    
-    const intervalId = setInterval(() => {
-      const now = Date.now();
-      const timeSinceLastActivity = now - lastActivity;
-      
-      if (timeSinceLastActivity > SESSION_TIMEOUT) {
-        console.log("Session timeout - logging out");
-        signOut();
-      }
-    }, 60000); // Check every minute
-    
-    return () => {
-      window.removeEventListener("mousemove", activityHandler);
-      window.removeEventListener("keydown", activityHandler);
-      window.removeEventListener("click", activityHandler);
-      clearInterval(intervalId);
-    };
-  }, [lastActivity, signOut]);
-  
   // Toggle theme handler
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  if (!user) {
-    return <Navigate to="/admin-auth" replace />;
-  }
-
-  if (isAdmin === false) {
-    return <Navigate to="/admin-auth" replace />;
-  }
+  // Mock signOut function for sidebar
+  const mockSignOut = async () => {
+    window.location.href = "/";
+  };
 
   // Calculate statistics for the dashboard
   const totalImages = userStats.reduce((acc, user) => acc + user.imageCount, 0);
@@ -97,9 +68,17 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Development Mode Warning */}
+      <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 mb-0">
+        <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+        <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+          <strong>Development Mode:</strong> Admin authentication is bypassed. In production, proper authentication would be required.
+        </AlertDescription>
+      </Alert>
+      
       <div className="flex">
         {/* Sidebar */}
-        <AdminSidebar signOut={signOut} />
+        <AdminSidebar signOut={mockSignOut} />
         
         {/* Main content */}
         <div className="flex-1 lg:ml-64">

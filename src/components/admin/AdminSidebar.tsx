@@ -12,7 +12,6 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   Database,
   Clock,
   Shield
@@ -61,7 +60,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Shield className="h-6 w-6 text-primary mr-2" />
-                <h1 className="text-xl font-bold text-gray-800">Admin Portal</h1>
+                <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">Admin Portal</h1>
               </div>
               <Button 
                 variant="ghost" 
@@ -80,7 +79,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <p className="text-sm text-gray-500 mt-1">Logged in as {ADMIN_CREDENTIALS.username}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Dev Mode: {ADMIN_CREDENTIALS.username}</p>
           </>
         )}
       </div>
@@ -124,7 +123,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
           className="w-full"
         >
           <LogOut className={`h-5 w-5 ${collapsed ? "" : "mr-2"}`} />
-          {!collapsed && "Sign Out"}
+          {!collapsed && "Back to Home"}
         </Button>
       </div>
     </>
@@ -137,7 +136,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
         <Button 
           variant="outline" 
           size="icon"
-          className="rounded-full shadow-md bg-white"
+          className="rounded-full shadow-md bg-white dark:bg-gray-800"
           onClick={toggleMobileSidebar}
         >
           <Menu className="h-5 w-5" />
@@ -154,7 +153,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
       
       {/* Desktop sidebar */}
       <div 
-        className={`hidden lg:block bg-white border-r border-gray-200 h-screen ${
+        className={`hidden lg:block bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen ${
           collapsed ? "w-16" : "w-64"
         } fixed transition-all duration-300 z-30`}
       >
@@ -163,7 +162,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
       
       {/* Mobile sidebar */}
       <div 
-        className={`lg:hidden fixed top-0 left-0 w-64 bg-white border-r border-gray-200 h-screen z-50 transform ${
+        className={`lg:hidden fixed top-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen z-50 transform ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300`}
       >
