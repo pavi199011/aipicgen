@@ -1,25 +1,73 @@
 
-import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, LogIn, Shield, AlertCircle } from "lucide-react";
+import { ArrowLeft, LogIn, Shield, AlertCircle, Info } from "lucide-react";
 import { AdminAuthCard } from "@/components/admin/AdminAuthCard";
 import { AdminLoginForm, AdminLoginFormValues } from "@/components/admin/AdminLoginForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
+import { ADMIN_ROUTE, ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
+
+// Rate limiting for admin login attempts
+const RATE_LIMIT = {
+  MAX_ATTEMPTS: 5,
+  LOCKOUT_TIME: 15 * 60 * 1000, // 15 minutes in milliseconds
+};
 
 const AdminAuth = () => {
   const { user, signIn, checkAdminStatus } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [lockoutTimeRemaining, setLockoutTimeRemaining] = useState<number>(0);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Admin credentials - displayed for user convenience
-  const adminEmail = "admin@example.com";
-  const adminPassword = "admin123@#";
+  // Load rate limiting data from localStorage
+  useEffect(() => {
+    const storedAttempts = localStorage.getItem('adminLoginAttempts');
+    const storedLockout = localStorage.getItem('adminLockoutUntil');
+    
+    if (storedAttempts) {
+      setLoginAttempts(parseInt(storedAttempts));
+    }
+    
+    if (storedLockout) {
+      const lockoutTime = parseInt(storedLockout);
+      if (lockoutTime > Date.now()) {
+        setLockoutUntil(lockoutTime);
+      } else {
+        // Lockout period expired, reset
+        localStorage.removeItem('adminLockoutUntil');
+        localStorage.removeItem('adminLoginAttempts');
+        setLoginAttempts(0);
+      }
+    }
+  }, []);
+
+  // Update countdown timer during lockout
+  useEffect(() => {
+    if (!lockoutUntil) return;
+    
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, lockoutUntil - Date.now());
+      setLockoutTimeRemaining(remaining);
+      
+      if (remaining === 0) {
+        clearInterval(interval);
+        setLockoutUntil(null);
+        setLoginAttempts(0);
+        localStorage.removeItem('adminLockoutUntil');
+        localStorage.removeItem('adminLoginAttempts');
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [lockoutUntil]);
 
   // Check if the current user is an admin
   const checkIfAdmin = async (userId: string) => {
@@ -57,7 +105,7 @@ const AdminAuth = () => {
           <CardDescription>You do not have admin privileges.</CardDescription>
         </CardHeader>
         <CardFooter>
-          <Button variant="secondary" onClick={() => window.location.href = "/"}>
+          <Button variant="secondary" onClick={() => navigate("/")}>
             Return to Home
           </Button>
         </CardFooter>
@@ -65,19 +113,37 @@ const AdminAuth = () => {
     </div>;
   }
 
+  // Format the remaining lockout time
+  const formatLockoutTime = (ms: number): string => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   const handleLogin = async (values: AdminLoginFormValues) => {
+    // Check if account is locked out
+    if (lockoutUntil && lockoutUntil > Date.now()) {
+      toast({
+        title: "Account temporarily locked",
+        description: `Too many failed attempts. Please try again in ${formatLockoutTime(lockoutTimeRemaining)}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       console.log("Login attempt with:", { 
         identifier: values.identifier, 
-        password: values.password === adminPassword ? "correct-admin-password" : "incorrect-password"
+        password: values.password === ADMIN_CREDENTIALS.password ? "correct-admin-password" : "incorrect-password"
       });
       
-      // Try to sign in with the provided credentials
-      // For the trigger to work, we need to use admin@example.com
+      // Prepare login email - convert username to email if needed
       const loginEmail = values.identifier.includes('@') 
         ? values.identifier 
-        : (values.identifier === 'admin' ? adminEmail : `${values.identifier}@example.com`);
+        : (values.identifier === ADMIN_CREDENTIALS.username 
+            ? ADMIN_CREDENTIALS.email 
+            : `${values.identifier}@pixelpalette.tech`);
       
       try {
         console.log("Attempting login with email:", loginEmail);
@@ -89,16 +155,41 @@ const AdminAuth = () => {
         console.log("Admin status check:", adminCheck);
         
         if (adminCheck) {
+          // Reset login attempts on successful login
+          localStorage.removeItem('adminLoginAttempts');
+          localStorage.removeItem('adminLockoutUntil');
+          setLoginAttempts(0);
+          
           toast({
             title: "Admin login successful",
-            description: "Accessing admin dashboard...",
+            description: "Accessing admin portal...",
           });
         } else {
+          // User authenticated but not an admin
           throw new Error("User authenticated but not an admin");
         }
       } catch (error: any) {
         console.error("Admin authentication error:", error);
-        throw new Error("Admin authentication failed. Please check your credentials.");
+        
+        // Increment failed login attempts
+        const newAttempts = loginAttempts + 1;
+        setLoginAttempts(newAttempts);
+        localStorage.setItem('adminLoginAttempts', newAttempts.toString());
+        
+        // Check if we should lock the account
+        if (newAttempts >= RATE_LIMIT.MAX_ATTEMPTS) {
+          const lockoutTime = Date.now() + RATE_LIMIT.LOCKOUT_TIME;
+          setLockoutUntil(lockoutTime);
+          localStorage.setItem('adminLockoutUntil', lockoutTime.toString());
+          
+          toast({
+            title: "Account temporarily locked",
+            description: `Too many failed attempts. Please try again in ${formatLockoutTime(RATE_LIMIT.LOCKOUT_TIME)}`,
+            variant: "destructive",
+          });
+        } else {
+          throw new Error("Admin authentication failed. Please check your credentials.");
+        }
       }
     } catch (error: any) {
       console.error("Login error:", error);
@@ -119,7 +210,7 @@ const AdminAuth = () => {
           <div className="flex items-center">
             <Shield className="h-6 w-6 text-primary mr-2" />
             <CardTitle className="text-2xl font-bold">
-              Admin Sign In
+              Admin Portal
             </CardTitle>
           </div>
           <Button variant="ghost" size="icon" onClick={() => window.location.href = "/"}>
@@ -128,26 +219,41 @@ const AdminAuth = () => {
           </Button>
         </div>
         <CardDescription>
-          Enter your admin credentials to access the admin panel
+          Secure access to administration tools
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <Alert className="mb-4 bg-blue-50 border-blue-200">
-          <AlertCircle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-700">
-            <strong>Admin Credentials:</strong><br />
-            Email: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminEmail}</code><br />
-            Password: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminPassword}</code>
-          </AlertDescription>
-        </Alert>
-        <AdminLoginForm onSubmit={handleLogin} loading={loading} />
+        {lockoutUntil && lockoutUntil > Date.now() ? (
+          <Alert className="mb-4 bg-red-50 border-red-200">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-700">
+              <strong>Account temporarily locked</strong><br />
+              Too many failed login attempts. Please try again in {formatLockoutTime(lockoutTimeRemaining)}.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="mb-4 bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-700">
+              <strong>Admin Credentials:</strong><br />
+              Username: <code className="bg-blue-100 px-1 py-0.5 rounded">{ADMIN_CREDENTIALS.username}</code><br />
+              Email: <code className="bg-blue-100 px-1 py-0.5 rounded">{ADMIN_CREDENTIALS.email}</code><br />
+              Password: <code className="bg-blue-100 px-1 py-0.5 rounded">{ADMIN_CREDENTIALS.password}</code>
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        <AdminLoginForm 
+          onSubmit={handleLogin} 
+          loading={loading || (lockoutUntil !== null && lockoutUntil > Date.now())} 
+        />
       </CardContent>
       
       <CardFooter>
         <p className="text-sm text-center text-gray-500 w-full">
           <LogIn className="inline mr-1 h-3 w-3" />
-          Use the credentials shown above to access the admin dashboard
+          Use the credentials shown above to access the admin portal
         </p>
       </CardFooter>
     </AdminAuthCard>
