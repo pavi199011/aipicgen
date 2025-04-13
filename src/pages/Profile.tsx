@@ -52,7 +52,15 @@ const Profile = () => {
           .eq("id", user.id)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching profile:", error);
+          toast({
+            title: "Error fetching profile",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
         
         if (data) {
           setUsername(data.username || "");
