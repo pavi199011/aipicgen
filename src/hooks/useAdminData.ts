@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User, UserStats } from "@/types/admin";
@@ -11,14 +11,8 @@ export function useAdminData(userId: string | undefined) {
   const [loadingStats, setLoadingStats] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (userId) {
-      fetchUsers();
-      fetchUserStats();
-    }
-  }, [userId]);
-
-  const fetchUsers = async () => {
+  // Making these callbacks so they can be dependencies in useEffect
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -26,13 +20,17 @@ export function useAdminData(userId: string | undefined) {
         .select("id, username, created_at");
         
       if (error) {
-        // In development mode, provide sample data if database query fails
         console.warn("Using sample data for development:", error);
-        setUsers([
+        // Sample user data for development
+        const sampleUsers = [
           { id: "user1", username: "demo_user", created_at: "2025-01-15T10:30:00Z", email: "demo@example.com" },
           { id: "user2", username: "test_user", created_at: "2025-02-20T15:45:00Z" },
-          { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z" }
-        ]);
+          { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z" },
+          { id: "user4", username: "alex_dev", created_at: "2025-03-15T14:22:00Z" },
+          { id: "user5", username: "sarah_admin", created_at: "2025-01-05T09:10:00Z" },
+          { id: "user6", username: "james_designer", created_at: "2025-02-10T11:35:00Z" }
+        ];
+        setUsers(sampleUsers);
         return;
       }
       
@@ -50,11 +48,15 @@ export function useAdminData(userId: string | undefined) {
     } catch (error: any) {
       console.error("Error fetching users:", error);
       // Provide sample data in development mode
-      setUsers([
+      const sampleUsers = [
         { id: "user1", username: "demo_user", created_at: "2025-01-15T10:30:00Z", email: "demo@example.com" },
         { id: "user2", username: "test_user", created_at: "2025-02-20T15:45:00Z" },
-        { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z" }
-      ]);
+        { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z" },
+        { id: "user4", username: "alex_dev", created_at: "2025-03-15T14:22:00Z" },
+        { id: "user5", username: "sarah_admin", created_at: "2025-01-05T09:10:00Z" },
+        { id: "user6", username: "james_designer", created_at: "2025-02-10T11:35:00Z" }
+      ];
+      setUsers(sampleUsers);
       
       toast({
         title: "Development Mode",
@@ -64,9 +66,9 @@ export function useAdminData(userId: string | undefined) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, toast]);
 
-  const fetchUserStats = async () => {
+  const fetchUserStats = useCallback(async () => {
     try {
       setLoadingStats(true);
       
@@ -76,13 +78,17 @@ export function useAdminData(userId: string | undefined) {
         .select("id, username");
         
       if (profilesError) {
-        // In development mode, provide sample data if database query fails
         console.warn("Using sample stats data for development:", profilesError);
-        setUserStats([
+        // Sample user stats for development
+        const sampleStats = [
           { id: "user1", username: "demo_user", imageCount: 12, email: "demo@example.com" },
           { id: "user2", username: "test_user", imageCount: 5 },
-          { id: "user3", username: "sample_user", imageCount: 8 }
-        ]);
+          { id: "user3", username: "sample_user", imageCount: 8 },
+          { id: "user4", username: "alex_dev", imageCount: 15 },
+          { id: "user5", username: "sarah_admin", imageCount: 7 },
+          { id: "user6", username: "james_designer", imageCount: 22 }
+        ];
+        setUserStats(sampleStats);
         return;
       }
       
@@ -109,11 +115,15 @@ export function useAdminData(userId: string | undefined) {
     } catch (error: any) {
       console.error("Error fetching user stats:", error);
       // Provide sample data in development mode
-      setUserStats([
+      const sampleStats = [
         { id: "user1", username: "demo_user", imageCount: 12, email: "demo@example.com" },
         { id: "user2", username: "test_user", imageCount: 5 },
-        { id: "user3", username: "sample_user", imageCount: 8 }
-      ]);
+        { id: "user3", username: "sample_user", imageCount: 8 },
+        { id: "user4", username: "alex_dev", imageCount: 15 },
+        { id: "user5", username: "sarah_admin", imageCount: 7 },
+        { id: "user6", username: "james_designer", imageCount: 22 }
+      ];
+      setUserStats(sampleStats);
       
       toast({
         title: "Development Mode",
@@ -123,7 +133,7 @@ export function useAdminData(userId: string | undefined) {
     } finally {
       setLoadingStats(false);
     }
-  };
+  }, [userId, toast]);
 
   const deleteUser = async (userId: string) => {
     try {

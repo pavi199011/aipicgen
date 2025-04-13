@@ -11,7 +11,6 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { UserStatistics } from "@/components/admin/UserStatistics";
 import { AdminManagement } from "@/components/admin/AdminManagement";
 import { useAdminData } from "@/hooks/useAdminData";
-import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
 
 const AdminDashboard = () => {
   const { theme, setTheme } = useTheme();
@@ -20,7 +19,7 @@ const AdminDashboard = () => {
   // Simulate authenticated admin user for development
   const mockAdminUser = {
     id: "admin-user-id",
-    email: ADMIN_CREDENTIALS.email
+    email: "admin@pixelpalette.tech"
   };
   
   // Custom hook for admin data management
@@ -29,13 +28,16 @@ const AdminDashboard = () => {
     userStats,
     loading,
     loadingStats,
-    deleteUser
+    deleteUser,
+    fetchUsers,
+    fetchUserStats
   } = useAdminData(mockAdminUser.id);
   
   // Update theme based on hash
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.slice(1) || "dashboard";
+      // Remove the '#' character if present
+      const hash = window.location.hash.replace('#', '') || "dashboard";
       setCurrentTab(hash);
     };
     
@@ -45,6 +47,12 @@ const AdminDashboard = () => {
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
+
+  // Fetch data when component mounts
+  useEffect(() => {
+    fetchUsers();
+    fetchUserStats();
+  }, [fetchUsers, fetchUserStats]);
   
   // Toggle theme handler
   const toggleTheme = () => {
@@ -78,7 +86,7 @@ const AdminDashboard = () => {
       
       <div className="flex">
         {/* Sidebar */}
-        <AdminSidebar signOut={mockSignOut} />
+        <AdminSidebar signOut={mockSignOut} currentTab={currentTab} />
         
         {/* Main content */}
         <div className="flex-1 lg:ml-64">
@@ -132,7 +140,79 @@ const AdminDashboard = () => {
               
               <TabsContent value="system">
                 <h2 className="text-2xl font-bold mb-6">System Management</h2>
-                <p className="text-muted-foreground">System health monitoring and management features will be implemented here.</p>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                      <h3 className="text-lg font-medium mb-4">System Health</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span>CPU Usage</span>
+                          <span className="text-green-500">12%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Memory Usage</span>
+                          <span className="text-green-500">24%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Disk Space</span>
+                          <span className="text-yellow-500">68%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>API Response Time</span>
+                          <span className="text-green-500">120ms</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                      <h3 className="text-lg font-medium mb-4">Database Status</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span>Connection Status</span>
+                          <span className="text-green-500">Online</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Total Tables</span>
+                          <span>5</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Backup Status</span>
+                          <span className="text-green-500">Latest: Today 03:00 AM</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                    <h3 className="text-lg font-medium mb-4">Service Status</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="border rounded p-3 flex items-center">
+                        <div className="h-3 w-3 rounded-full bg-green-500 mr-3"></div>
+                        <span>Authentication Service</span>
+                      </div>
+                      <div className="border rounded p-3 flex items-center">
+                        <div className="h-3 w-3 rounded-full bg-green-500 mr-3"></div>
+                        <span>Storage Service</span>
+                      </div>
+                      <div className="border rounded p-3 flex items-center">
+                        <div className="h-3 w-3 rounded-full bg-green-500 mr-3"></div>
+                        <span>API Gateway</span>
+                      </div>
+                      <div className="border rounded p-3 flex items-center">
+                        <div className="h-3 w-3 rounded-full bg-green-500 mr-3"></div>
+                        <span>Email Service</span>
+                      </div>
+                      <div className="border rounded p-3 flex items-center">
+                        <div className="h-3 w-3 rounded-full bg-yellow-500 mr-3"></div>
+                        <span>Analytics Service</span>
+                      </div>
+                      <div className="border rounded p-3 flex items-center">
+                        <div className="h-3 w-3 rounded-full bg-green-500 mr-3"></div>
+                        <span>Image Processing</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
               
               <TabsContent value="activity">

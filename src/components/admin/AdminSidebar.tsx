@@ -16,13 +16,13 @@ import {
   Clock,
   Shield
 } from "lucide-react";
-import { ADMIN_CREDENTIALS } from "./AdminConstants";
 
 interface AdminSidebarProps {
   signOut: () => Promise<void>;
+  currentTab: string;
 }
 
-export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
+export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
@@ -36,7 +36,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
   };
   
   const isActiveRoute = (route: string) => {
-    return location.hash === route || location.hash === "" && route === "#dashboard";
+    return currentTab === route;
   };
   
   const navItems = [
@@ -79,7 +79,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Dev Mode: {ADMIN_CREDENTIALS.username}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Admin Mode</p>
           </>
         )}
       </div>
@@ -90,9 +90,17 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
             <TooltipProvider key={item.id} delayDuration={collapsed ? 100 : 1000}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link to={`#${item.id}`} className="block">
+                  <a 
+                    href={`#${item.id}`} 
+                    className="block"
+                    onClick={(e) => {
+                      if (mobileOpen) {
+                        toggleMobileSidebar();
+                      }
+                    }}
+                  >
                     <Button 
-                      variant={isActiveRoute(`#${item.id}`) ? "default" : "ghost"} 
+                      variant={isActiveRoute(item.id) ? "default" : "ghost"} 
                       className={`w-full justify-${collapsed ? "center" : "start"} relative`}
                     >
                       <span className={`${collapsed ? "" : "mr-3"}`}>{item.icon}</span>
@@ -103,7 +111,7 @@ export const AdminSidebar = ({ signOut }: AdminSidebarProps) => {
                         </Badge>
                       )}
                     </Button>
-                  </Link>
+                  </a>
                 </TooltipTrigger>
                 {collapsed && (
                   <TooltipContent side="right">
