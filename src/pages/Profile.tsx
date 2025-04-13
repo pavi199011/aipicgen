@@ -54,9 +54,11 @@ const Profile = () => {
           
         if (error) throw error;
         
-        setUsername(data?.username || "");
-        setPhone(data?.phone || "");
-        setAvatarUrl(data?.avatar_url || null);
+        if (data) {
+          setUsername(data.username || "");
+          setPhone(data.phone || "");
+          setAvatarUrl(data.avatar_url || null);
+        }
       } catch (error: any) {
         console.error("Error fetching profile:", error);
         toast({
