@@ -18,7 +18,6 @@ const AdminAuth = () => {
   const { toast } = useToast();
 
   // Admin credentials - displayed for user convenience
-  const adminUsername = "admin";
   const adminEmail = "admin@example.com";
   const adminPassword = "admin123@#";
 
@@ -74,35 +73,32 @@ const AdminAuth = () => {
         password: values.password === adminPassword ? "correct-admin-password" : "incorrect-password"
       });
       
-      // Check if we're logging in with the fixed admin credentials
-      if ((values.identifier === adminUsername || values.identifier === adminEmail) 
-          && values.password === adminPassword) {
-        console.log("Using admin credentials");
+      // Try to sign in with the provided credentials
+      // For the trigger to work, we need to use admin@example.com
+      const loginEmail = values.identifier.includes('@') 
+        ? values.identifier 
+        : (values.identifier === 'admin' ? adminEmail : `${values.identifier}@example.com`);
+      
+      try {
+        console.log("Attempting login with email:", loginEmail);
+        const result = await signIn(loginEmail, values.password);
+        console.log("Sign in result:", result);
         
-        try {
-          // Always sign in with the admin email
-          const result = await signIn(adminEmail, adminPassword);
-          console.log("Sign in result:", result);
-          
-          // Check admin status immediately after login
-          const adminCheck = await checkAdminStatus();
-          console.log("Admin status check:", adminCheck);
-          
-          if (adminCheck) {
-            toast({
-              title: "Admin login successful",
-              description: "Accessing admin dashboard...",
-            });
-          } else {
-            throw new Error("User authenticated but not an admin");
-          }
-        } catch (error: any) {
-          console.error("Admin authentication error:", error);
-          throw new Error("Admin authentication failed. Please check your credentials.");
+        // Check admin status immediately after login
+        const adminCheck = await checkAdminStatus();
+        console.log("Admin status check:", adminCheck);
+        
+        if (adminCheck) {
+          toast({
+            title: "Admin login successful",
+            description: "Accessing admin dashboard...",
+          });
+        } else {
+          throw new Error("User authenticated but not an admin");
         }
-      } else {
-        console.log("Not using admin credentials - invalid login attempt");
-        throw new Error("Invalid admin credentials");
+      } catch (error: any) {
+        console.error("Admin authentication error:", error);
+        throw new Error("Admin authentication failed. Please check your credentials.");
       }
     } catch (error: any) {
       console.error("Login error:", error);
@@ -141,7 +137,6 @@ const AdminAuth = () => {
           <AlertCircle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-700">
             <strong>Admin Credentials:</strong><br />
-            Username: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminUsername}</code><br />
             Email: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminEmail}</code><br />
             Password: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminPassword}</code>
           </AlertDescription>

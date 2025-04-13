@@ -1,3 +1,4 @@
+
 import { AtSign, Lock } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -23,7 +24,7 @@ export const AdminLoginForm = ({ onSubmit, loading }: AdminLoginFormProps) => {
   const form = useForm<AdminLoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      identifier: "admin",
+      identifier: "admin@example.com",
       password: "admin123@#",
     }
   });
