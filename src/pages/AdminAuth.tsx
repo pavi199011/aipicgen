@@ -74,8 +74,9 @@ const AdminAuth = () => {
     try {
       setLoading(true);
       
-      // For the fixed admin account
-      if (values.email === adminUsername && values.password === adminPassword) {
+      // Check if we're logging in with the fixed admin credentials
+      if ((values.identifier === adminUsername || values.identifier === "admin@example.com") 
+          && values.password === adminPassword) {
         // Sign in with the actual admin account stored in Supabase
         await signIn("admin@example.com", adminPassword);
         
@@ -84,7 +85,22 @@ const AdminAuth = () => {
           description: "Accessing admin dashboard...",
         });
       } else {
-        throw new Error("Invalid admin credentials");
+        // If not using the demo credentials, try regular login
+        try {
+          // Check if identifier is an email
+          const isEmail = values.identifier.includes('@');
+          
+          if (isEmail) {
+            // Try to sign in with email
+            await signIn(values.identifier, values.password);
+          } else {
+            // For username login, we need to handle it differently
+            // For now, just show an error since we're using the hard-coded admin account
+            throw new Error("Invalid admin credentials");
+          }
+        } catch (error: any) {
+          throw new Error("Invalid admin credentials");
+        }
       }
     } catch (error: any) {
       console.error("Login error:", error);

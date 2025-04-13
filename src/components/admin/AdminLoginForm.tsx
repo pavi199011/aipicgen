@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
+// Modified schema to accept both email and username formats
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  identifier: z.string().min(1, "Please enter your username or email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -23,7 +24,7 @@ export const AdminLoginForm = ({ onSubmit, loading }: AdminLoginFormProps) => {
   const form = useForm<AdminLoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
     }
   });
@@ -33,16 +34,15 @@ export const AdminLoginForm = ({ onSubmit, loading }: AdminLoginFormProps) => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="email"
+          name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Username or Email</FormLabel>
               <FormControl>
                 <div className="relative">
                   <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
-                    placeholder="admin@example.com" 
-                    type="email" 
+                    placeholder="admin or admin@example.com" 
                     className="pl-10" 
                     {...field}
                   />
