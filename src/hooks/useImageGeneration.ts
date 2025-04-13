@@ -47,7 +47,7 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
       
       toast({
         title: "Generating image",
-        description: "Your image is being generated. This may take a minute...",
+        description: `Your ${settings.numOutputs > 1 ? `${settings.numOutputs} images are` : "image is"} being generated. This may take a minute...`,
       });
       
       // Call the Supabase Edge Function to generate an image
@@ -76,25 +76,34 @@ export function useImageGeneration(userId: string | undefined, onSuccess: () => 
       }
       
       // The output can be either a string or an array of strings depending on the model
-      const imageUrl = Array.isArray(data.output) ? data.output[0] : data.output;
+      const imageUrls = Array.isArray(data.output) ? data.output : [data.output];
       
-      // Save the generated image to Supabase
-      const { error: insertError } = await supabase
-        .from("generated_images")
-        .insert({
-          prompt,
-          image_url: imageUrl,
-          model: data.note?.includes("fallback") ? "flux" : model, // Record the actual model used
-          user_id: userId,
-        });
-        
-      if (insertError) throw insertError;
+      // Save each generated image to Supabase
+      const insertPromises = imageUrls.map(imageUrl => {
+        return supabase
+          .from("generated_images")
+          .insert({
+            prompt,
+            image_url: imageUrl,
+            model: data.note?.includes("fallback") ? "flux" : model, // Record the actual model used
+            user_id: userId,
+          });
+      });
+      
+      const results = await Promise.all(insertPromises);
+      
+      // Check if any insertions failed
+      const insertErrors = results.filter(result => result.error);
+      if (insertErrors.length > 0) {
+        console.error("Some images failed to save:", insertErrors);
+        throw new Error("Some images could not be saved. Please try again.");
+      }
       
       await onSuccess();
       
       toast({
         title: "Success",
-        description: "Image generated successfully!",
+        description: `${imageUrls.length > 1 ? `${imageUrls.length} images` : "Image"} generated successfully!`,
       });
     } catch (error: any) {
       console.error("Generation error:", error);

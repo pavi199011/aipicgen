@@ -5,10 +5,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, LogIn, Shield } from "lucide-react";
+import { ArrowLeft, LogIn, Shield, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminAuthCard } from "@/components/admin/AdminAuthCard";
 import { AdminLoginForm, AdminLoginFormValues } from "@/components/admin/AdminLoginForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+// Import the ADMIN_ROUTE constant
 import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 
 const AdminAuth = () => {
@@ -16,6 +19,10 @@ const AdminAuth = () => {
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const { toast } = useToast();
+
+  // Admin credentials - displayed for user convenience
+  const adminUsername = "admin";
+  const adminPassword = "admin123@#";
 
   // Check if the current user is an admin
   const checkIfAdmin = async (userId: string) => {
@@ -68,9 +75,9 @@ const AdminAuth = () => {
       setLoading(true);
       
       // For the fixed admin account
-      if (values.email === "admin" && values.password === "admin123@#") {
+      if (values.email === adminUsername && values.password === adminPassword) {
         // Sign in with the actual admin account stored in Supabase
-        await signIn("admin@example.com", "admin123@#");
+        await signIn("admin@example.com", adminPassword);
         
         toast({
           title: "Admin login successful",
@@ -112,13 +119,21 @@ const AdminAuth = () => {
       </CardHeader>
       
       <CardContent>
+        <Alert className="mb-4 bg-blue-50 border-blue-200">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-700">
+            <strong>Admin Credentials:</strong><br />
+            Username: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminUsername}</code><br />
+            Password: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminPassword}</code>
+          </AlertDescription>
+        </Alert>
         <AdminLoginForm onSubmit={handleLogin} loading={loading} />
       </CardContent>
       
       <CardFooter>
         <p className="text-sm text-center text-gray-500 w-full">
           <LogIn className="inline mr-1 h-3 w-3" />
-          Use username: "admin" and password: "admin123@#"
+          Use the credentials shown above to access the admin dashboard
         </p>
       </CardFooter>
     </AdminAuthCard>

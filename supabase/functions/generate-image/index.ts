@@ -45,8 +45,8 @@ serve(async (req) => {
 
     // Process aspect ratio
     const aspectRatio = body.aspectRatio || "1:1"
-    const numOutputs = body.numOutputs || 1
-    const inferenceSteps = body.inferenceSteps || 4
+    const numOutputs = parseInt(body.numOutputs) || 1
+    const inferenceSteps = parseInt(body.inferenceSteps) || 4
 
     // Use the Flux model as the primary and most reliable option
     modelId = "black-forest-labs/flux-schnell"
@@ -62,10 +62,11 @@ serve(async (req) => {
       num_inference_steps: inferenceSteps
     }
 
+    console.log("Starting generation with settings:", JSON.stringify(modelConfig));
+
     // Run the model with better error handling
     try {
       console.log("Starting generation with model:", modelId);
-      console.log("Using settings:", JSON.stringify(modelConfig));
       
       const output = await replicate.run(modelId, {
         input: modelConfig
