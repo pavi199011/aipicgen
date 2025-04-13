@@ -1,11 +1,11 @@
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileContent from "@/components/profile/ProfileContent";
 
 const Profile = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   
   // If user is not authenticated, redirect to auth page
   if (!user) {
@@ -14,7 +14,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader user={user} signOut={signOut} />
+      <ProfileHeader />
       <ProfileContent user={user} />
     </div>
   );
