@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 // Modified schema to accept both email and username formats
 const loginSchema = z.object({
   identifier: z.string().min(1, "Please enter your username or email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export type AdminLoginFormValues = z.infer<typeof loginSchema>;

@@ -1,17 +1,15 @@
 
-import { AtSign, Lock, LogIn } from "lucide-react";
+import { AtSign, Lock } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Please enter your email or username"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;

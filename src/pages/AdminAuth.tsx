@@ -6,16 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LogIn, Shield, AlertCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { AdminAuthCard } from "@/components/admin/AdminAuthCard";
 import { AdminLoginForm, AdminLoginFormValues } from "@/components/admin/AdminLoginForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-// Import the ADMIN_ROUTE constant
 import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 
 const AdminAuth = () => {
-  const { user, signIn } = useAuth();
+  const { user, signIn, checkAdminStatus } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const { toast } = useToast();
@@ -27,12 +24,10 @@ const AdminAuth = () => {
   // Check if the current user is an admin
   const checkIfAdmin = async (userId: string) => {
     try {
-      const { data, error } = await supabase.rpc('is_admin');
-      
-      if (error) throw error;
-      
-      setIsAdmin(!!data);
-      return !!data;
+      const isUserAdmin = await checkAdminStatus();
+      console.log("Admin status check result:", isUserAdmin);
+      setIsAdmin(isUserAdmin);
+      return isUserAdmin;
     } catch (error) {
       console.error("Error checking admin status:", error);
       setIsAdmin(false);
@@ -73,34 +68,40 @@ const AdminAuth = () => {
   const handleLogin = async (values: AdminLoginFormValues) => {
     try {
       setLoading(true);
+      console.log("Login attempt with:", { 
+        identifier: values.identifier, 
+        password: values.password === adminPassword ? "correct-admin-password" : "incorrect-password"
+      });
       
       // Check if we're logging in with the fixed admin credentials
       if ((values.identifier === adminUsername || values.identifier === "admin@example.com") 
           && values.password === adminPassword) {
-        // Sign in with the actual admin account stored in Supabase
-        await signIn("admin@example.com", adminPassword);
+        console.log("Using admin credentials");
         
-        toast({
-          title: "Admin login successful",
-          description: "Accessing admin dashboard...",
-        });
-      } else {
-        // If not using the demo credentials, try regular login
         try {
-          // Check if identifier is an email
-          const isEmail = values.identifier.includes('@');
+          // Sign in with the admin email
+          const result = await signIn("admin@example.com", adminPassword);
+          console.log("Sign in result:", result);
           
-          if (isEmail) {
-            // Try to sign in with email
-            await signIn(values.identifier, values.password);
+          // Check admin status immediately after login
+          const adminCheck = await checkAdminStatus();
+          console.log("Admin status check:", adminCheck);
+          
+          if (adminCheck) {
+            toast({
+              title: "Admin login successful",
+              description: "Accessing admin dashboard...",
+            });
           } else {
-            // For username login, we need to handle it differently
-            // For now, just show an error since we're using the hard-coded admin account
-            throw new Error("Invalid admin credentials");
+            throw new Error("User authenticated but not an admin");
           }
         } catch (error: any) {
-          throw new Error("Invalid admin credentials");
+          console.error("Admin authentication error:", error);
+          throw new Error("Admin authentication failed");
         }
+      } else {
+        console.log("Not using admin credentials - invalid login attempt");
+        throw new Error("Invalid admin credentials");
       }
     } catch (error: any) {
       console.error("Login error:", error);

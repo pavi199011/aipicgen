@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { LoginForm, LoginFormValues } from "@/components/auth/LoginForm";
 import { RegisterForm, RegisterFormValues } from "@/components/auth/RegisterForm";
 import { AuthCard } from "@/components/auth/AuthCard";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const { user, signIn, signUp } = useAuth();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
@@ -22,6 +24,7 @@ const Auth = () => {
   const handleLogin = async (values: LoginFormValues) => {
     try {
       setLoading(true);
+      console.log("Login attempt with:", { identifier: values.identifier });
       
       // Check if the identifier is an email
       const isEmail = values.identifier.includes('@');
@@ -34,8 +37,13 @@ const Auth = () => {
         // Note: This is a simplified approach. In a real app, you'd query for the user's email first
         await signIn(`${values.identifier}@example.com`, values.password);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: error.message || "Please check your credentials and try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -47,10 +55,19 @@ const Auth = () => {
       const result = await signUp(values.email, values.password);
       
       if (!result.error) {
+        toast({
+          title: "Registration successful",
+          description: "Your account has been created successfully.",
+        });
         setActiveTab("login");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
+      toast({
+        title: "Registration failed",
+        description: error.message || "Please try again with different credentials.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
