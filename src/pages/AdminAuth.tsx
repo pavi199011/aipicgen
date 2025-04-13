@@ -80,7 +80,7 @@ const AdminAuth = () => {
         console.log("Using admin credentials");
         
         try {
-          // Sign in with the admin email
+          // Always sign in with the admin email
           const result = await signIn(adminEmail, adminPassword);
           console.log("Sign in result:", result);
           
@@ -98,7 +98,7 @@ const AdminAuth = () => {
           }
         } catch (error: any) {
           console.error("Admin authentication error:", error);
-          throw new Error("Admin authentication failed");
+          throw new Error("Admin authentication failed. Please check your credentials.");
         }
       } else {
         console.log("Not using admin credentials - invalid login attempt");
