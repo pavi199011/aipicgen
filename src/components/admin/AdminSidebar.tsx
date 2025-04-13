@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ interface AdminSidebarProps {
 export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
+  const navigate = useNavigate();
   
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
@@ -90,28 +90,24 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
             <TooltipProvider key={item.id} delayDuration={collapsed ? 100 : 1000}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <a 
-                    href={`#${item.id}`} 
-                    className="block"
-                    onClick={(e) => {
+                  <Button 
+                    variant={isActiveRoute(item.id) ? "default" : "ghost"} 
+                    className={`w-full justify-${collapsed ? "center" : "start"} relative`}
+                    onClick={() => {
+                      navigate(`/admin-portal#${item.id}`);
                       if (mobileOpen) {
                         toggleMobileSidebar();
                       }
                     }}
                   >
-                    <Button 
-                      variant={isActiveRoute(item.id) ? "default" : "ghost"} 
-                      className={`w-full justify-${collapsed ? "center" : "start"} relative`}
-                    >
-                      <span className={`${collapsed ? "" : "mr-3"}`}>{item.icon}</span>
-                      {!collapsed && <span>{item.label}</span>}
-                      {item.notifications > 0 && (
-                        <Badge variant="destructive" className={`${collapsed ? "absolute top-1 right-1" : "ml-auto"}`}>
-                          {item.notifications}
-                        </Badge>
-                      )}
-                    </Button>
-                  </a>
+                    <span className={`${collapsed ? "" : "mr-3"}`}>{item.icon}</span>
+                    {!collapsed && <span>{item.label}</span>}
+                    {item.notifications > 0 && (
+                      <Badge variant="destructive" className={`${collapsed ? "absolute top-1 right-1" : "ml-auto"}`}>
+                        {item.notifications}
+                      </Badge>
+                    )}
+                  </Button>
                 </TooltipTrigger>
                 {collapsed && (
                   <TooltipContent side="right">

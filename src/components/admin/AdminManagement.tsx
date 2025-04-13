@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,29 +9,60 @@ import { Lock, UserPlus, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface AdminManagementProps {
-  // This is a simplified version - in a real app, you'd fetch actual admin users
   currentAdmins: { id: string; email: string; }[];
+  onAddAdmin?: (email: string, password: string) => Promise<void>;
 }
 
-export function AdminManagement({ currentAdmins }: AdminManagementProps) {
+export function AdminManagement({ currentAdmins, onAddAdmin }: AdminManagementProps) {
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [admins, setAdmins] = useState(currentAdmins);
   const { toast } = useToast();
 
-  const handleAddAdmin = () => {
-    // In a real app, this would create a new admin user in the database
-    toast({
-      title: "Admin Added",
-      description: `Added ${newAdminEmail} as an admin.`,
-    });
-    
-    // Reset form
-    setNewAdminEmail("");
-    setNewAdminPassword("");
+  // Update admins when currentAdmins changes
+  useEffect(() => {
+    setAdmins(currentAdmins);
+  }, [currentAdmins]);
+
+  const handleAddAdmin = async () => {
+    try {
+      if (onAddAdmin) {
+        await onAddAdmin(newAdminEmail, newAdminPassword);
+        
+        // Add the new admin to the local state
+        setAdmins([...admins, { id: Date.now().toString(), email: newAdminEmail }]);
+        
+        toast({
+          title: "Admin Added",
+          description: `Added ${newAdminEmail} as an admin.`,
+        });
+      } else {
+        // For development only
+        setAdmins([...admins, { id: Date.now().toString(), email: newAdminEmail }]);
+        
+        toast({
+          title: "Development Mode",
+          description: `Simulated adding ${newAdminEmail} as an admin.`,
+        });
+      }
+      
+      // Reset form
+      setNewAdminEmail("");
+      setNewAdminPassword("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add admin. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRemoveAdmin = (adminId: string, adminEmail: string) => {
     // In a real app, this would remove admin privileges
+    // For now, just update the local state
+    setAdmins(admins.filter(admin => admin.id !== adminId));
+    
     toast({
       title: "Admin Removed",
       description: `Removed admin privileges from ${adminEmail}.`,
@@ -63,23 +94,31 @@ export function AdminManagement({ currentAdmins }: AdminManagementProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentAdmins.map((admin) => (
-                <TableRow key={admin.id}>
-                  <TableCell>{admin.email}</TableCell>
-                  <TableCell>
-                    {admin.email !== "admin@example.com" && (
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => handleRemoveAdmin(admin.id, admin.email)}
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Remove
-                      </Button>
-                    )}
+              {admins.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
+                    No admins found
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                admins.map((admin) => (
+                  <TableRow key={admin.id}>
+                    <TableCell>{admin.email}</TableCell>
+                    <TableCell>
+                      {admin.email !== "admin@pixelpalette.tech" && (
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => handleRemoveAdmin(admin.id, admin.email)}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

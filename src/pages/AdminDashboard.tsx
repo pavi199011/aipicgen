@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -11,10 +12,14 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { UserStatistics } from "@/components/admin/UserStatistics";
 import { AdminManagement } from "@/components/admin/AdminManagement";
 import { useAdminData } from "@/hooks/useAdminData";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
   const { theme, setTheme } = useTheme();
   const [currentTab, setCurrentTab] = useState("dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
   
   // Simulate authenticated admin user for development
   const mockAdminUser = {
@@ -30,14 +35,15 @@ const AdminDashboard = () => {
     loadingStats,
     deleteUser,
     fetchUsers,
-    fetchUserStats
+    fetchUserStats,
+    addAdmin
   } = useAdminData(mockAdminUser.id);
   
   // Update theme based on hash
   useEffect(() => {
     const handleHashChange = () => {
       // Remove the '#' character if present
-      const hash = window.location.hash.replace('#', '') || "dashboard";
+      const hash = location.hash.replace('#', '') || "dashboard";
       setCurrentTab(hash);
     };
     
@@ -46,7 +52,7 @@ const AdminDashboard = () => {
     
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
+  }, [location.hash]);
 
   // Fetch data when component mounts
   useEffect(() => {
@@ -61,7 +67,22 @@ const AdminDashboard = () => {
 
   // Mock signOut function for sidebar
   const mockSignOut = async () => {
-    window.location.href = "/";
+    navigate("/");
+  };
+
+  // Function to handle profile, settings and logout from header
+  const handleHeaderAction = (action: string) => {
+    if (action === "profile") {
+      toast({
+        title: "Profile",
+        description: "Profile functionality will be implemented soon.",
+      });
+    } else if (action === "settings") {
+      setCurrentTab("settings");
+      navigate("/admin-portal#settings");
+    } else if (action === "logout") {
+      mockSignOut();
+    }
   };
 
   // Calculate statistics for the dashboard
@@ -94,13 +115,14 @@ const AdminDashboard = () => {
           <DashboardHeader 
             toggleTheme={toggleTheme} 
             isDarkMode={theme === "dark"} 
+            onAction={handleHeaderAction}
           />
           
           {/* Content area */}
           <div className="p-6">
             <Tabs defaultValue={currentTab} value={currentTab} onValueChange={(value) => {
               setCurrentTab(value);
-              window.location.hash = value;
+              navigate(`/admin-portal#${value}`);
             }}>
               <TabsList className="mb-6">
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -223,6 +245,7 @@ const AdminDashboard = () => {
               <TabsContent value="settings">
                 <AdminManagement 
                   currentAdmins={currentAdmins}
+                  onAddAdmin={addAdmin}
                 />
               </TabsContent>
             </Tabs>

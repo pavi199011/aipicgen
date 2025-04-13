@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ADMIN_CREDENTIALS } from "./AdminConstants";
 
 interface DashboardHeaderProps {
   toggleTheme: () => void;
   isDarkMode: boolean;
+  onAction?: (action: string) => void;
 }
 
-export const DashboardHeader = ({ toggleTheme, isDarkMode }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ toggleTheme, isDarkMode, onAction }: DashboardHeaderProps) => {
   const [notifications] = useState(4);
   
   return (
@@ -94,18 +94,18 @@ export const DashboardHeader = ({ toggleTheme, isDarkMode }: DashboardHeaderProp
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="font-medium text-sm">Admin</p>
-                <p className="text-xs text-muted-foreground">{ADMIN_CREDENTIALS.email}</p>
+                <p className="text-xs text-muted-foreground">admin@pixelpalette.tech</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAction?.("profile")}>
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAction?.("settings")}>
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAction?.("logout")}>
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
