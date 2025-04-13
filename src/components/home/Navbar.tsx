@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Info } from "lucide-react";
 
 const Navbar = () => {
   const { user } = useAuth();
@@ -25,17 +24,10 @@ const Navbar = () => {
       isScrolled ? "bg-white shadow-sm border-b border-gray-200" : "bg-transparent"
     }`}>
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center">
           <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
             PixelPalette
           </h1>
-          <Link 
-            to="#how-it-works" 
-            className="flex items-center text-gray-700 hover:text-purple-600 transition-colors"
-          >
-            <Info className="w-4 h-4 mr-1" />
-            <span>How It Works</span>
-          </Link>
         </div>
         <div className="flex items-center space-x-4">
           {user ? (

@@ -46,15 +46,8 @@ const ImageCard = ({ imageUrl, prompt, model, createdAt }: ImageCardProps) => {
       a.style.display = "none";
       a.href = url;
       
-      // Extract filename from the URL or create one based on date
-      let filename = `ai-image-${new Date().toISOString().slice(0, 10)}.png`;
-      if (imageUrl.includes("/")) {
-        const urlParts = imageUrl.split("/");
-        const potentialFilename = urlParts[urlParts.length - 1];
-        if (potentialFilename.includes(".")) {
-          filename = potentialFilename;
-        }
-      }
+      // Always use .jpg extension for downloads
+      const filename = `ai-image-${new Date().toISOString().slice(0, 10)}.jpg`;
       
       a.download = filename;
       document.body.appendChild(a);
