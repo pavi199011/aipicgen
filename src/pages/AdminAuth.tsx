@@ -19,6 +19,7 @@ const AdminAuth = () => {
 
   // Admin credentials - displayed for user convenience
   const adminUsername = "admin";
+  const adminEmail = "admin@example.com";
   const adminPassword = "admin123@#";
 
   // Check if the current user is an admin
@@ -74,13 +75,13 @@ const AdminAuth = () => {
       });
       
       // Check if we're logging in with the fixed admin credentials
-      if ((values.identifier === adminUsername || values.identifier === "admin@example.com") 
+      if ((values.identifier === adminUsername || values.identifier === adminEmail) 
           && values.password === adminPassword) {
         console.log("Using admin credentials");
         
         try {
           // Sign in with the admin email
-          const result = await signIn("admin@example.com", adminPassword);
+          const result = await signIn(adminEmail, adminPassword);
           console.log("Sign in result:", result);
           
           // Check admin status immediately after login
@@ -141,6 +142,7 @@ const AdminAuth = () => {
           <AlertDescription className="text-blue-700">
             <strong>Admin Credentials:</strong><br />
             Username: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminUsername}</code><br />
+            Email: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminEmail}</code><br />
             Password: <code className="bg-blue-100 px-1 py-0.5 rounded">{adminPassword}</code>
           </AlertDescription>
         </Alert>

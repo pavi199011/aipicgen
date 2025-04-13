@@ -24,8 +24,8 @@ export const AdminLoginForm = ({ onSubmit, loading }: AdminLoginFormProps) => {
   const form = useForm<AdminLoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      identifier: "",
-      password: "",
+      identifier: "admin",
+      password: "admin123@#",
     }
   });
 
