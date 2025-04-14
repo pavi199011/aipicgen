@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -5,8 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortDirection, SortField, User, UserFilterState, UserSortState, UserStats } from "@/types/admin";
-import { ArrowUpDown, Trash2 } from "lucide-react";
+import { ArrowUpDown, Trash2, Users } from "lucide-react";
 import { UserDetailView } from "./UserDetailView";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface UserManagementProps {
   users: User[];
@@ -32,6 +41,8 @@ export const UserManagement = ({
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [detailViewOpen, setDetailViewOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   console.log("UserManagement rendering with users:", users);
 
@@ -47,6 +58,7 @@ export const UserManagement = ({
       ...filterState,
       [field]: value
     });
+    setCurrentPage(1); // Reset to first page when filtering
   };
 
   const openUserDetail = (user: User) => {
@@ -84,9 +96,68 @@ export const UserManagement = ({
     }
   });
 
+  // Get current page data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+
   const getSortIcon = (field: SortField) => {
     if (sortState.field !== field) return null;
     return <ArrowUpDown className={`ml-1 h-4 w-4 ${sortState.direction === "asc" ? "rotate-0" : "rotate-180"}`} />;
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const renderPagination = () => {
+    if (sortedUsers.length <= itemsPerPage) return null;
+    
+    return (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+          
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            // Show pages around current page
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+            
+            return (
+              <PaginationItem key={pageNum}>
+                <PaginationLink 
+                  isActive={pageNum === currentPage}
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </PaginationLink>
+              </PaginationItem>
+            );
+          })}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
   };
 
   return (
@@ -143,14 +214,19 @@ export const UserManagement = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedUsers.length === 0 ? (
+                  {currentUsers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                        No users match your filters
+                        <div className="flex flex-col items-center">
+                          <Users className="h-8 w-8 text-gray-300 mb-2" />
+                          {filteredUsers.length === 0 ? 
+                            "No users match your filters" : 
+                            "No users on this page"}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    sortedUsers.map((user) => (
+                    currentUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>
                           <button 
@@ -178,8 +254,12 @@ export const UserManagement = ({
               </Table>
             </CardContent>
           </Card>
+          
+          {renderPagination()}
+          
           <div className="text-sm text-muted-foreground">
-            Showing {sortedUsers.length} of {users.length} users
+            Showing {currentUsers.length > 0 ? `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, sortedUsers.length)}` : "0"} of {sortedUsers.length} users
+            {users.length !== sortedUsers.length && ` (filtered from ${users.length})`}
           </div>
         </div>
       )}
