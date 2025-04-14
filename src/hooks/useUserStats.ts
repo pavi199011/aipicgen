@@ -13,6 +13,7 @@ export function useUserStats(userId: string | undefined) {
     try {
       setLoadingStats(true);
       
+      // Fetch all profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username");
@@ -38,10 +39,13 @@ export function useUserStats(userId: string | undefined) {
           };
         }
         
+        // Try to get email from auth - this is only for admin display purposes
+        const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
+        
         return {
           id: profile.id,
-          username: profile.username,
-          email: profile.id === userId ? userId : undefined,
+          username: profile.username || 'No Username',
+          email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
           imageCount: count || 0,
         };
       });

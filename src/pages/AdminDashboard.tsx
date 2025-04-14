@@ -67,9 +67,10 @@ const AdminDashboard = () => {
     }
   };
 
-  const currentAdmins = [
-    { id: '1', email: 'admin@example.com' }
-  ];
+  // Use the actual admin data from the database
+  const currentAdmins = users.filter(user => 
+    user.email?.includes("admin") || user.username?.toLowerCase().includes("admin")
+  );
 
   // Show loading state while authentication is being checked
   if (isLoading || authLoading) {

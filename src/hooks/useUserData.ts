@@ -15,7 +15,7 @@ export function useUserData(userId: string | undefined) {
       setLoading(true);
       console.log("Fetching users...");
       
-      // Fetch users from profiles table
+      // Fetch auth users with profiles joined
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, created_at");
@@ -25,15 +25,20 @@ export function useUserData(userId: string | undefined) {
         throw profilesError;
       }
       
-      // Map profiles to users
-      const enhancedUsers = profiles.map(profile => {
-        return {
-          id: profile.id,
-          username: profile.username || 'No Username',
-          created_at: profile.created_at,
-          email: `${profile.username || 'user'}@example.com` // Placeholder for email
-        };
-      });
+      // Map profiles to users with auth information
+      const enhancedUsers = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          // Try to get email from auth - this is only for admin display purposes
+          const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
+          
+          return {
+            id: profile.id,
+            username: profile.username || 'No Username',
+            created_at: profile.created_at,
+            email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
+          };
+        })
+      );
       
       console.log("Users data fetched:", enhancedUsers);
       setUsers(enhancedUsers);
@@ -59,12 +64,17 @@ export function useUserData(userId: string | undefined) {
         .eq("user_id", userId);
         
       // Then delete the profile
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from("profiles")
         .delete()
         .eq("id", userId);
       
-      if (error) throw error;
+      if (profileError) throw profileError;
+      
+      // Finally delete the auth user
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      
+      if (authError) throw authError;
       
       toast({
         title: "Success",
@@ -88,17 +98,31 @@ export function useUserData(userId: string | undefined) {
   const createUser = async ({ email, username, password }: { email: string, username: string, password: string }) => {
     try {
       // Create the user with Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.admin.createUser({
         email,
         password,
-        options: {
-          data: {
-            username
-          }
-        }
+        email_confirm: true,
+        user_metadata: { username }
       });
       
       if (error) throw error;
+      
+      // Ensure the profile exists and has the correct username
+      // This is a fallback in case the trigger doesn't work
+      if (data?.user) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .upsert({ 
+            id: data.user.id, 
+            username: username,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+          
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+          // Don't throw here, as the user is already created
+        }
+      }
       
       toast({
         title: "User Created",

@@ -19,23 +19,77 @@ export function useAdminRealtime() {
       .channel('admin-dashboard-changes')
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
-        (payload) => {
+        async (payload) => {
           console.log('Profile change received:', payload);
           
           // Handle different event types
           if (payload.eventType === 'INSERT') {
-            setRealtimeUsers(prev => [...prev, mapProfileToUser(payload.new)]);
+            // Get email from auth for new user
+            const { data: authData } = await supabase.auth.admin.getUserById(payload.new.id);
+            
+            const newUser = {
+              id: payload.new.id,
+              username: payload.new.username || 'No Username',
+              created_at: payload.new.created_at,
+              email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
+            };
+            
+            setRealtimeUsers(prev => [...prev, newUser]);
+            
+            // Also update stats
+            const { count } = await supabase
+              .from("generated_images")
+              .select("id", { count: "exact" })
+              .eq("user_id", payload.new.id);
+              
+            const newStat = {
+              id: payload.new.id,
+              username: payload.new.username || 'No Username',
+              email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
+              imageCount: count || 0,
+            };
+            
+            setRealtimeStats(prev => [...prev, newStat]);
+            
             toast({
               title: 'New User',
               description: `User ${payload.new.username || 'Unknown'} has joined.`,
             });
           } else if (payload.eventType === 'UPDATE') {
+            // Get email from auth for updated user
+            const { data: authData } = await supabase.auth.admin.getUserById(payload.new.id);
+            
+            const updatedUser = {
+              id: payload.new.id,
+              username: payload.new.username || 'No Username',
+              created_at: payload.new.created_at,
+              email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
+            };
+            
             setRealtimeUsers(prev => 
-              prev.map(user => user.id === payload.new.id ? mapProfileToUser(payload.new) : user)
+              prev.map(user => user.id === payload.new.id ? updatedUser : user)
+            );
+            
+            // Also update stats
+            setRealtimeStats(prev => 
+              prev.map(stat => {
+                if (stat.id === payload.new.id) {
+                  return {
+                    ...stat,
+                    username: payload.new.username || 'No Username',
+                    email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
+                  };
+                }
+                return stat;
+              })
             );
           } else if (payload.eventType === 'DELETE') {
             setRealtimeUsers(prev => 
               prev.filter(user => user.id !== payload.old.id)
+            );
+            
+            setRealtimeStats(prev => 
+              prev.filter(stat => stat.id !== payload.old.id)
             );
           }
         }
@@ -55,6 +109,11 @@ export function useAdminRealtime() {
       .subscribe(status => {
         console.log('Realtime subscription status:', status);
         setIsSubscribed(status === 'SUBSCRIBED');
+        
+        if (status === 'SUBSCRIBED') {
+          // Immediately fetch data when subscription is active
+          fetchUserStats();
+        }
       });
     
     // Cleanup function to remove the channel
@@ -62,16 +121,6 @@ export function useAdminRealtime() {
       supabase.removeChannel(channel);
     };
   }, [toast]);
-
-  // Helper function to map a profile to a user
-  const mapProfileToUser = (profile: any): User => {
-    return {
-      id: profile.id,
-      username: profile.username || 'No Username',
-      created_at: profile.created_at,
-      email: profile.email
-    };
-  };
 
   // Function to fetch user stats
   const fetchUserStats = async () => {
@@ -83,7 +132,22 @@ export function useAdminRealtime() {
       
       if (profilesError) throw profilesError;
       
-      // Fetch image counts for each profile
+      // Fetch image counts for each profile and build users data
+      const usersPromises = (profiles || []).map(async (profile) => {
+        const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
+        
+        return {
+          id: profile.id,
+          username: profile.username || 'No Username', 
+          email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
+          created_at: profile.created_at || new Date().toISOString(),
+        };
+      });
+      
+      const users = await Promise.all(usersPromises);
+      setRealtimeUsers(users);
+      
+      // Fetch image counts for each profile and build stats
       const statsPromises = (profiles || []).map(async (profile) => {
         const { count, error } = await supabase
           .from('generated_images')
@@ -94,14 +158,17 @@ export function useAdminRealtime() {
           console.error('Error fetching image count:', error);
           return {
             id: profile.id,
-            username: profile.username,
+            username: profile.username || 'No Username',
             imageCount: 0
           };
         }
         
+        const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
+        
         return {
           id: profile.id,
-          username: profile.username,
+          username: profile.username || 'No Username',
+          email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
           imageCount: count || 0
         };
       });
