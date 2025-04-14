@@ -78,14 +78,7 @@ const HeroSection = ({ aiGeneratedImages }: HeroSectionProps) => {
               </Button>
             )}
             
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="text-md border-white text-white hover:bg-white/10"
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              See How It Works
-            </Button>
+            
           </motion.div>
         </div>
         
