@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard,
   Users,
@@ -41,12 +40,12 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
   };
   
   const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" />, notifications: 0 },
-    { id: "users", label: "Users", icon: <Users className="h-5 w-5" />, notifications: 3 },
-    { id: "statistics", label: "Statistics", icon: <BarChart className="h-5 w-5" />, notifications: 0 },
-    { id: "system", label: "System", icon: <Database className="h-5 w-5" />, notifications: 1 },
-    { id: "activity", label: "Activity Log", icon: <Clock className="h-5 w-5" />, notifications: 0 },
-    { id: "settings", label: "Settings", icon: <Settings className="h-5 w-5" />, notifications: 0 },
+    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
+    { id: "users", label: "Users", icon: <Users className="h-5 w-5" /> },
+    { id: "statistics", label: "Statistics", icon: <BarChart className="h-5 w-5" /> },
+    { id: "system", label: "System", icon: <Database className="h-5 w-5" /> },
+    { id: "activity", label: "Activity Log", icon: <Clock className="h-5 w-5" /> },
+    { id: "settings", label: "Settings", icon: <Settings className="h-5 w-5" /> },
   ];
   
   const sidebarContent = (
@@ -103,11 +102,6 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
                   >
                     <span className={`${collapsed ? "" : "mr-3"}`}>{item.icon}</span>
                     {!collapsed && <span>{item.label}</span>}
-                    {item.notifications > 0 && (
-                      <Badge variant="destructive" className={`${collapsed ? "absolute top-1 right-1" : "ml-auto"}`}>
-                        {item.notifications}
-                      </Badge>
-                    )}
                   </Button>
                 </TooltipTrigger>
                 {collapsed && (

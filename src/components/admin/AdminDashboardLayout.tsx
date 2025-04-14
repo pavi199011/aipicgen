@@ -1,6 +1,5 @@
 
 import { ReactNode } from "react";
-import { DevelopmentModeAlert } from "@/components/admin/DevelopmentModeAlert";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { cn } from "@/lib/utils";
@@ -24,8 +23,6 @@ export const AdminDashboardLayout = ({
 }: AdminDashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <DevelopmentModeAlert />
-      
       <div className="flex">
         <AdminSidebar signOut={signOut} currentTab={currentTab} />
         

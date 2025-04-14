@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Bell, Search, Moon, Sun, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface DashboardHeaderProps {
@@ -13,8 +12,6 @@ interface DashboardHeaderProps {
 }
 
 export const DashboardHeader = ({ toggleTheme, isDarkMode, onAction }: DashboardHeaderProps) => {
-  const [notifications] = useState(4);
-  
   // Handler for header actions
   const handleAction = (action: string) => {
     if (onAction) {
@@ -52,14 +49,6 @@ export const DashboardHeader = ({ toggleTheme, isDarkMode, onAction }: Dashboard
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <Bell className="h-4 w-4" />
-                {notifications > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
-                  >
-                    {notifications}
-                  </Badge>
-                )}
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-72">
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>

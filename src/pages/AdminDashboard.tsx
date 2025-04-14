@@ -2,12 +2,14 @@
 import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminDashboardData } from "@/hooks/useAdminDashboardData";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { AdminDashboardLayout } from "@/components/admin/AdminDashboardLayout";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { AdminDashboardLoading } from "@/components/admin/AdminDashboardLoading";
 import { AdminRedirectLoader } from "@/components/admin/AdminRedirectLoader";
 import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const AdminDashboard = () => {
   const { theme, setTheme } = useTheme();
@@ -30,6 +32,23 @@ const AdminDashboard = () => {
     createUser,
     handleSignOut,
   } = useAdminDashboardData();
+  
+  // Set up real-time updates
+  const { realtimeUsers, realtimeStats, isSubscribed } = useAdminRealtime();
+  
+  // Use real-time data when available
+  const displayUsers = realtimeUsers.length > 0 ? realtimeUsers : users;
+  const displayStats = realtimeStats.length > 0 ? realtimeStats : userStats;
+  
+  // Show toast when real-time connection is established
+  useEffect(() => {
+    if (isSubscribed) {
+      toast({
+        title: "Real-time Updates",
+        description: "Connected to real-time data stream.",
+      });
+    }
+  }, [isSubscribed, toast]);
   
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -71,8 +90,8 @@ const AdminDashboard = () => {
       onHeaderAction={handleHeaderAction}
     >
       <AdminTabs
-        users={users}
-        userStats={userStats}
+        users={displayUsers}
+        userStats={displayStats}
         loading={loading}
         loadingStats={loadingStats}
         deleteUser={deleteUser}

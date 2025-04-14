@@ -18,18 +18,8 @@ export function useUserStats(userId: string | undefined) {
         .select("id, username");
         
       if (profilesError) {
-        console.warn("Using sample stats data for development:", profilesError);
-        // Sample user stats for development
-        const sampleStats = [
-          { id: "user1", username: "demo_user", email: "demo@example.com", imageCount: 12 },
-          { id: "user2", username: "test_user", email: "test@example.com", imageCount: 5 },
-          { id: "user3", username: "sample_user", email: "sample@example.com", imageCount: 8 },
-          { id: "user4", username: "alex_dev", email: "alex@example.com", imageCount: 15 },
-          { id: "user5", username: "sarah_admin", email: "sarah@example.com", imageCount: 7 },
-          { id: "user6", username: "james_designer", email: "james@example.com", imageCount: 22 }
-        ];
-        setUserStats(sampleStats);
-        return;
+        console.warn("Error fetching profiles:", profilesError);
+        throw profilesError;
       }
       
       // For each profile, fetch their image count
@@ -44,7 +34,6 @@ export function useUserStats(userId: string | undefined) {
           return {
             id: profile.id,
             username: profile.username,
-            email: profile.id === userId ? userId : undefined,
             imageCount: 0,
           };
         }
@@ -62,21 +51,10 @@ export function useUserStats(userId: string | undefined) {
       
     } catch (error: any) {
       console.error("Error fetching user stats:", error);
-      // Provide sample data in development mode
-      const sampleStats = [
-        { id: "user1", username: "demo_user", email: "demo@example.com", imageCount: 12 },
-        { id: "user2", username: "test_user", email: "test@example.com", imageCount: 5 },
-        { id: "user3", username: "sample_user", email: "sample@example.com", imageCount: 8 },
-        { id: "user4", username: "alex_dev", email: "alex@example.com", imageCount: 15 },
-        { id: "user5", username: "sarah_admin", email: "sarah@example.com", imageCount: 7 },
-        { id: "user6", username: "james_designer", email: "james@example.com", imageCount: 22 }
-      ];
-      setUserStats(sampleStats);
-      
       toast({
-        title: "Development Mode",
-        description: "Using sample statistics data. Connect to Supabase for real data.",
-        variant: "default",
+        title: "Error",
+        description: "Failed to fetch user statistics.",
+        variant: "destructive",
       });
     } finally {
       setLoadingStats(false);

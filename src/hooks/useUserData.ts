@@ -4,13 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/types/admin";
 
-// Define a type for the auth users response
-interface AuthUser {
-  id: string;
-  email?: string;
-  // Add other properties as needed
-}
-
 export function useUserData(userId: string | undefined) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,8 +15,7 @@ export function useUserData(userId: string | undefined) {
       setLoading(true);
       console.log("Fetching users...");
       
-      // Fetch users from auth.users table via profiles
-      // This works because profiles are linked to auth.users
+      // Fetch users from profiles table
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, created_at");
@@ -33,38 +25,13 @@ export function useUserData(userId: string | undefined) {
         throw profilesError;
       }
       
-      // Now get user emails from auth (in a real implementation, you would use
-      // admin functions or Service Role to get this data)
-      const { data: authUsersData, error: authError } = await supabase.auth.admin
-        .listUsers();
-        
-      if (authError) {
-        console.warn("Error fetching auth users:", authError.message);
-        
-        // In development mode, provide sample data
-        const sampleUsers = [
-          { id: "user1", username: "demo_user", created_at: "2025-01-15T10:30:00Z", email: "demo@example.com" },
-          { id: "user2", username: "test_user", created_at: "2025-02-20T15:45:00Z", email: "test@example.com" },
-          { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z", email: "sample@example.com" },
-          { id: "user4", username: "alex_dev", created_at: "2025-03-15T14:22:00Z", email: "alex@example.com" },
-          { id: "user5", username: "sarah_admin", created_at: "2025-01-05T09:10:00Z", email: "sarah@example.com" },
-          { id: "user6", username: "james_designer", created_at: "2025-02-10T11:35:00Z", email: "james@example.com" }
-        ];
-        setUsers(sampleUsers);
-        return;
-      }
-      
-      // Fix the type issue by properly handling the authUsers
-      const authUsers: AuthUser[] = authUsersData?.users || [];
-      
-      // Match profiles with auth users to get emails
+      // Map profiles to users
       const enhancedUsers = profiles.map(profile => {
-        const authUser = authUsers.find(user => user.id === profile.id);
         return {
           id: profile.id,
           username: profile.username || 'No Username',
           created_at: profile.created_at,
-          email: authUser?.email
+          email: `${profile.username || 'user'}@example.com` // Placeholder for email
         };
       });
       
@@ -72,21 +39,10 @@ export function useUserData(userId: string | undefined) {
       setUsers(enhancedUsers);
     } catch (error: any) {
       console.error("Error fetching users:", error);
-      // Provide sample data in development mode
-      const sampleUsers = [
-        { id: "user1", username: "demo_user", created_at: "2025-01-15T10:30:00Z", email: "demo@example.com" },
-        { id: "user2", username: "test_user", created_at: "2025-02-20T15:45:00Z", email: "test@example.com" },
-        { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z", email: "sample@example.com" },
-        { id: "user4", username: "alex_dev", created_at: "2025-03-15T14:22:00Z", email: "alex@example.com" },
-        { id: "user5", username: "sarah_admin", created_at: "2025-01-05T09:10:00Z", email: "sarah@example.com" },
-        { id: "user6", username: "james_designer", created_at: "2025-02-10T11:35:00Z", email: "james@example.com" }
-      ];
-      setUsers(sampleUsers);
-      
       toast({
-        title: "Development Mode",
-        description: "Using sample user data. Connect to Supabase for real data.",
-        variant: "default",
+        title: "Error",
+        description: "Failed to fetch users. Check your connection.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -102,7 +58,7 @@ export function useUserData(userId: string | undefined) {
         .delete()
         .eq("user_id", userId);
         
-      // Then delete the profile (cannot directly delete auth.users from client)
+      // Then delete the profile
       const { error } = await supabase
         .from("profiles")
         .delete()
@@ -121,48 +77,43 @@ export function useUserData(userId: string | undefined) {
     } catch (error: any) {
       console.error("Error deleting user:", error);
       toast({
-        title: "Development Mode",
-        description: "Delete operation simulated. No actual data was modified.",
-        variant: "default",
+        title: "Error",
+        description: "Failed to delete user. " + error.message,
+        variant: "destructive",
       });
-      
-      // In development mode, simulate deletion by removing from local state
-      setUsers(users.filter(user => user.id !== userId));
     }
   };
 
   // Create a new user
   const createUser = async ({ email, username, password }: { email: string, username: string, password: string }) => {
     try {
-      // In a real app, this would create a new user in Supabase Auth
-      // For development, just simulate the action
-      
-      // Create a simulated user ID
-      const newUserId = `user${Date.now()}`;
-      
-      // Add to local state
-      const newUser = {
-        id: newUserId,
-        username,
+      // Create the user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
         email,
-        created_at: new Date().toISOString()
-      };
+        password,
+        options: {
+          data: {
+            username
+          }
+        }
+      });
       
-      // Update local state
-      setUsers(prev => [...prev, newUser]);
+      if (error) throw error;
       
       toast({
-        title: "Development Mode",
-        description: `Simulated creating new user: ${username} (${email}). In production, this would create a real user account.`,
-        variant: "default",
+        title: "User Created",
+        description: `User ${username} created successfully.`,
       });
+      
+      // Refresh user list
+      fetchUsers();
       
       return Promise.resolve();
     } catch (error: any) {
       console.error("Error creating user:", error);
       toast({
         title: "Error",
-        description: "Failed to create user. Please try again.",
+        description: "Failed to create user: " + error.message,
         variant: "destructive",
       });
       return Promise.reject(error);
