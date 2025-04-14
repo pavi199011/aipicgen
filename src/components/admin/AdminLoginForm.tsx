@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { AtSign, Lock, Eye, EyeOff, Shield } from "lucide-react";
 import { z } from "zod";
@@ -9,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ADMIN_CREDENTIALS } from "./AdminConstants";
 
-// Modified schema to accept both email and username formats
 const loginSchema = z.object({
   identifier: z.string().min(1, "Please enter your username or email"),
   password: z.string().min(1, "Password is required"),

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -79,6 +78,12 @@ const AdminAuth = () => {
   };
 
   const handleLogin = async (values: AdminLoginFormValues) => {
+    // Ensure values has all required fields for AdminCredentials
+    const credentials = {
+      identifier: values.identifier || "",  // Provide default values to ensure required fields
+      password: values.password || ""       // are always present
+    };
+    
     // Check if account is locked out
     if (lockoutUntil && lockoutUntil > Date.now()) {
       toast({
@@ -91,11 +96,11 @@ const AdminAuth = () => {
 
     try {
       console.log("Admin login attempt with:", { 
-        identifier: values.identifier, 
-        password: values.password === ADMIN_CREDENTIALS.password ? "correct-admin-password" : "incorrect-password"
+        identifier: credentials.identifier, 
+        password: credentials.password === ADMIN_CREDENTIALS.password ? "correct-admin-password" : "incorrect-password"
       });
       
-      const result = await adminLogin(values);
+      const result = await adminLogin(credentials);
       
       if (result.success) {
         // Reset login attempts on successful login

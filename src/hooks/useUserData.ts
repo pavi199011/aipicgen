@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/types/admin";
 
+// Define a type for the auth users response
+interface AuthUser {
+  id: string;
+  email?: string;
+  // Add other properties as needed
+}
+
 export function useUserData(userId: string | undefined) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +35,7 @@ export function useUserData(userId: string | undefined) {
       
       // Now get user emails from auth (in a real implementation, you would use
       // admin functions or Service Role to get this data)
-      const { data: authUsers, error: authError } = await supabase.auth.admin
+      const { data: authUsersData, error: authError } = await supabase.auth.admin
         .listUsers();
         
       if (authError) {
@@ -47,9 +54,12 @@ export function useUserData(userId: string | undefined) {
         return;
       }
       
+      // Fix the type issue by properly handling the authUsers
+      const authUsers: AuthUser[] = authUsersData?.users || [];
+      
       // Match profiles with auth users to get emails
       const enhancedUsers = profiles.map(profile => {
-        const authUser = authUsers.users.find(user => user.id === profile.id);
+        const authUser = authUsers.find(user => user.id === profile.id);
         return {
           id: profile.id,
           username: profile.username || 'No Username',
