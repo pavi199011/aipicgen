@@ -30,7 +30,7 @@ export function useAdminRealtime() {
             const newUser = {
               id: payload.new.id,
               username: payload.new.username || 'No Username',
-              created_at: payload.new.created_at,
+              created_at: payload.new.created_at || new Date().toISOString(),
               email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
             };
             
@@ -62,7 +62,7 @@ export function useAdminRealtime() {
             const updatedUser = {
               id: payload.new.id,
               username: payload.new.username || 'No Username',
-              created_at: payload.new.created_at,
+              created_at: payload.new.created_at || new Date().toISOString(),
               email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
             };
             
@@ -128,7 +128,7 @@ export function useAdminRealtime() {
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, username');
+        .select('id, username, created_at');
       
       if (profilesError) throw profilesError;
       
