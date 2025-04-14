@@ -75,18 +75,18 @@ export function useAdminData(userId: string | undefined) {
       // Fetch profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username");
+        .select("id, username, email");
         
       if (profilesError) {
         console.warn("Using sample stats data for development:", profilesError);
         // Sample user stats for development
         const sampleStats = [
-          { id: "user1", username: "demo_user", imageCount: 12, email: "demo@example.com" },
-          { id: "user2", username: "test_user", imageCount: 5 },
-          { id: "user3", username: "sample_user", imageCount: 8 },
-          { id: "user4", username: "alex_dev", imageCount: 15 },
-          { id: "user5", username: "sarah_admin", imageCount: 7 },
-          { id: "user6", username: "james_designer", imageCount: 22 }
+          { id: "user1", username: "demo_user", email: "demo@example.com", imageCount: 12 },
+          { id: "user2", username: "test_user", email: "test@example.com", imageCount: 5 },
+          { id: "user3", username: "sample_user", email: "sample@example.com", imageCount: 8 },
+          { id: "user4", username: "alex_dev", email: "alex@example.com", imageCount: 15 },
+          { id: "user5", username: "sarah_admin", email: "sarah@example.com", imageCount: 7 },
+          { id: "user6", username: "james_designer", email: "james@example.com", imageCount: 22 }
         ];
         setUserStats(sampleStats);
         return;
@@ -104,7 +104,7 @@ export function useAdminData(userId: string | undefined) {
         return {
           id: profile.id,
           username: profile.username,
-          email: profile.id === userId ? userId : undefined,
+          email: profile.email || (profile.id === userId ? userId : undefined),
           imageCount: count || 0,
         };
       });
@@ -116,12 +116,12 @@ export function useAdminData(userId: string | undefined) {
       console.error("Error fetching user stats:", error);
       // Provide sample data in development mode
       const sampleStats = [
-        { id: "user1", username: "demo_user", imageCount: 12, email: "demo@example.com" },
-        { id: "user2", username: "test_user", imageCount: 5 },
-        { id: "user3", username: "sample_user", imageCount: 8 },
-        { id: "user4", username: "alex_dev", imageCount: 15 },
-        { id: "user5", username: "sarah_admin", imageCount: 7 },
-        { id: "user6", username: "james_designer", imageCount: 22 }
+        { id: "user1", username: "demo_user", email: "demo@example.com", imageCount: 12 },
+        { id: "user2", username: "test_user", email: "test@example.com", imageCount: 5 },
+        { id: "user3", username: "sample_user", email: "sample@example.com", imageCount: 8 },
+        { id: "user4", username: "alex_dev", email: "alex@example.com", imageCount: 15 },
+        { id: "user5", username: "sarah_admin", email: "sarah@example.com", imageCount: 7 },
+        { id: "user6", username: "james_designer", email: "james@example.com", imageCount: 22 }
       ];
       setUserStats(sampleStats);
       
@@ -196,6 +196,51 @@ export function useAdminData(userId: string | undefined) {
     }
   };
 
+  const createUser = async ({ email, username, password }: { email: string, username: string, password: string }) => {
+    try {
+      // In a real app, this would create a new user in Supabase Auth
+      // For development, just simulate the action
+      
+      // Create a simulated user ID
+      const newUserId = `user${Date.now()}`;
+      
+      // Add to local state
+      const newUser = {
+        id: newUserId,
+        username,
+        email,
+        created_at: new Date().toISOString()
+      };
+      
+      const newUserStat = {
+        id: newUserId,
+        username,
+        email,
+        imageCount: 0
+      };
+      
+      // Update local state
+      setUsers(prev => [...prev, newUser]);
+      setUserStats(prev => [...prev, newUserStat]);
+      
+      toast({
+        title: "Development Mode",
+        description: `Simulated creating new user: ${username} (${email}). In production, this would create a real user account.`,
+        variant: "default",
+      });
+      
+      return Promise.resolve();
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create user. Please try again.",
+        variant: "destructive",
+      });
+      return Promise.reject(error);
+    }
+  };
+
   // Initial data load
   useEffect(() => {
     fetchUsers();
@@ -210,6 +255,7 @@ export function useAdminData(userId: string | undefined) {
     deleteUser,
     fetchUsers,
     fetchUserStats,
-    addAdmin
+    addAdmin,
+    createUser
   };
 }

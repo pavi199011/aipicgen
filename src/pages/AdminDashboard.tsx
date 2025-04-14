@@ -11,6 +11,7 @@ import { DashboardOverview } from "@/components/admin/DashboardOverview";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { UserStatistics } from "@/components/admin/UserStatistics";
 import { AdminManagement } from "@/components/admin/AdminManagement";
+import { UserCreationForm } from "@/components/admin/UserCreationForm";
 import { useAdminData } from "@/hooks/useAdminData";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,7 +37,8 @@ const AdminDashboard = () => {
     deleteUser,
     fetchUsers,
     fetchUserStats,
-    addAdmin
+    addAdmin,
+    createUser
   } = useAdminData(mockAdminUser.id);
   
   // Update theme based on hash
@@ -128,6 +130,7 @@ const AdminDashboard = () => {
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                 <TabsTrigger value="users">Users</TabsTrigger>
                 <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                <TabsTrigger value="add-user">Add User</TabsTrigger>
                 <TabsTrigger value="system">System</TabsTrigger>
                 <TabsTrigger value="activity">Activity Log</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -158,6 +161,13 @@ const AdminDashboard = () => {
                   loadingStats={loadingStats}
                   onDeleteUser={deleteUser}
                 />
+              </TabsContent>
+
+              <TabsContent value="add-user">
+                <h2 className="text-2xl font-bold mb-6">Create New User</h2>
+                <div className="max-w-md mx-auto">
+                  <UserCreationForm onCreateUser={createUser} />
+                </div>
               </TabsContent>
               
               <TabsContent value="system">

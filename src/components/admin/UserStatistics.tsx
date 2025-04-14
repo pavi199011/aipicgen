@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortDirection, SortField, User, UserFilterState, UserSortState, UserStats } from "@/types/admin";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Info } from "lucide-react";
 import { UserDetailView } from "./UserDetailView";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface UserStatisticsProps {
   userStats: UserStats[];
@@ -30,6 +32,8 @@ export const UserStatistics = ({
 
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
   const [detailViewOpen, setDetailViewOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const handleSort = (field: SortField) => {
     setSortState({
@@ -43,6 +47,7 @@ export const UserStatistics = ({
       ...filterState,
       [field]: value
     });
+    setCurrentPage(1); // Reset to first page when filtering
   };
 
   const openUserDetail = (user: UserStats) => {
@@ -86,6 +91,13 @@ export const UserStatistics = ({
     }
   });
 
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  const paginatedUsers = sortedUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   const getSortIcon = (field: SortField) => {
     if (sortState.field !== field) return null;
     return <ArrowUpDown className={`ml-1 h-4 w-4 ${sortState.direction === "asc" ? "rotate-0" : "rotate-180"}`} />;
@@ -103,13 +115,23 @@ export const UserStatistics = ({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <Input
               placeholder="Filter by username"
               value={filterState.username}
               onChange={(e) => handleFilterChange("username", e.target.value)}
               className="max-w-sm"
             />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>This section shows registered users and their generated images</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           
           <Card>
@@ -135,17 +157,18 @@ export const UserStatistics = ({
                         {getSortIcon("imageCount")}
                       </div>
                     </TableHead>
+                    <TableHead>Email</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedUsers.length === 0 ? (
+                  {paginatedUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                         No users match your filters
                       </TableCell>
                     </TableRow>
                   ) : (
-                    sortedUsers.map((user) => (
+                    paginatedUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>
                           <button 
@@ -156,6 +179,7 @@ export const UserStatistics = ({
                           </button>
                         </TableCell>
                         <TableCell>{user.imageCount}</TableCell>
+                        <TableCell>{user.email || 'No email'}</TableCell>
                       </TableRow>
                     ))
                   )}
@@ -163,8 +187,40 @@ export const UserStatistics = ({
               </Table>
             </CardContent>
           </Card>
+          
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink 
+                      isActive={currentPage === i + 1}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+          
           <div className="text-sm text-muted-foreground">
-            Showing {sortedUsers.length} of {userStats.length} users
+            Showing {paginatedUsers.length} of {sortedUsers.length} users
           </div>
         </div>
       )}

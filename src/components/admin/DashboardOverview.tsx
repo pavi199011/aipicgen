@@ -63,7 +63,11 @@ export const DashboardOverview = ({
                   <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-bold">{userCount}</p>}
+                  {loading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <p className="text-2xl font-bold">{userCount}</p>
+                  )}
                   <div className="flex items-center mt-1">
                     {userChange > 0 ? (
                       <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />

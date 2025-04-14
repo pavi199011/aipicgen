@@ -15,6 +15,13 @@ interface DashboardHeaderProps {
 export const DashboardHeader = ({ toggleTheme, isDarkMode, onAction }: DashboardHeaderProps) => {
   const [notifications] = useState(4);
   
+  // Handler for header actions
+  const handleAction = (action: string) => {
+    if (onAction) {
+      onAction(action);
+    }
+  };
+  
   return (
     <header className="sticky top-0 z-20 bg-background border-b px-6 py-3 flex items-center justify-between">
       <div className="lg:w-72 w-full relative">
@@ -98,14 +105,14 @@ export const DashboardHeader = ({ toggleTheme, isDarkMode, onAction }: Dashboard
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onAction?.("profile")}>
+            <DropdownMenuItem onClick={() => handleAction("profile")}>
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAction?.("settings")}>
+            <DropdownMenuItem onClick={() => handleAction("settings")}>
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onAction?.("logout")}>
+            <DropdownMenuItem onClick={() => handleAction("logout")}>
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
