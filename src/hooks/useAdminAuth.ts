@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
 
 export interface AdminCredentials {
   identifier: string; // Can be username or email
@@ -15,14 +16,19 @@ export function useAdminAuth() {
 
   // Check for existing admin authentication on mount
   useEffect(() => {
+    console.log("Checking admin authentication...");
     const savedAuth = localStorage.getItem('adminAuthenticated');
     if (savedAuth === 'true') {
+      console.log("Found existing admin authentication");
       setAdminAuthenticated(true);
+    } else {
+      console.log("No existing admin authentication found");
     }
   }, []);
 
   const adminLogin = async ({ identifier, password }: AdminCredentials) => {
     try {
+      console.log("Admin login attempt:", identifier);
       setLoading(true);
       
       // For development purposes, we're using simplified admin authentication
@@ -31,54 +37,56 @@ export function useAdminAuth() {
       // Check if the identifier is an email or username
       const isEmail = identifier.includes('@');
       
-      // Query the admin_users table
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .or(
-          isEmail 
-            ? `email.eq.${identifier}` 
-            : `username.eq.${identifier}`
-        )
-        .single();
-        
-      if (error || !data) {
-        // For development, check if using our hardcoded admin credentials
-        const isAdminUser = (
-          identifier === 'admin_user' || 
-          identifier === 'admin@example.com'
-        ) && password === 'SecureAdminPass2025!';
-        
-        if (isAdminUser) {
+      // Try to query the admin_users table first
+      try {
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('*')
+          .or(
+            isEmail 
+              ? `email.eq.${identifier}` 
+              : `username.eq.${identifier}`
+          )
+          .single();
+          
+        if (!error && data) {
+          // In production, you would verify the password hash here
+          if (data.password_hash !== password) {
+            throw new Error('Invalid password');
+          }
+          
+          // Update last login timestamp
+          await supabase
+            .from('admin_users')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', data.id);
+          
           setAdminAuthenticated(true);
           // Persist authentication state
           localStorage.setItem('adminAuthenticated', 'true');
-          toast({
-            title: "Success",
-            description: "Admin login successful using development credentials",
-          });
+          console.log("Admin authenticated via database lookup");
           return { success: true };
         }
+      } catch (e) {
+        console.log("No admin user found in database, checking hardcoded credentials");
+      }
         
-        throw new Error('Invalid admin credentials');
+      // For development, check if using our hardcoded admin credentials
+      const isAdminUser = (
+        identifier === ADMIN_CREDENTIALS.username || 
+        identifier === ADMIN_CREDENTIALS.email
+      ) && password === ADMIN_CREDENTIALS.password;
+      
+      if (isAdminUser) {
+        setAdminAuthenticated(true);
+        // Persist authentication state
+        localStorage.setItem('adminAuthenticated', 'true');
+        console.log("Admin authenticated via hardcoded credentials");
+        return { success: true };
       }
+        
+      throw new Error('Invalid admin credentials');
       
-      // In production, you would verify the password hash here
-      if (data.password_hash !== password) {
-        throw new Error('Invalid password');
-      }
-      
-      // Update last login timestamp
-      await supabase
-        .from('admin_users')
-        .update({ last_login: new Date().toISOString() })
-        .eq('id', data.id);
-      
-      setAdminAuthenticated(true);
-      // Persist authentication state
-      localStorage.setItem('adminAuthenticated', 'true');
-      
-      return { success: true };
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast({
@@ -93,6 +101,7 @@ export function useAdminAuth() {
   };
   
   const adminLogout = () => {
+    console.log("Admin logout");
     setAdminAuthenticated(false);
     // Clear persisted authentication state
     localStorage.removeItem('adminAuthenticated');

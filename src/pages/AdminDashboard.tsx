@@ -16,6 +16,8 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const { adminAuthenticated, adminLogout } = useAdminAuth();
   
+  console.log("AdminDashboard - authenticated:", adminAuthenticated);
+  
   // Sample admin user for development
   const mockAdminUser = {
     id: "admin-user-id",
@@ -36,8 +38,12 @@ const AdminDashboard = () => {
   
   // Check if user is authenticated
   useEffect(() => {
+    console.log("Authentication check in AdminDashboard:", adminAuthenticated);
     if (!adminAuthenticated) {
+      console.log("Not authenticated, redirecting to login");
       navigate(`/${ADMIN_ROUTE}/login`);
+    } else {
+      console.log("Admin is authenticated");
     }
   }, [adminAuthenticated, navigate]);
   
@@ -48,7 +54,7 @@ const AdminDashboard = () => {
       fetchUsers();
       fetchUserStats();
     }
-  }, [adminAuthenticated]);
+  }, [adminAuthenticated, fetchUsers, fetchUserStats]);
   
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");

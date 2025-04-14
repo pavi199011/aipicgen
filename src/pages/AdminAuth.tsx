@@ -24,6 +24,8 @@ const AdminAuth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  console.log("AdminAuth component rendering, authenticated:", adminAuthenticated);
+
   // Load rate limiting data from localStorage
   useEffect(() => {
     const storedAttempts = localStorage.getItem('adminLoginAttempts');
@@ -69,6 +71,7 @@ const AdminAuth = () => {
   // Redirect if admin is already authenticated
   useEffect(() => {
     if (adminAuthenticated) {
+      console.log("User is authenticated, redirecting to admin portal");
       navigate(`/${ADMIN_ROUTE}`);
     }
   }, [adminAuthenticated, navigate]);
@@ -81,10 +84,12 @@ const AdminAuth = () => {
   };
 
   const handleLogin = async (values: AdminLoginFormValues) => {
+    console.log("Login attempt with:", values);
+    
     // Ensure values has all required fields for AdminCredentials
     const credentials = {
-      identifier: values.identifier || "",  // Provide default values to ensure required fields
-      password: values.password || ""       // are always present
+      identifier: values.identifier || "",
+      password: values.password || ""
     };
     
     // Check if account is locked out
@@ -99,6 +104,7 @@ const AdminAuth = () => {
 
     try {
       const result = await adminLogin(credentials);
+      console.log("Login result:", result);
       
       if (result.success) {
         // Reset login attempts on successful login
@@ -107,6 +113,10 @@ const AdminAuth = () => {
         setLoginAttempts(0);
         
         // Navigate to admin portal
+        toast({
+          title: "Success",
+          description: "Logged in successfully",
+        });
         navigate(`/${ADMIN_ROUTE}`);
       } else {
         // Increment failed login attempts
@@ -134,51 +144,56 @@ const AdminAuth = () => {
 
   // If authenticated, redirect to admin portal
   if (adminAuthenticated) {
+    console.log("Redirecting to admin portal due to auth state");
     return <Navigate to={`/${ADMIN_ROUTE}`} replace />;
   }
 
   return (
-    <AdminAuthCard>
-      <div className="space-y-1 p-6 pb-2">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <Shield className="h-6 w-6 text-primary mr-2" />
-            <h2 className="text-2xl font-bold">
-              Admin Portal
-            </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-900 p-4">
+      <div className="w-full max-w-md">
+        <AdminAuthCard>
+          <div className="space-y-1 p-6 pb-2">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Shield className="h-6 w-6 text-primary mr-2" />
+                <h2 className="text-2xl font-bold">
+                  Admin Portal
+                </h2>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => window.location.href = "/"}>
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back to home</span>
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Secure access to administration tools
+            </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => window.location.href = "/"}>
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to home</span>
-          </Button>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Secure access to administration tools
-        </p>
+          
+          <div className="p-6 pt-2">
+            {lockoutUntil && lockoutUntil > Date.now() ? (
+              <Alert className="mb-4 bg-red-50 border-red-200">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-700">
+                  <strong>Account temporarily locked</strong><br />
+                  Too many failed login attempts. Please try again in {formatLockoutTime(lockoutTimeRemaining)}.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            
+            <AdminLoginForm 
+              onSubmit={handleLogin} 
+              loading={loading || (lockoutUntil !== null && lockoutUntil > Date.now())} 
+            />
+            
+            <p className="text-sm text-center text-gray-500 w-full mt-6">
+              <LogIn className="inline mr-1 h-3 w-3" />
+              For testing, use: admin@example.com / SecureAdminPass2025!
+            </p>
+          </div>
+        </AdminAuthCard>
       </div>
-      
-      <div className="p-6 pt-2">
-        {lockoutUntil && lockoutUntil > Date.now() ? (
-          <Alert className="mb-4 bg-red-50 border-red-200">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-700">
-              <strong>Account temporarily locked</strong><br />
-              Too many failed login attempts. Please try again in {formatLockoutTime(lockoutTimeRemaining)}.
-            </AlertDescription>
-          </Alert>
-        ) : null}
-        
-        <AdminLoginForm 
-          onSubmit={handleLogin} 
-          loading={loading || (lockoutUntil !== null && lockoutUntil > Date.now())} 
-        />
-        
-        <p className="text-sm text-center text-gray-500 w-full mt-6">
-          <LogIn className="inline mr-1 h-3 w-3" />
-          Secure admin access only
-        </p>
-      </div>
-    </AdminAuthCard>
+    </div>
   );
 };
 
