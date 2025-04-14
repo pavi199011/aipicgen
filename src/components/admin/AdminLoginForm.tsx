@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { AtSign, Lock, Eye, EyeOff, Shield } from "lucide-react";
 import { z } from "zod";
@@ -6,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ADMIN_CREDENTIALS } from "./AdminConstants";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Please enter your username or email"),
@@ -26,8 +26,8 @@ export const AdminLoginForm = ({ onSubmit, loading }: AdminLoginFormProps) => {
   const form = useForm<AdminLoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      identifier: ADMIN_CREDENTIALS.email,
-      password: ADMIN_CREDENTIALS.password,
+      identifier: "",
+      password: "",
     }
   });
 
@@ -54,7 +54,7 @@ export const AdminLoginForm = ({ onSubmit, loading }: AdminLoginFormProps) => {
                 <div className="relative">
                   <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
-                    placeholder={`${ADMIN_CREDENTIALS.username} or ${ADMIN_CREDENTIALS.email}`}
+                    placeholder="Enter your username or email"
                     className="pl-10" 
                     {...field}
                   />

@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, LogIn, Shield, AlertCircle, Info } from "lucide-react";
+import { ArrowLeft, LogIn, Shield, AlertCircle } from "lucide-react";
 import { AdminAuthCard } from "@/components/admin/AdminAuthCard";
 import { AdminLoginForm, AdminLoginFormValues } from "@/components/admin/AdminLoginForm";
 import { useToast } from "@/hooks/use-toast";
@@ -95,11 +96,6 @@ const AdminAuth = () => {
     }
 
     try {
-      console.log("Admin login attempt with:", { 
-        identifier: credentials.identifier, 
-        password: credentials.password === ADMIN_CREDENTIALS.password ? "correct-admin-password" : "incorrect-password"
-      });
-      
       const result = await adminLogin(credentials);
       
       if (result.success) {
@@ -163,17 +159,7 @@ const AdminAuth = () => {
               Too many failed login attempts. Please try again in {formatLockoutTime(lockoutTimeRemaining)}.
             </AlertDescription>
           </Alert>
-        ) : (
-          <Alert className="mb-4 bg-blue-50 border-blue-200">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-700">
-              <strong>Admin Credentials:</strong><br />
-              Username: <code className="bg-blue-100 px-1 py-0.5 rounded">{ADMIN_CREDENTIALS.username}</code><br />
-              Email: <code className="bg-blue-100 px-1 py-0.5 rounded">{ADMIN_CREDENTIALS.email}</code><br />
-              Password: <code className="bg-blue-100 px-1 py-0.5 rounded">{ADMIN_CREDENTIALS.password}</code>
-            </AlertDescription>
-          </Alert>
-        )}
+        ) : null}
         
         <AdminLoginForm 
           onSubmit={handleLogin} 
@@ -182,7 +168,7 @@ const AdminAuth = () => {
         
         <p className="text-sm text-center text-gray-500 w-full mt-6">
           <LogIn className="inline mr-1 h-3 w-3" />
-          Use the credentials shown above to access the admin portal
+          Use admin credentials to access the portal
         </p>
       </div>
     </AdminAuthCard>

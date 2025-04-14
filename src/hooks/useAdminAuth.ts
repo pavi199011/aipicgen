@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +12,14 @@ export function useAdminAuth() {
   const [loading, setLoading] = useState(false);
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const { toast } = useToast();
+
+  // Check for existing admin authentication on mount
+  useEffect(() => {
+    const savedAuth = localStorage.getItem('adminAuthenticated');
+    if (savedAuth === 'true') {
+      setAdminAuthenticated(true);
+    }
+  }, []);
 
   const adminLogin = async ({ identifier, password }: AdminCredentials) => {
     try {
@@ -43,6 +51,8 @@ export function useAdminAuth() {
         
         if (isAdminUser) {
           setAdminAuthenticated(true);
+          // Persist authentication state
+          localStorage.setItem('adminAuthenticated', 'true');
           toast({
             title: "Success",
             description: "Admin login successful using development credentials",
@@ -65,6 +75,8 @@ export function useAdminAuth() {
         .eq('id', data.id);
       
       setAdminAuthenticated(true);
+      // Persist authentication state
+      localStorage.setItem('adminAuthenticated', 'true');
       
       return { success: true };
     } catch (error: any) {
@@ -82,6 +94,8 @@ export function useAdminAuth() {
   
   const adminLogout = () => {
     setAdminAuthenticated(false);
+    // Clear persisted authentication state
+    localStorage.removeItem('adminAuthenticated');
     toast({
       title: "Logged Out",
       description: "You have been logged out of the admin portal",
