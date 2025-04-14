@@ -4,9 +4,9 @@ export const ADMIN_ROUTE = "admin-portal";
 
 // Admin credentials - for development purposes only
 export const ADMIN_CREDENTIALS = {
-  email: "admin@pixelpalette.tech",
-  username: "pixel_admin",
-  password: "PixelAdmin2025!#"
+  email: "admin@example.com",
+  username: "admin_user",
+  password: "SecureAdminPass2025!"
 };
 
 // Session timeout in minutes

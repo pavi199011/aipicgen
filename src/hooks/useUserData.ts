@@ -14,47 +14,62 @@ export function useUserData(userId: string | undefined) {
     try {
       setLoading(true);
       console.log("Fetching users...");
-      const { data, error } = await supabase
+      
+      // Fetch users from auth.users table via profiles
+      // This works because profiles are linked to auth.users
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, created_at");
         
-      if (error) {
-        console.warn("Error fetching users:", error.message);
-        // Sample user data for development
+      if (profilesError) {
+        console.warn("Error fetching user profiles:", profilesError.message);
+        throw profilesError;
+      }
+      
+      // Now get user emails from auth (in a real implementation, you would use
+      // admin functions or Service Role to get this data)
+      const { data: authUsers, error: authError } = await supabase.auth.admin
+        .listUsers();
+        
+      if (authError) {
+        console.warn("Error fetching auth users:", authError.message);
+        
+        // In development mode, provide sample data
         const sampleUsers = [
           { id: "user1", username: "demo_user", created_at: "2025-01-15T10:30:00Z", email: "demo@example.com" },
-          { id: "user2", username: "test_user", created_at: "2025-02-20T15:45:00Z" },
-          { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z" },
-          { id: "user4", username: "alex_dev", created_at: "2025-03-15T14:22:00Z" },
-          { id: "user5", username: "sarah_admin", created_at: "2025-01-05T09:10:00Z" },
-          { id: "user6", username: "james_designer", created_at: "2025-02-10T11:35:00Z" }
+          { id: "user2", username: "test_user", created_at: "2025-02-20T15:45:00Z", email: "test@example.com" },
+          { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z", email: "sample@example.com" },
+          { id: "user4", username: "alex_dev", created_at: "2025-03-15T14:22:00Z", email: "alex@example.com" },
+          { id: "user5", username: "sarah_admin", created_at: "2025-01-05T09:10:00Z", email: "sarah@example.com" },
+          { id: "user6", username: "james_designer", created_at: "2025-02-10T11:35:00Z", email: "james@example.com" }
         ];
         setUsers(sampleUsers);
         return;
       }
       
-      console.log("Users data fetched:", data);
-      // If we have auth data, add it to our user objects
-      const enhancedUsers = data?.map(profile => {
+      // Match profiles with auth users to get emails
+      const enhancedUsers = profiles.map(profile => {
+        const authUser = authUsers.users.find(user => user.id === profile.id);
         return {
           id: profile.id,
-          username: profile.username,
+          username: profile.username || 'No Username',
           created_at: profile.created_at,
-          email: profile.id === userId ? userId : undefined
+          email: authUser?.email
         };
-      }) || [];
+      });
       
+      console.log("Users data fetched:", enhancedUsers);
       setUsers(enhancedUsers);
     } catch (error: any) {
       console.error("Error fetching users:", error);
       // Provide sample data in development mode
       const sampleUsers = [
         { id: "user1", username: "demo_user", created_at: "2025-01-15T10:30:00Z", email: "demo@example.com" },
-        { id: "user2", username: "test_user", created_at: "2025-02-20T15:45:00Z" },
-        { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z" },
-        { id: "user4", username: "alex_dev", created_at: "2025-03-15T14:22:00Z" },
-        { id: "user5", username: "sarah_admin", created_at: "2025-01-05T09:10:00Z" },
-        { id: "user6", username: "james_designer", created_at: "2025-02-10T11:35:00Z" }
+        { id: "user2", username: "test_user", created_at: "2025-02-20T15:45:00Z", email: "test@example.com" },
+        { id: "user3", username: "sample_user", created_at: "2025-03-10T08:15:00Z", email: "sample@example.com" },
+        { id: "user4", username: "alex_dev", created_at: "2025-03-15T14:22:00Z", email: "alex@example.com" },
+        { id: "user5", username: "sarah_admin", created_at: "2025-01-05T09:10:00Z", email: "sarah@example.com" },
+        { id: "user6", username: "james_designer", created_at: "2025-02-10T11:35:00Z", email: "james@example.com" }
       ];
       setUsers(sampleUsers);
       
