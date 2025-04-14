@@ -38,8 +38,10 @@ const AdminDashboard = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const mockSignOut = async () => {
+  // Updated to return a Promise to match the updated interface
+  const mockSignOut = async (): Promise<void> => {
     navigate("/");
+    return Promise.resolve();
   };
 
   const handleHeaderAction = (action: string) => {

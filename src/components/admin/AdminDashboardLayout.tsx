@@ -6,7 +6,7 @@ import { DashboardHeader } from "@/components/admin/DashboardHeader";
 
 interface AdminDashboardLayoutProps {
   children: ReactNode;
-  signOut: () => void;
+  signOut: () => Promise<void>;  // Updated to Promise<void> to match the expected type
   currentTab: string;
   isDarkMode: boolean;
   toggleTheme: () => void;
