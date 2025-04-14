@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,6 +33,8 @@ export const UserManagement = ({
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [detailViewOpen, setDetailViewOpen] = useState(false);
 
+  console.log("UserManagement rendering with users:", users);
+
   const handleSort = (field: SortField) => {
     setSortState({
       field,
@@ -55,23 +56,19 @@ export const UserManagement = ({
 
   const closeUserDetail = () => {
     setDetailViewOpen(false);
-    // Clear the selection after animation completes
     setTimeout(() => setSelectedUser(null), 300);
   };
 
-  // Find the user stats for the selected user
   const getSelectedUserStats = (): UserStats | null => {
     if (!selectedUser) return null;
     return userStats.find(stat => stat.id === selectedUser.id) || null;
   };
 
-  // Filter users based on the filter state
   const filteredUsers = users.filter(user => {
     const username = user.username?.toLowerCase() || '';
     return username.includes(filterState.username.toLowerCase());
   });
 
-  // Sort users based on the sort state
   const sortedUsers = [...filteredUsers].sort((a, b) => {
     const direction = sortState.direction === "asc" ? 1 : -1;
     
@@ -187,7 +184,6 @@ export const UserManagement = ({
         </div>
       )}
 
-      {/* User Detail View */}
       <UserDetailView 
         user={selectedUser}
         userStats={getSelectedUserStats()}

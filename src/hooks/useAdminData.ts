@@ -15,12 +15,13 @@ export function useAdminData(userId: string | undefined) {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
+      console.log("Fetching users...");
       const { data, error } = await supabase
         .from("profiles")
         .select("id, username, created_at");
         
       if (error) {
-        console.warn("Using sample data for development:", error);
+        console.warn("Error fetching users:", error.message);
         // Sample user data for development
         const sampleUsers = [
           { id: "user1", username: "demo_user", created_at: "2025-01-15T10:30:00Z", email: "demo@example.com" },
@@ -34,6 +35,7 @@ export function useAdminData(userId: string | undefined) {
         return;
       }
       
+      console.log("Users data fetched:", data);
       // If we have auth data, add it to our user objects
       const enhancedUsers = data?.map(profile => {
         return {
@@ -255,6 +257,7 @@ export function useAdminData(userId: string | undefined) {
 
   // Initial data load
   useEffect(() => {
+    console.log("Initial data load triggered");
     fetchUsers();
     fetchUserStats();
   }, [fetchUsers, fetchUserStats]);

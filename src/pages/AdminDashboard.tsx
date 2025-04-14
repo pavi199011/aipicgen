@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -22,13 +21,11 @@ const AdminDashboard = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  // Simulate authenticated admin user for development
   const mockAdminUser = {
     id: "admin-user-id",
     email: "admin@pixelpalette.tech"
   };
   
-  // Custom hook for admin data management
   const {
     users,
     userStats,
@@ -41,38 +38,32 @@ const AdminDashboard = () => {
     createUser
   } = useAdminData(mockAdminUser.id);
   
-  // Update theme based on hash
   useEffect(() => {
     const handleHashChange = () => {
-      // Remove the '#' character if present
       const hash = location.hash.replace('#', '') || "dashboard";
       setCurrentTab(hash);
     };
     
-    // Initialize from current hash
     handleHashChange();
     
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [location.hash]);
 
-  // Fetch data when component mounts
   useEffect(() => {
+    console.log("AdminDashboard mounting, triggering data fetch");
     fetchUsers();
     fetchUserStats();
   }, [fetchUsers, fetchUserStats]);
   
-  // Toggle theme handler
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  // Mock signOut function for sidebar
   const mockSignOut = async () => {
     navigate("/");
   };
 
-  // Function to handle profile, settings and logout from header
   const handleHeaderAction = (action: string) => {
     if (action === "profile") {
       toast({
@@ -87,11 +78,12 @@ const AdminDashboard = () => {
     }
   };
 
-  // Calculate statistics for the dashboard
   const totalImages = userStats.reduce((acc, user) => acc + user.imageCount, 0);
   const avgImagesPerUser = userStats.length > 0 
     ? (totalImages / userStats.length).toFixed(1) 
     : '0';
+
+  console.log("Admin Dashboard rendering with users:", users);
 
   const currentAdmins = [
     { id: '1', email: 'admin@pixelpalette.tech' }
@@ -99,7 +91,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Development Mode Warning */}
       <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 mb-0">
         <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
         <AlertDescription className="text-yellow-700 dark:text-yellow-300">
@@ -108,19 +99,15 @@ const AdminDashboard = () => {
       </Alert>
       
       <div className="flex">
-        {/* Sidebar */}
         <AdminSidebar signOut={mockSignOut} currentTab={currentTab} />
         
-        {/* Main content */}
         <div className="flex-1 lg:ml-64">
-          {/* Header */}
           <DashboardHeader 
             toggleTheme={toggleTheme} 
             isDarkMode={theme === "dark"} 
             onAction={handleHeaderAction}
           />
           
-          {/* Content area */}
           <div className="p-6">
             <Tabs defaultValue={currentTab} value={currentTab} onValueChange={(value) => {
               setCurrentTab(value);
