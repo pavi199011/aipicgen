@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAdminData } from "@/hooks/useAdminData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -12,11 +12,13 @@ import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 const AdminDashboard = () => {
   const { theme, setTheme } = useTheme();
   const [currentTab, setCurrentTab] = useState("dashboard");
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
-  const { adminAuthenticated, adminLogout } = useAdminAuth();
+  const { adminAuthenticated, adminLogout, loading: authLoading } = useAdminAuth();
   
-  console.log("AdminDashboard - authenticated:", adminAuthenticated);
+  console.log("AdminDashboard - authenticated:", adminAuthenticated, "loading:", authLoading, "path:", location.pathname);
   
   // Sample admin user for development
   const mockAdminUser = {
@@ -38,23 +40,29 @@ const AdminDashboard = () => {
   
   // Check if user is authenticated
   useEffect(() => {
-    console.log("Authentication check in AdminDashboard:", adminAuthenticated);
-    if (!adminAuthenticated) {
+    console.log("Authentication check in AdminDashboard:", adminAuthenticated, "auth loading:", authLoading);
+    
+    // Only redirect when auth is not loading and user is not authenticated
+    if (!authLoading && !adminAuthenticated) {
       console.log("Not authenticated, redirecting to login");
       navigate(`/${ADMIN_ROUTE}/login`);
-    } else {
-      console.log("Admin is authenticated");
-    }
-  }, [adminAuthenticated, navigate]);
-  
-  useEffect(() => {
-    console.log("AdminDashboard mounting, triggering data fetch");
-    if (adminAuthenticated) {
+    } else if (!authLoading && adminAuthenticated) {
+      console.log("Admin is authenticated, loading data");
+      setIsLoading(false);
+      
       // Fetch data when authenticated
       fetchUsers();
       fetchUserStats();
     }
-  }, [adminAuthenticated, fetchUsers, fetchUserStats]);
+  }, [adminAuthenticated, authLoading, navigate, fetchUsers, fetchUserStats]);
+  
+  // Parse hash from URL for tab selection
+  useEffect(() => {
+    const hash = location.hash.replace('#', '') || "dashboard";
+    if (hash !== currentTab) {
+      setCurrentTab(hash);
+    }
+  }, [location.hash, currentTab]);
   
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -84,11 +92,25 @@ const AdminDashboard = () => {
     { id: '1', email: 'admin@example.com' }
   ];
 
-  // If not authenticated, show loading while redirecting
+  // Show loading state while authentication is being checked
+  if (isLoading || authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="inline-block animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated after loading is complete, show message
   if (!adminAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">Redirecting to login...</p>
+        </div>
       </div>
     );
   }

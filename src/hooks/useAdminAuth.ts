@@ -10,20 +10,33 @@ export interface AdminCredentials {
 }
 
 export function useAdminAuth() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const { toast } = useToast();
 
   // Check for existing admin authentication on mount
   useEffect(() => {
     console.log("Checking admin authentication...");
-    const savedAuth = localStorage.getItem('adminAuthenticated');
-    if (savedAuth === 'true') {
-      console.log("Found existing admin authentication");
-      setAdminAuthenticated(true);
-    } else {
-      console.log("No existing admin authentication found");
-    }
+    const checkAuth = async () => {
+      try {
+        setLoading(true);
+        const savedAuth = localStorage.getItem('adminAuthenticated');
+        if (savedAuth === 'true') {
+          console.log("Found existing admin authentication");
+          setAdminAuthenticated(true);
+        } else {
+          console.log("No existing admin authentication found");
+          setAdminAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("Error checking admin auth:", error);
+        setAdminAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
   }, []);
 
   const adminLogin = async ({ identifier, password }: AdminCredentials) => {

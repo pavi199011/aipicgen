@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, LogIn, Shield, AlertCircle } from "lucide-react";
@@ -21,10 +21,11 @@ const AdminAuth = () => {
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
   const [lockoutTimeRemaining, setLockoutTimeRemaining] = useState<number>(0);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  console.log("AdminAuth component rendering, authenticated:", adminAuthenticated);
+  console.log("AdminAuth component rendering, authenticated:", adminAuthenticated, "loading:", loading);
 
   // Load rate limiting data from localStorage
   useEffect(() => {
@@ -70,11 +71,18 @@ const AdminAuth = () => {
 
   // Redirect if admin is already authenticated
   useEffect(() => {
-    if (adminAuthenticated) {
+    if (adminAuthenticated && !isRedirecting) {
       console.log("User is authenticated, redirecting to admin portal");
-      navigate(`/${ADMIN_ROUTE}`);
+      setIsRedirecting(true);
+      
+      // Small delay before redirect to avoid white flash
+      const redirectTimer = setTimeout(() => {
+        navigate(`/${ADMIN_ROUTE}`);
+      }, 100);
+      
+      return () => clearTimeout(redirectTimer);
     }
-  }, [adminAuthenticated, navigate]);
+  }, [adminAuthenticated, navigate, isRedirecting]);
 
   // Format the remaining lockout time
   const formatLockoutTime = (ms: number): string => {
@@ -112,12 +120,19 @@ const AdminAuth = () => {
         localStorage.removeItem('adminLockoutUntil');
         setLoginAttempts(0);
         
-        // Navigate to admin portal
+        // Show success message before navigation
         toast({
           title: "Success",
           description: "Logged in successfully",
         });
-        navigate(`/${ADMIN_ROUTE}`);
+        
+        // Set redirecting state to prevent multiple redirects
+        setIsRedirecting(true);
+        
+        // Small delay before redirect to avoid white flash
+        setTimeout(() => {
+          navigate(`/${ADMIN_ROUTE}`);
+        }, 100);
       } else {
         // Increment failed login attempts
         const newAttempts = loginAttempts + 1;
@@ -142,10 +157,16 @@ const AdminAuth = () => {
     }
   };
 
-  // If authenticated, redirect to admin portal
-  if (adminAuthenticated) {
-    console.log("Redirecting to admin portal due to auth state");
-    return <Navigate to={`/${ADMIN_ROUTE}`} replace />;
+  // Show a loading state during redirection to avoid white flash
+  if (isRedirecting || (adminAuthenticated && !loading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-900">
+        <div className="text-center text-white">
+          <div className="animate-spin inline-block w-8 h-8 border-4 border-white border-t-transparent rounded-full mb-4"></div>
+          <p>Redirecting to Admin Dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
