@@ -67,8 +67,8 @@ const AdminDashboard = () => {
     }
   };
 
-  // Use the actual admin data from the database
-  const currentAdmins = users.filter(user => 
+  // Find current admins from user roles
+  const currentAdmins = displayUsers.filter(user => 
     user.email?.includes("admin") || user.username?.toLowerCase().includes("admin")
   );
 

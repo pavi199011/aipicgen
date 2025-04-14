@@ -106,6 +106,18 @@ export function useAdminRealtime() {
           }
         }
       )
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'auth', table: 'users' },
+        async (payload) => {
+          console.log('Auth user created:', payload);
+          // We don't get the full user data here, but we can trigger a profile fetch
+          // The trigger we created will insert a profile record for us
+          // Wait a bit for the profile to be created
+          setTimeout(() => {
+            fetchUserStats();
+          }, 1000);
+        }
+      )
       .subscribe(status => {
         console.log('Realtime subscription status:', status);
         setIsSubscribed(status === 'SUBSCRIBED');

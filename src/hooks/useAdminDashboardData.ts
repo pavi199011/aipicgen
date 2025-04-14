@@ -4,21 +4,31 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminData } from "@/hooks/useAdminData";
 import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useAdminDashboardData() {
   const [currentTab, setCurrentTab] = useState("dashboard");
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const location = useLocation();
   const { adminAuthenticated, adminLogout, loading: authLoading } = useAdminAuth();
   
   console.log("useAdminDashboardData - authenticated:", adminAuthenticated, "loading:", authLoading, "path:", location.pathname);
   
-  // Sample admin user for development
-  const mockAdminUser = {
-    id: "admin-user-id",
-    email: "admin@example.com"
-  };
+  // Get current user ID when authenticated
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUserId(session.user.id);
+      }
+    };
+    
+    if (adminAuthenticated) {
+      getCurrentUser();
+    }
+  }, [adminAuthenticated]);
   
   const {
     users,
@@ -30,7 +40,7 @@ export function useAdminDashboardData() {
     fetchUserStats,
     addAdmin,
     createUser
-  } = useAdminData(mockAdminUser.id);
+  } = useAdminData(currentUserId);
   
   // Check if user is authenticated
   useEffect(() => {

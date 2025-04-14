@@ -20,9 +20,30 @@ export function useAdminAuth() {
     const checkAuth = async () => {
       try {
         setLoading(true);
+        
+        // First try to get the current session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Check if the current user has admin role
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .eq('role', 'admin')
+            .maybeSingle();
+            
+          if (roleData?.role === 'admin') {
+            console.log("User is authenticated as admin via session");
+            setAdminAuthenticated(true);
+            return;
+          }
+        }
+        
+        // If no valid session, check local storage fallback
         const savedAuth = localStorage.getItem('adminAuthenticated');
         if (savedAuth === 'true') {
-          console.log("Found existing admin authentication");
+          console.log("Found existing admin authentication in local storage");
           setAdminAuthenticated(true);
         } else {
           console.log("No existing admin authentication found");

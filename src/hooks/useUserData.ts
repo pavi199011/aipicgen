@@ -34,7 +34,7 @@ export function useUserData(userId: string | undefined) {
           return {
             id: profile.id,
             username: profile.username || 'No Username',
-            created_at: profile.created_at,
+            created_at: profile.created_at || new Date().toISOString(),
             email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
           };
         })
@@ -108,7 +108,6 @@ export function useUserData(userId: string | undefined) {
       if (error) throw error;
       
       // Ensure the profile exists and has the correct username
-      // This is a fallback in case the trigger doesn't work
       if (data?.user) {
         const { error: profileError } = await supabase
           .from("profiles")
