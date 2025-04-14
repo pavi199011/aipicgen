@@ -1,14 +1,12 @@
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortDirection, SortField, User, UserFilterState, UserSortState, UserStats } from "@/types/admin";
-import { ArrowUpDown, Info } from "lucide-react";
 import { UserDetailView } from "./UserDetailView";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { UserStatsFilter } from "./user-statistics/UserStatsFilter";
+import { UserStatsTable } from "./user-statistics/UserStatsTable";
+import { UserStatsPagination } from "./user-statistics/UserStatsPagination";
+import { UserSummary } from "./user-management/UserSummary";
 
 interface UserStatisticsProps {
   userStats: UserStats[];
@@ -98,10 +96,8 @@ export const UserStatistics = ({
     currentPage * itemsPerPage
   );
 
-  const getSortIcon = (field: SortField) => {
-    if (sortState.field !== field) return null;
-    return <ArrowUpDown className={`ml-1 h-4 w-4 ${sortState.direction === "asc" ? "rotate-0" : "rotate-180"}`} />;
-  };
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredUsers.length);
 
   return (
     <>
@@ -115,113 +111,32 @@ export const UserStatistics = ({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Filter by username"
-              value={filterState.username}
-              onChange={(e) => handleFilterChange("username", e.target.value)}
-              className="max-w-sm"
-            />
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>This section shows registered users and their generated images</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <UserStatsFilter 
+            filterState={filterState}
+            onFilterChange={handleFilterChange}
+          />
           
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead 
-                      className="cursor-pointer"
-                      onClick={() => handleSort("username")}
-                    >
-                      <div className="flex items-center">
-                        Username
-                        {getSortIcon("username")}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer"
-                      onClick={() => handleSort("imageCount")}
-                    >
-                      <div className="flex items-center">
-                        Images Generated
-                        {getSortIcon("imageCount")}
-                      </div>
-                    </TableHead>
-                    <TableHead>Email</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedUsers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                        No users match your filters
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <button 
-                            onClick={() => openUserDetail(user)}
-                            className="text-primary hover:underline focus:outline-none focus:underline"
-                          >
-                            {user.username || 'No username'}
-                          </button>
-                        </TableCell>
-                        <TableCell>{user.imageCount}</TableCell>
-                        <TableCell>{user.email || 'No email'}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <UserStatsTable 
+            paginatedUsers={paginatedUsers}
+            sortState={sortState}
+            onSort={handleSort}
+            onUserSelect={openUserDetail}
+            filteredUsers={filteredUsers}
+          />
           
-          {totalPages > 1 && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <PaginationItem key={i}>
-                    <PaginationLink 
-                      isActive={currentPage === i + 1}
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
+          <UserStatsPagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
           
-          <div className="text-sm text-muted-foreground">
-            Showing {paginatedUsers.length} of {sortedUsers.length} users
-          </div>
+          <UserSummary 
+            currentCount={paginatedUsers.length}
+            filteredCount={filteredUsers.length}
+            totalCount={userStats.length}
+            startIndex={startIndex}
+            endIndex={endIndex}
+          />
         </div>
       )}
 
