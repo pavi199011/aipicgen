@@ -7,7 +7,7 @@ import { ArrowLeft, LogIn, Shield, AlertCircle } from "lucide-react";
 import { AdminAuthCard } from "@/components/admin/AdminAuthCard";
 import { AdminLoginForm, AdminLoginFormValues } from "@/components/admin/AdminLoginForm";
 import { useToast } from "@/hooks/use-toast";
-import { ADMIN_ROUTE, ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
+import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 // Rate limiting for admin login attempts
@@ -67,9 +67,11 @@ const AdminAuth = () => {
   }, [lockoutUntil]);
 
   // Redirect if admin is already authenticated
-  if (adminAuthenticated) {
-    return <Navigate to={`/${ADMIN_ROUTE}`} replace />;
-  }
+  useEffect(() => {
+    if (adminAuthenticated) {
+      navigate(`/${ADMIN_ROUTE}`);
+    }
+  }, [adminAuthenticated, navigate]);
 
   // Format the remaining lockout time
   const formatLockoutTime = (ms: number): string => {
@@ -130,6 +132,11 @@ const AdminAuth = () => {
     }
   };
 
+  // If authenticated, redirect to admin portal
+  if (adminAuthenticated) {
+    return <Navigate to={`/${ADMIN_ROUTE}`} replace />;
+  }
+
   return (
     <AdminAuthCard>
       <div className="space-y-1 p-6 pb-2">
@@ -168,7 +175,7 @@ const AdminAuth = () => {
         
         <p className="text-sm text-center text-gray-500 w-full mt-6">
           <LogIn className="inline mr-1 h-3 w-3" />
-          Use admin credentials to access the portal
+          Secure admin access only
         </p>
       </div>
     </AdminAuthCard>

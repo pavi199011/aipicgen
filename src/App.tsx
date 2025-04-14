@@ -31,7 +31,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path={`/${ADMIN_ROUTE}`} element={<AdminDashboard />} />
-              <Route path="/admin-auth" element={<AdminAuth />} />
+              <Route path={`/${ADMIN_ROUTE}/login`} element={<AdminAuth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

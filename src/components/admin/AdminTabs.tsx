@@ -9,6 +9,7 @@ import { UserCreationForm } from "@/components/admin/UserCreationForm";
 import { AdminSystemPanel } from "@/components/admin/AdminSystemPanel";
 import { AdminActivityLog } from "@/components/admin/AdminActivityLog";
 import { AdminManagement } from "@/components/admin/AdminManagement";
+import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 
 interface AdminTabsProps {
   users: any[];
@@ -59,7 +60,7 @@ export const AdminTabs = ({
   return (
     <Tabs defaultValue={currentTab} value={currentTab} onValueChange={(value) => {
       setCurrentTab(value);
-      navigate(`/admin-portal#${value}`);
+      navigate(`/${ADMIN_ROUTE}#${value}`);
     }}>
       <TabsList className="mb-6">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>

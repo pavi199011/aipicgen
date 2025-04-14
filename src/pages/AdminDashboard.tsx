@@ -7,6 +7,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useToast } from "@/hooks/use-toast";
 import { AdminDashboardLayout } from "@/components/admin/AdminDashboardLayout";
 import { AdminTabs } from "@/components/admin/AdminTabs";
+import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 
 const AdminDashboard = () => {
   const { theme, setTheme } = useTheme();
@@ -36,13 +37,18 @@ const AdminDashboard = () => {
   // Check if user is authenticated
   useEffect(() => {
     if (!adminAuthenticated) {
-      navigate("/admin-auth");
+      navigate(`/${ADMIN_ROUTE}/login`);
     }
   }, [adminAuthenticated, navigate]);
   
   useEffect(() => {
     console.log("AdminDashboard mounting, triggering data fetch");
-  }, []);
+    if (adminAuthenticated) {
+      // Fetch data when authenticated
+      fetchUsers();
+      fetchUserStats();
+    }
+  }, [adminAuthenticated]);
   
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -50,7 +56,7 @@ const AdminDashboard = () => {
 
   const handleSignOut = async (): Promise<void> => {
     adminLogout();
-    navigate("/admin-auth");
+    navigate(`/${ADMIN_ROUTE}/login`);
     return Promise.resolve();
   };
 
@@ -62,13 +68,11 @@ const AdminDashboard = () => {
       });
     } else if (action === "settings") {
       setCurrentTab("settings");
-      navigate("/admin-portal#settings");
+      navigate(`/${ADMIN_ROUTE}#settings`);
     } else if (action === "logout") {
       handleSignOut();
     }
   };
-
-  console.log("Admin Dashboard rendering with users:", users);
 
   const currentAdmins = [
     { id: '1', email: 'admin@example.com' }

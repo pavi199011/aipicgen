@@ -16,6 +16,7 @@ import {
   Clock,
   Shield
 } from "lucide-react";
+import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 
 interface AdminSidebarProps {
   signOut: () => Promise<void>;
@@ -94,7 +95,7 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
                     variant={isActiveRoute(item.id) ? "default" : "ghost"} 
                     className={`w-full justify-${collapsed ? "center" : "start"} relative`}
                     onClick={() => {
-                      navigate(`/admin-portal#${item.id}`);
+                      navigate(`/${ADMIN_ROUTE}#${item.id}`);
                       if (mobileOpen) {
                         toggleMobileSidebar();
                       }
@@ -127,7 +128,7 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
           className="w-full"
         >
           <LogOut className={`h-5 w-5 ${collapsed ? "" : "mr-2"}`} />
-          {!collapsed && "Back to Home"}
+          {!collapsed && "Sign Out"}
         </Button>
       </div>
     </>
