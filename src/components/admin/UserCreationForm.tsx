@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -25,6 +26,7 @@ interface UserCreationFormProps {
 export const UserCreationForm = ({ onCreateUser }: UserCreationFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -38,6 +40,7 @@ export const UserCreationForm = ({ onCreateUser }: UserCreationFormProps) => {
   const onSubmit = async (data: FormValues) => {
     try {
       setIsSubmitting(true);
+      setErrorMessage(null);
       await onCreateUser(data);
       
       toast({
@@ -48,6 +51,8 @@ export const UserCreationForm = ({ onCreateUser }: UserCreationFormProps) => {
       // Reset form after successful submission
       form.reset();
     } catch (error: any) {
+      console.error("Error creating user:", error);
+      setErrorMessage(error.message || "An error occurred while creating the user");
       toast({
         title: "Error creating user",
         description: error.message || "An error occurred while creating the user",
@@ -67,6 +72,13 @@ export const UserCreationForm = ({ onCreateUser }: UserCreationFormProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>Error creating user</AlertTitle>
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField

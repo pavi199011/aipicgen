@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, UserPlus, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminManagementProps {
-  currentAdmins: { id: string; email: string; }[];
+  currentAdmins: { id: string; email?: string; username?: string; }[];
   onAddAdmin?: (email: string, password: string) => Promise<void>;
 }
 
@@ -26,47 +27,65 @@ export function AdminManagement({ currentAdmins, onAddAdmin }: AdminManagementPr
 
   const handleAddAdmin = async () => {
     try {
+      if (!newAdminEmail || !newAdminPassword) {
+        toast({
+          title: "Validation Error",
+          description: "Email and password are required.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (onAddAdmin) {
         await onAddAdmin(newAdminEmail, newAdminPassword);
         
-        // Add the new admin to the local state
-        setAdmins([...admins, { id: Date.now().toString(), email: newAdminEmail }]);
-        
-        toast({
-          title: "Admin Added",
-          description: `Added ${newAdminEmail} as an admin.`,
-        });
+        // Reset form
+        setNewAdminEmail("");
+        setNewAdminPassword("");
+
+        // Assume success and let the real-time updates handle the UI
       } else {
         // For development only
-        setAdmins([...admins, { id: Date.now().toString(), email: newAdminEmail }]);
-        
         toast({
           title: "Development Mode",
           description: `Simulated adding ${newAdminEmail} as an admin.`,
         });
       }
-      
-      // Reset form
-      setNewAdminEmail("");
-      setNewAdminPassword("");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to add admin. Please try again.",
+        description: "Failed to add admin: " + error.message,
         variant: "destructive",
       });
     }
   };
 
-  const handleRemoveAdmin = (adminId: string, adminEmail: string) => {
-    // In a real app, this would remove admin privileges
-    // For now, just update the local state
-    setAdmins(admins.filter(admin => admin.id !== adminId));
-    
-    toast({
-      title: "Admin Removed",
-      description: `Removed admin privileges from ${adminEmail}.`,
-    });
+  const handleRemoveAdmin = async (adminId: string, adminEmail: string) => {
+    try {
+      // Remove admin role from user_roles table
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', adminId)
+        .eq('role', 'admin');
+        
+      if (error) throw error;
+      
+      // Update local state (real-time updates will eventually sync this)
+      setAdmins(admins.filter(admin => admin.id !== adminId));
+      
+      toast({
+        title: "Admin Removed",
+        description: `Removed admin privileges from ${adminEmail || 'user'}.`,
+      });
+    } catch (error: any) {
+      console.error("Error removing admin:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove admin: " + error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleChangePassword = () => {
@@ -77,6 +96,13 @@ export function AdminManagement({ currentAdmins, onAddAdmin }: AdminManagementPr
     });
     setNewAdminPassword("");
   };
+
+  // Format admin display data
+  const displayAdmins = admins.map(admin => ({
+    id: admin.id,
+    email: admin.email || `${admin.username || 'unknown'}@example.com`,
+    username: admin.username
+  }));
 
   return (
     <div className="space-y-8">
@@ -90,31 +116,31 @@ export function AdminManagement({ currentAdmins, onAddAdmin }: AdminManagementPr
             <TableHeader>
               <TableRow>
                 <TableHead>Email</TableHead>
+                <TableHead>Username</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {admins.length === 0 ? (
+              {displayAdmins.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
-                    No admins found
+                  <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                    No admin accounts found
                   </TableCell>
                 </TableRow>
               ) : (
-                admins.map((admin) => (
+                displayAdmins.map((admin) => (
                   <TableRow key={admin.id}>
                     <TableCell>{admin.email}</TableCell>
+                    <TableCell>{admin.username || '-'}</TableCell>
                     <TableCell>
-                      {admin.email !== "admin@pixelpalette.tech" && (
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleRemoveAdmin(admin.id, admin.email)}
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Remove
-                        </Button>
-                      )}
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleRemoveAdmin(admin.id, admin.email)}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Remove Admin
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
