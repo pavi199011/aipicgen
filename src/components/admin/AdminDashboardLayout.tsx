@@ -3,10 +3,11 @@ import { ReactNode } from "react";
 import { DevelopmentModeAlert } from "@/components/admin/DevelopmentModeAlert";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
+import { cn } from "@/lib/utils";
 
 interface AdminDashboardLayoutProps {
   children: ReactNode;
-  signOut: () => Promise<void>;  // Updated to Promise<void> to match the expected type
+  signOut: () => Promise<void>;
   currentTab: string;
   isDarkMode: boolean;
   toggleTheme: () => void;
@@ -28,18 +29,40 @@ export const AdminDashboardLayout = ({
       <div className="flex">
         <AdminSidebar signOut={signOut} currentTab={currentTab} />
         
-        <div className="flex-1 lg:ml-64">
-          <DashboardHeader 
-            toggleTheme={toggleTheme} 
-            isDarkMode={isDarkMode} 
-            onAction={onHeaderAction}
-          />
-          
-          <div className="p-6">
-            {children}
-          </div>
-        </div>
+        <MainContentArea 
+          toggleTheme={toggleTheme} 
+          isDarkMode={isDarkMode} 
+          onHeaderAction={onHeaderAction}
+        >
+          {children}
+        </MainContentArea>
       </div>
     </div>
   );
 };
+
+interface MainContentAreaProps {
+  children: ReactNode;
+  toggleTheme: () => void;
+  isDarkMode: boolean;
+  onHeaderAction: (action: string) => void;
+}
+
+const MainContentArea = ({
+  children,
+  toggleTheme,
+  isDarkMode,
+  onHeaderAction
+}: MainContentAreaProps) => (
+  <div className="flex-1 lg:ml-64">
+    <DashboardHeader 
+      toggleTheme={toggleTheme} 
+      isDarkMode={isDarkMode} 
+      onAction={onHeaderAction}
+    />
+    
+    <div className="p-6">
+      {children}
+    </div>
+  </div>
+);
