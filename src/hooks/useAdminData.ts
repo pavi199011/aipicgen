@@ -72,10 +72,11 @@ export function useAdminData(userId: string | undefined) {
     try {
       setLoadingStats(true);
       
-      // Fetch profiles
+      // This query was causing the issue, we're not selecting the 'email' column
+      // because it doesn't exist in the profiles table
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, email");
+        .select("id, username");
         
       if (profilesError) {
         console.warn("Using sample stats data for development:", profilesError);
@@ -93,18 +94,29 @@ export function useAdminData(userId: string | undefined) {
       }
       
       // For each profile, fetch their image count
+      // We handle the error appropriately here rather than trying to access properties on the error
       const statsPromises = (profilesData || []).map(async (profile) => {
         const { count, error } = await supabase
           .from("generated_images")
           .select("id", { count: "exact" })
           .eq("user_id", profile.id);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching image count:", error);
+          return {
+            id: profile.id,
+            username: profile.username,
+            // The email field doesn't exist in profiles, so we use a placeholder or the userId if it matches
+            email: profile.id === userId ? userId : undefined,
+            imageCount: 0,
+          };
+        }
         
         return {
           id: profile.id,
           username: profile.username,
-          email: profile.email || (profile.id === userId ? userId : undefined),
+          // The email field doesn't exist in profiles, so we use a placeholder or the userId if it matches
+          email: profile.id === userId ? userId : undefined,
           imageCount: count || 0,
         };
       });
