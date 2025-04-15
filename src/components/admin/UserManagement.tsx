@@ -89,38 +89,45 @@ const UserManagement = () => {
 
       console.log("Fetched user data:", data);
       
-      // After getting the stats, fetch email data from auth.users table
-      // We need to get emails from profiles since they're not in user_statistics
+      // After getting the stats, fetch email data from profiles table
       if (data && data.length > 0) {
         try {
           // Get emails from profiles table through a separate query for the same users
           const userIds = data.map(user => user.id);
+          
           const { data: profilesData, error: profilesError } = await supabase
             .from('profiles')
-            .select('id, email')
+            .select('id')
             .in('id', userIds);
             
           if (profilesError) {
-            console.error("Error fetching emails:", profilesError);
-          } else if (profilesData) {
-            // Create a mapping of user IDs to emails
-            const emailMap = profilesData.reduce((map, profile) => {
-              if (profile.id) {
-                map[profile.id] = profile.email || null;
-              }
-              return map;
-            }, {} as Record<string, string | null>);
-            
-            // Merge the email data with the user data
-            const usersWithEmail = data.map(user => ({
-              ...user,
-              email: emailMap[user.id || ''] || null
-            }));
-            
-            return usersWithEmail as UserDetailData[];
+            console.error("Error fetching profiles:", profilesError);
+            return data as UserDetailData[]; // Return data without emails if there's an error
           }
+          
+          if (!profilesData) {
+            console.error("No profile data returned");
+            return data as UserDetailData[]; // Return data without emails if no profiles
+          }
+          
+          // Create a mapping of user IDs to emails (all will be null since 'email' column doesn't exist in profiles)
+          const emailMap = profilesData.reduce((map, profile) => {
+            if (profile.id) {
+              map[profile.id] = null; // Set email to null since it doesn't exist in profiles
+            }
+            return map;
+          }, {} as Record<string, string | null>);
+          
+          // Merge the email data with the user data
+          const usersWithEmail = data.map(user => ({
+            ...user,
+            email: emailMap[user.id || ''] || null
+          }));
+          
+          return usersWithEmail as UserDetailData[];
         } catch (emailError) {
-          console.error("Error processing emails:", emailError);
+          console.error("Error processing profiles:", emailError);
+          return data as UserDetailData[]; // Return data without emails if exception
         }
       }
       
