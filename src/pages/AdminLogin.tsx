@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { AdminCredentials } from "@/types/admin";
 import { AuthCard } from "@/components/auth/AuthCard";
-import { CardHeader, CardContent } from "@/components/ui/card";
+import { CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AtSign, Lock, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CreateAdminButton } from "@/components/admin/CreateAdminButton";
+import { Separator } from "@/components/ui/separator";
 
 const adminLoginSchema = z.object({
   identifier: z.string().min(1, "Username or email is required"),
@@ -128,6 +130,18 @@ const AdminLogin = () => {
             </div>
           </form>
         </Form>
+        
+        <Separator className="my-6" />
+        
+        <div className="space-y-2">
+          <p className="text-sm text-center text-muted-foreground">
+            First time setup? Create the admin user with default credentials:
+          </p>
+          <p className="text-xs text-center text-muted-foreground">
+            (Username: admin, Email: admin@example.com, Password: Admin2025@#)
+          </p>
+          <CreateAdminButton />
+        </div>
       </CardContent>
     </AuthCard>
   );
