@@ -4,19 +4,25 @@ import { useToast } from "@/hooks/use-toast";
 import { AdminCredentials } from "@/types/admin";
 import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
 
+/**
+ * Hook that provides admin authentication methods
+ * @param setAdminAuthenticated Function to update admin authentication state
+ */
 export function useAdminAuthMethods(setAdminAuthenticated: (value: boolean) => void) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  /**
+   * Authenticates an admin user
+   * @param credentials Admin credentials (identifier and password)
+   * @returns Object with success status and error if applicable
+   */
   const adminLogin = async ({ identifier, password }: AdminCredentials) => {
     try {
       console.log("Admin login attempt:", identifier);
       setLoading(true);
       
       // Since admin_users table has been dropped, we'll use simplified admin authentication
-      // In a real application, you would need to recreate the admin_users table
-      // For now, we'll just check the hardcoded credentials
-        
       // Check if using our hardcoded admin credentials
       const isAdminUser = (
         identifier === ADMIN_CREDENTIALS.username || 
@@ -46,6 +52,9 @@ export function useAdminAuthMethods(setAdminAuthenticated: (value: boolean) => v
     }
   };
   
+  /**
+   * Logs out an admin user
+   */
   const adminLogout = () => {
     console.log("Admin logout");
     setAdminAuthenticated(false);

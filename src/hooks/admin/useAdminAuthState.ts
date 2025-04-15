@@ -2,6 +2,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Hook that manages admin authentication state
+ * Checks for existing authentication on mount
+ */
 export function useAdminAuthState() {
   const [loading, setLoading] = useState(true);
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
@@ -19,7 +23,6 @@ export function useAdminAuthState() {
         if (session) {
           // Since user_roles table has been dropped, we'll use simplified admin check
           // In a real application, you would need to recreate the user_roles table or implement an alternative
-          // For now, we'll check local storage as a fallback
           const savedAuth = localStorage.getItem('adminAuthenticated');
           if (savedAuth === 'true') {
             console.log("Found existing admin authentication in local storage");
