@@ -1,5 +1,51 @@
 
-export const usersData = {
+// Type definitions for dashboard data
+interface RegistrationData {
+  name: string;
+  value: number;
+}
+
+interface UsersData {
+  totalUsers: number;
+  growthRate: number;
+  activeUsers: number;
+  activeGrowthRate: number;
+  dailyRegistrations: RegistrationData[];
+  weeklyRegistrations: RegistrationData[];
+  monthlyRegistrations: RegistrationData[];
+  yearlyRegistrations: RegistrationData[];
+}
+
+interface ContentTypeData {
+  name: string;
+  value: number;
+}
+
+interface ContentData {
+  totalImages: number;
+  growthRate: number;
+  conversionRate: number;
+  conversionGrowth: number;
+  contentTypes: ContentTypeData[];
+}
+
+interface ActivityUser {
+  name: string;
+  avatarUrl: string;
+}
+
+interface ActivityItem {
+  id: string;
+  user: ActivityUser;
+  action: string;
+  target?: string;
+  timestamp: string;
+  type: "login" | "content" | "registration" | "settings" | "admin";
+  status?: "success" | "warning" | "pending";
+}
+
+// Actual data with type annotations
+export const usersData: UsersData = {
   totalUsers: 1458,
   growthRate: 12.4,
   activeUsers: 973,
@@ -43,7 +89,7 @@ export const usersData = {
   ],
 };
 
-export const contentData = {
+export const contentData: ContentData = {
   totalImages: 4285,
   growthRate: 18.7,
   conversionRate: 24.8,
@@ -56,7 +102,7 @@ export const contentData = {
   ],
 };
 
-export const activityData = [
+export const activityData: ActivityItem[] = [
   {
     id: "1",
     user: {
@@ -65,7 +111,7 @@ export const activityData = [
     },
     action: "Logged in to the admin dashboard",
     timestamp: "2025-04-15T16:45:00",
-    type: "login" as const,
+    type: "login",
     status: "success",
   },
   {
@@ -77,7 +123,7 @@ export const activityData = [
     action: "Generated a new image",
     target: "Sunset landscape",
     timestamp: "2025-04-15T16:32:00",
-    type: "content" as const,
+    type: "content",
     status: "success",
   },
   {
@@ -88,7 +134,7 @@ export const activityData = [
     },
     action: "Created a new account",
     timestamp: "2025-04-15T16:15:00",
-    type: "registration" as const,
+    type: "registration",
     status: "success",
   },
   {
@@ -99,7 +145,7 @@ export const activityData = [
     },
     action: "Updated profile settings",
     timestamp: "2025-04-15T15:55:00",
-    type: "settings" as const,
+    type: "settings",
   },
   {
     id: "5",
@@ -110,7 +156,7 @@ export const activityData = [
     action: "Failed to generate image",
     target: "Urban cityscape",
     timestamp: "2025-04-15T15:30:00",
-    type: "content" as const,
+    type: "content",
     status: "warning",
   },
   {
@@ -121,7 +167,7 @@ export const activityData = [
     },
     action: "Updated system settings",
     timestamp: "2025-04-15T15:10:00",
-    type: "admin" as const,
+    type: "admin",
   },
   {
     id: "7",
@@ -131,7 +177,7 @@ export const activityData = [
     },
     action: "Uploaded custom image",
     timestamp: "2025-04-15T14:45:00",
-    type: "content" as const,
+    type: "content",
     status: "success",
   },
   {
@@ -143,7 +189,7 @@ export const activityData = [
     action: "Processing image request",
     target: "Pet portrait",
     timestamp: "2025-04-15T14:30:00",
-    type: "content" as const,
+    type: "content",
     status: "pending",
   },
 ];
