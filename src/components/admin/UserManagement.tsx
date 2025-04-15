@@ -1,18 +1,19 @@
 
-import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SortField, User, UserFilterState, UserSortState, UserStats } from "@/types/admin";
+import { User, UserStats } from "@/types/admin";
 import { UserDetailView } from "./UserDetailView";
 import { UserTable } from "./user-management/UserTable";
 import { UserFilter } from "./user-management/UserFilter";
 import { UserPagination } from "./user-management/UserPagination";
 import { UserSummary } from "./user-management/UserSummary";
 import { useUserManagement } from "./user-management/useUserManagement";
+import { ConfirmationDialog } from "./ConfirmationDialog";
 
 interface UserManagementProps {
   users: User[];
   loading: boolean;
   onDeleteUser: (userId: string) => void;
+  onSuspendUser?: (userId: string) => void;
   userStats?: UserStats[]; // Optional stats for detailed view
 }
 
@@ -20,6 +21,7 @@ export const UserManagement = ({
   users, 
   loading, 
   onDeleteUser,
+  onSuspendUser,
   userStats = []
 }: UserManagementProps) => {
   const {
@@ -28,18 +30,32 @@ export const UserManagement = ({
     selectedUser,
     detailViewOpen,
     currentPage,
-    indexOfFirstItem,
-    indexOfLastItem,
+    confirmationOpen,
+    actionToConfirm,
     totalPages,
-    sortedUsers,
+    currentUsers,
     filteredUsers,
     handleSort,
     handleFilterChange,
     openUserDetail,
     closeUserDetail,
+    confirmAction,
+    cancelAction,
     setCurrentPage,
     getSelectedUserStats
   } = useUserManagement(users, userStats);
+
+  const handleConfirmAction = () => {
+    if (!actionToConfirm) return;
+    
+    if (actionToConfirm.type === 'delete') {
+      onDeleteUser(actionToConfirm.userId);
+    } else if (actionToConfirm.type === 'suspend' && onSuspendUser) {
+      onSuspendUser(actionToConfirm.userId);
+    }
+    
+    cancelAction();
+  };
 
   if (loading) {
     return <UserLoadingSkeleton />;
@@ -56,13 +72,12 @@ export const UserManagement = ({
         />
         
         <UserTable 
-          users={sortedUsers}
-          currentPage={currentPage}
-          itemsPerPage={10}
+          users={currentUsers}
           sortState={sortState}
           onSort={handleSort}
           onUserSelect={openUserDetail}
-          onDeleteUser={onDeleteUser}
+          onConfirmDelete={(userId) => confirmAction('delete', userId)}
+          onConfirmSuspend={(userId) => confirmAction('suspend', userId)}
         />
         
         <UserPagination 
@@ -72,11 +87,9 @@ export const UserManagement = ({
         />
         
         <UserSummary 
-          currentCount={Math.min(sortedUsers.length - indexOfFirstItem, 10)}
-          filteredCount={sortedUsers.length}
+          currentCount={currentUsers.length}
+          filteredCount={filteredUsers.length}
           totalCount={users.length}
-          startIndex={indexOfFirstItem}
-          endIndex={Math.min(indexOfLastItem, sortedUsers.length)}
         />
       </div>
 
@@ -85,7 +98,21 @@ export const UserManagement = ({
         userStats={getSelectedUserStats()}
         open={detailViewOpen}
         onClose={closeUserDetail}
-        onDeleteUser={onDeleteUser}
+        onDeleteUser={(userId) => confirmAction('delete', userId)}
+      />
+
+      <ConfirmationDialog
+        open={confirmationOpen}
+        onClose={cancelAction}
+        onConfirm={handleConfirmAction}
+        title={actionToConfirm?.type === 'delete' ? "Delete User" : "Suspend User"}
+        description={
+          actionToConfirm?.type === 'delete' 
+            ? "Are you sure you want to delete this user? This action cannot be undone."
+            : "Are you sure you want to suspend this user? They will no longer be able to log in."
+        }
+        confirmLabel={actionToConfirm?.type === 'delete' ? "Delete" : "Suspend"}
+        variant="destructive"
       />
     </>
   );

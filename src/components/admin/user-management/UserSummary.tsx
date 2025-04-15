@@ -1,32 +1,29 @@
 
+import { Card, CardContent } from "@/components/ui/card";
+
 interface UserSummaryProps {
   currentCount: number;
   filteredCount: number;
   totalCount: number;
-  startIndex?: number;
-  endIndex?: number;
 }
 
-export const UserSummary = ({
-  currentCount,
-  filteredCount,
-  totalCount,
-  startIndex = 0,
-  endIndex = 0
+export const UserSummary = ({ 
+  currentCount, 
+  filteredCount, 
+  totalCount 
 }: UserSummaryProps) => {
   return (
-    <div className="text-sm text-muted-foreground">
-      {startIndex !== undefined && endIndex !== undefined ? (
-        <>
-          Showing {currentCount > 0 ? `${startIndex + 1}-${endIndex}` : "0"} of {filteredCount} users
-          {totalCount !== filteredCount && ` (filtered from ${totalCount})`}
-        </>
-      ) : (
-        <>
-          Showing {currentCount} of {filteredCount} users
-          {totalCount !== filteredCount && ` (filtered from ${totalCount})`}
-        </>
-      )}
-    </div>
+    <Card>
+      <CardContent className="p-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap justify-between items-center">
+          <span>
+            Showing <span className="font-medium">{currentCount}</span> {currentCount === 1 ? 'user' : 'users'}
+          </span>
+          <span>
+            {filteredCount} filtered from <span className="font-medium">{totalCount}</span> total {totalCount === 1 ? 'user' : 'users'}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

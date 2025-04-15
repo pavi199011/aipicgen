@@ -1,6 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { UserFilterState } from "@/types/admin";
+import { Search } from "lucide-react";
 
 interface UserFilterProps {
   filterState: UserFilterState;
@@ -9,12 +10,13 @@ interface UserFilterProps {
 
 export const UserFilter = ({ filterState, onFilterChange }: UserFilterProps) => {
   return (
-    <div className="flex items-center">
+    <div className="flex items-center space-x-2 relative">
+      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
       <Input
-        placeholder="Filter by username"
+        placeholder="Search by username or email"
         value={filterState.username}
         onChange={(e) => onFilterChange("username", e.target.value)}
-        className="max-w-sm"
+        className="pl-10 max-w-sm"
       />
     </div>
   );

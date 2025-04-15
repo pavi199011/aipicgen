@@ -1,6 +1,7 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { SortField, User, UserFilterState, UserSortState, UserStats } from "@/types/admin";
+import { useToast } from "@/hooks/use-toast";
 
 export function useUserManagement(users: User[], userStats: UserStats[] = []) {
   const [sortState, setSortState] = useState<UserSortState>({
@@ -15,6 +16,9 @@ export function useUserManagement(users: User[], userStats: UserStats[] = []) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [detailViewOpen, setDetailViewOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [actionToConfirm, setActionToConfirm] = useState<{type: 'delete' | 'suspend', userId: string} | null>(null);
+  const { toast } = useToast();
   const itemsPerPage = 10;
 
   const handleSort = (field: SortField) => {
@@ -47,11 +51,31 @@ export function useUserManagement(users: User[], userStats: UserStats[] = []) {
     return userStats.find(stat => stat.id === selectedUser.id) || null;
   };
 
+  const confirmAction = (type: 'delete' | 'suspend', userId: string) => {
+    setActionToConfirm({ type, userId });
+    setConfirmationOpen(true);
+  };
+
+  const cancelAction = () => {
+    setConfirmationOpen(false);
+    setActionToConfirm(null);
+  };
+
+  const handleSuspendUser = useCallback((userId: string) => {
+    // Implementation will be added when building the suspension feature
+    toast({
+      title: "User Suspended",
+      description: "User has been suspended successfully.",
+    });
+  }, [toast]);
+
   // Filter users based on the filter state
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const username = user.username?.toLowerCase() || '';
-      return username.includes(filterState.username.toLowerCase());
+      const email = user.email?.toLowerCase() || '';
+      const searchTerm = filterState.username.toLowerCase();
+      return username.includes(searchTerm) || email.includes(searchTerm);
     });
   }, [users, filterState.username]);
 
@@ -77,6 +101,7 @@ export function useUserManagement(users: User[], userStats: UserStats[] = []) {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  const currentUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
 
   return {
     sortState,
@@ -84,16 +109,22 @@ export function useUserManagement(users: User[], userStats: UserStats[] = []) {
     selectedUser,
     detailViewOpen,
     currentPage,
+    confirmationOpen,
+    actionToConfirm,
     indexOfFirstItem,
     indexOfLastItem,
     totalPages,
     sortedUsers,
+    currentUsers,
     filteredUsers,
     handleSort,
     handleFilterChange,
     openUserDetail,
     closeUserDetail,
+    confirmAction,
+    cancelAction,
     setCurrentPage,
+    handleSuspendUser,
     getSelectedUserStats
   };
 }

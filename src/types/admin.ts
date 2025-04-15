@@ -4,6 +4,7 @@ export interface User {
   email?: string;
   username?: string;
   created_at: string;
+  is_suspended?: boolean;
 }
 
 export interface UserStats {

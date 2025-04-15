@@ -1,8 +1,7 @@
 
 import { Input } from "@/components/ui/input";
-import { Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserFilterState } from "@/types/admin";
+import { Search } from "lucide-react";
 
 interface UserStatsFilterProps {
   filterState: UserFilterState;
@@ -11,23 +10,14 @@ interface UserStatsFilterProps {
 
 export const UserStatsFilter = ({ filterState, onFilterChange }: UserStatsFilterProps) => {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center space-x-2 relative">
+      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
       <Input
-        placeholder="Filter by username"
+        placeholder="Search by username or email"
         value={filterState.username}
         onChange={(e) => onFilterChange("username", e.target.value)}
-        className="max-w-sm"
+        className="pl-10 max-w-sm"
       />
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>This section shows registered users and their generated images</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
     </div>
   );
 };
