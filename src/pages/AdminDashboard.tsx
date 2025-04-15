@@ -48,10 +48,15 @@ const AdminDashboard = () => {
     }
   }, [adminAuthenticated, navigate, isRedirecting]);
 
-  // Fetch data when the tab changes or component mounts
+  // Fetch data when the tab changes or component mounts, with a delay
   useEffect(() => {
     if (adminAuthenticated === true) {
-      fetchUsers();
+      // Add a small delay to ensure authentication is fully processed
+      const timer = setTimeout(() => {
+        fetchUsers();
+      }, 300);
+      
+      return () => clearTimeout(timer);
     }
   }, [adminAuthenticated, fetchUsers, activeTab]);
 

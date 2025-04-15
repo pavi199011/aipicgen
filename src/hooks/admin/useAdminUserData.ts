@@ -19,44 +19,31 @@ export function useAdminUserData(
     
     try {
       setLoading(true);
-      console.log("Fetching real user data...");
+      console.log("Fetching user data from profiles...");
       
-      // Fetch auth users
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-        
-      if (authError) {
-        console.warn("Error fetching auth users:", authError.message);
-        throw authError;
-      }
-      
-      // Get all profiles to join with auth users
+      // Fetch from profiles table instead of auth API
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, created_at");
         
       if (profilesError) {
-        console.warn("Error fetching user profiles:", profilesError.message);
+        console.error("Error fetching user profiles:", profilesError);
+        throw profilesError;
       }
       
-      const profilesMap = new Map();
-      (profiles || []).forEach(profile => {
-        profilesMap.set(profile.id, profile);
-      });
-      
-      // Map auth users to our user format
-      const users = authUsers.users.map(authUser => {
-        const profile = profilesMap.get(authUser.id);
+      // Map profiles to our user format
+      const users = (profiles || []).map(profile => {
         return {
-          id: authUser.id,
-          email: authUser.email,
-          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
-          created_at: authUser.created_at || new Date().toISOString(),
-          is_suspended: false // We'll implement this feature later
+          id: profile.id,
+          email: `${profile.username || 'user'}@example.com`, // We don't have emails in profiles
+          username: profile.username || 'No Username',
+          created_at: profile.created_at || new Date().toISOString(),
+          is_suspended: false
         };
       });
       
       setUsers(users);
-      console.log("Real user data loaded:", users);
+      console.log("User data loaded:", users);
     } catch (error) {
       console.error("Error in fetchUsers:", error);
       toast({
@@ -88,12 +75,8 @@ export function useAdminUserData(
       
       if (profileError) {
         console.error("Error deleting profile:", profileError);
+        throw profileError;
       }
-      
-      // Finally delete the auth user
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      
-      if (authError) throw authError;
       
       toast({
         title: "Success",
