@@ -23,12 +23,20 @@ export function useAdminDashboard() {
   }, [adminAuthenticated]);
 
   const fetchUsers = async () => {
+    if (adminAuthenticated !== true) return;
+    
     try {
       setLoading(true);
+      console.log("Fetching users data...");
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
       if (authError) {
         console.error("Error fetching users:", authError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch users. Check console for details.",
+          variant: "destructive",
+        });
         return;
       }
       
@@ -51,6 +59,7 @@ export function useAdminDashboard() {
         };
       });
       
+      console.log("Users data fetched:", formattedUsers.length, "users");
       setUsers(formattedUsers);
     } catch (error) {
       console.error("Error in fetchUsers:", error);
@@ -65,8 +74,11 @@ export function useAdminDashboard() {
   };
 
   const fetchUserStats = async () => {
+    if (adminAuthenticated !== true) return;
+    
     try {
       setLoadingStats(true);
+      console.log("Fetching user stats data...");
       
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
@@ -115,6 +127,7 @@ export function useAdminDashboard() {
       });
       
       const stats = await Promise.all(statsPromises);
+      console.log("User stats fetched:", stats.length, "users");
       setUserStats(stats);
       
     } catch (error) {
@@ -182,6 +195,8 @@ export function useAdminDashboard() {
     avgImagesPerUser: users.length > 0 
       ? (userStats.reduce((sum, user) => sum + user.imageCount, 0) / users.length).toFixed(1) 
       : "0.0",
-    adminAuthenticated
+    adminAuthenticated,
+    fetchUsers,
+    fetchUserStats
   };
 }

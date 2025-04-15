@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminDashboardContent } from "@/components/admin/AdminDashboardContent";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
@@ -19,11 +19,21 @@ const AdminDashboard = () => {
     totalUsers,
     totalImages,
     avgImagesPerUser,
-    adminAuthenticated
+    adminAuthenticated,
+    fetchUsers,
+    fetchUserStats
   } = useAdminDashboard();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Get active tab from URL hash
+  useEffect(() => {
+    const hash = location.hash.replace('#', '') || "overview";
+    setActiveTab(hash);
+  }, [location.hash, setActiveTab]);
+
+  // Handle authentication redirect
   useEffect(() => {
     // If authentication check has completed and user is not authenticated
     if (adminAuthenticated === false) {
@@ -32,6 +42,19 @@ const AdminDashboard = () => {
       navigate("/admin/login");
     }
   }, [adminAuthenticated, navigate]);
+
+  // Refresh data when active tab changes
+  useEffect(() => {
+    if (adminAuthenticated === true) {
+      console.log("Tab changed to:", activeTab);
+      if (activeTab === "users" || activeTab === "overview") {
+        fetchUsers();
+      }
+      if (activeTab === "statistics" || activeTab === "overview") {
+        fetchUserStats();
+      }
+    }
+  }, [activeTab, adminAuthenticated, fetchUsers, fetchUserStats]);
 
   // Show loading state while checking authentication or loading data
   if (loading || adminAuthenticated === undefined || isRedirecting) {

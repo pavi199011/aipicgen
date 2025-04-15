@@ -52,9 +52,19 @@ export const AdminTabs = ({
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, [location.hash]);
 
+  // Force data refresh when tab changes to ensure content is up-to-date
+  useEffect(() => {
+    if (currentTab === "users" || currentTab === "dashboard") {
+      fetchUsers();
+    }
+    if (currentTab === "statistics" || currentTab === "dashboard") {
+      fetchUserStats();
+    }
+  }, [currentTab, fetchUsers, fetchUserStats]);
+
   const totalImages = userStats.reduce((acc, user) => acc + user.imageCount, 0);
-  const avgImagesPerUser = userStats.length > 0 
-    ? (totalImages / userStats.length).toFixed(1) 
+  const avgImagesPerUser = users.length > 0 
+    ? (totalImages / users.length).toFixed(1) 
     : '0';
 
   return (

@@ -5,6 +5,7 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { UserStatistics } from "@/components/admin/UserStatistics";
 import { AdminManagement } from "@/components/admin/AdminManagement";
 import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
+import { useEffect } from "react";
 
 interface AdminDashboardContentProps {
   activeTab: string;
@@ -40,13 +41,21 @@ export const AdminDashboardContent = ({
     return Promise.resolve();
   };
 
+  // Ensure the tabs reflect the URL hash
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '') || "overview";
+    if (hash !== activeTab) {
+      setActiveTab(hash);
+    }
+  }, [window.location.hash, activeTab, setActiveTab]);
+
   return (
-    <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="grid grid-cols-4 mb-8">
-        <TabsTrigger value="overview">Dashboard</TabsTrigger>
-        <TabsTrigger value="users">User Management</TabsTrigger>
-        <TabsTrigger value="statistics">User Statistics</TabsTrigger>
-        <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsTrigger value="overview" onClick={() => window.location.hash = "overview"}>Dashboard</TabsTrigger>
+        <TabsTrigger value="users" onClick={() => window.location.hash = "users"}>User Management</TabsTrigger>
+        <TabsTrigger value="statistics" onClick={() => window.location.hash = "statistics"}>User Statistics</TabsTrigger>
+        <TabsTrigger value="settings" onClick={() => window.location.hash = "settings"}>Settings</TabsTrigger>
       </TabsList>
       
       <TabsContent value="overview">

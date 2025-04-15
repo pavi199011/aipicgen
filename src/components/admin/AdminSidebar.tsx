@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -26,6 +26,7 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
@@ -35,17 +36,33 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
     setMobileOpen(!mobileOpen);
   };
   
+  // Map URL hash to tab ID
+  const mapHashToTabId = (hash: string) => {
+    const hashMap = {
+      'overview': 'dashboard',
+      'users': 'users',
+      'statistics': 'statistics',
+      'settings': 'settings',
+      'system': 'system',
+      'activity': 'activity',
+      'dashboard': 'dashboard'
+    };
+    return hashMap[hash] || hash;
+  };
+  
   const isActiveRoute = (route: string) => {
-    return currentTab === route;
+    const hash = location.hash.replace('#', '') || 'overview';
+    const mappedHash = mapHashToTabId(hash);
+    return mappedHash === route;
   };
   
   const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { id: "users", label: "Users", icon: <Users className="h-5 w-5" /> },
-    { id: "statistics", label: "Statistics", icon: <BarChart className="h-5 w-5" /> },
-    { id: "system", label: "System", icon: <Database className="h-5 w-5" /> },
-    { id: "activity", label: "Activity Log", icon: <Clock className="h-5 w-5" /> },
-    { id: "settings", label: "Settings", icon: <Settings className="h-5 w-5" /> },
+    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" />, hash: "overview" },
+    { id: "users", label: "Users", icon: <Users className="h-5 w-5" />, hash: "users" },
+    { id: "statistics", label: "Statistics", icon: <BarChart className="h-5 w-5" />, hash: "statistics" },
+    { id: "system", label: "System", icon: <Database className="h-5 w-5" />, hash: "system" },
+    { id: "activity", label: "Activity Log", icon: <Clock className="h-5 w-5" />, hash: "activity" },
+    { id: "settings", label: "Settings", icon: <Settings className="h-5 w-5" />, hash: "settings" },
   ];
   
   const sidebarContent = (
@@ -94,7 +111,7 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
                     variant={isActiveRoute(item.id) ? "default" : "ghost"} 
                     className="w-full justify-center relative"
                     onClick={() => {
-                      navigate(`/${ADMIN_ROUTE}#${item.id}`);
+                      navigate(`/${ADMIN_ROUTE}#${item.hash}`);
                       if (mobileOpen) {
                         toggleMobileSidebar();
                       }
@@ -113,7 +130,7 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
                 variant={isActiveRoute(item.id) ? "default" : "ghost"} 
                 className="w-full justify-start relative"
                 onClick={() => {
-                  navigate(`/${ADMIN_ROUTE}#${item.id}`);
+                  navigate(`/${ADMIN_ROUTE}#${item.hash}`);
                   if (mobileOpen) {
                     toggleMobileSidebar();
                   }
