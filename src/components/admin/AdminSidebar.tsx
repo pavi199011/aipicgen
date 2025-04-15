@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   LayoutDashboard,
   Users,
@@ -87,12 +87,12 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
       <div className="py-4">
         <nav className="space-y-1 px-2">
           {navItems.map((item) => (
-            <TooltipProvider key={item.id} delayDuration={collapsed ? 100 : 1000}>
-              <Tooltip>
+            collapsed ? (
+              <Tooltip key={item.id}>
                 <TooltipTrigger asChild>
                   <Button 
                     variant={isActiveRoute(item.id) ? "default" : "ghost"} 
-                    className={`w-full justify-${collapsed ? "center" : "start"} relative`}
+                    className="w-full justify-center relative"
                     onClick={() => {
                       navigate(`/${ADMIN_ROUTE}#${item.id}`);
                       if (mobileOpen) {
@@ -100,17 +100,29 @@ export const AdminSidebar = ({ signOut, currentTab }: AdminSidebarProps) => {
                       }
                     }}
                   >
-                    <span className={`${collapsed ? "" : "mr-3"}`}>{item.icon}</span>
-                    {!collapsed && <span>{item.label}</span>}
+                    <span>{item.icon}</span>
                   </Button>
                 </TooltipTrigger>
-                {collapsed && (
-                  <TooltipContent side="right">
-                    <p>{item.label}</p>
-                  </TooltipContent>
-                )}
+                <TooltipContent side="right">
+                  <p>{item.label}</p>
+                </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
+            ) : (
+              <Button 
+                key={item.id}
+                variant={isActiveRoute(item.id) ? "default" : "ghost"} 
+                className="w-full justify-start relative"
+                onClick={() => {
+                  navigate(`/${ADMIN_ROUTE}#${item.id}`);
+                  if (mobileOpen) {
+                    toggleMobileSidebar();
+                  }
+                }}
+              >
+                <span className="mr-3">{item.icon}</span>
+                <span>{item.label}</span>
+              </Button>
+            )
           ))}
         </nav>
       </div>
