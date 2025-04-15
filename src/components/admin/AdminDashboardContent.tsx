@@ -6,6 +6,7 @@ import { UserStatistics } from "@/components/admin/UserStatistics";
 import { AdminManagement } from "@/components/admin/AdminManagement";
 import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface AdminDashboardContentProps {
   activeTab: string;
@@ -34,6 +35,7 @@ export const AdminDashboardContent = ({
   onDeleteUser,
   onRefreshUsers
 }: AdminDashboardContentProps) => {
+  const navigate = useNavigate();
   const currentAdmins = [
     { id: "admin-1", username: "admin_test", email: ADMIN_CREDENTIALS.email }
   ];
@@ -41,6 +43,12 @@ export const AdminDashboardContent = ({
   const handleAddAdmin = async (email, password) => {
     // This is a placeholder function
     return Promise.resolve();
+  };
+
+  // Handle tab changes correctly with URL hash
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    navigate(`/admin#${newTab}`);
   };
 
   // Ensure the tabs reflect the URL hash
@@ -52,12 +60,12 @@ export const AdminDashboardContent = ({
   }, [window.location.hash, activeTab, setActiveTab]);
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid grid-cols-4 mb-8">
-        <TabsTrigger value="overview" onClick={() => window.location.hash = "overview"}>Dashboard</TabsTrigger>
-        <TabsTrigger value="users" onClick={() => window.location.hash = "users"}>User Management</TabsTrigger>
-        <TabsTrigger value="statistics" onClick={() => window.location.hash = "statistics"}>User Statistics</TabsTrigger>
-        <TabsTrigger value="settings" onClick={() => window.location.hash = "settings"}>Settings</TabsTrigger>
+        <TabsTrigger value="overview">Dashboard</TabsTrigger>
+        <TabsTrigger value="users">User Management</TabsTrigger>
+        <TabsTrigger value="statistics">User Statistics</TabsTrigger>
+        <TabsTrigger value="settings">Settings</TabsTrigger>
       </TabsList>
       
       <TabsContent value="overview">

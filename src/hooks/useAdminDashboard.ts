@@ -31,14 +31,24 @@ export function useAdminDashboard() {
   
   const { handleSignOut } = useAdminActions();
 
-  // Only fetch data when authenticated
+  // Only fetch data when authenticated and when mounting
   useEffect(() => {
     console.log("Admin authenticated state in dashboard:", adminAuthenticated);
     if (adminAuthenticated === true) {
-      fetchUsers();
+      // Use a slight delay to avoid race conditions
+      const timer = setTimeout(() => {
+        fetchUsers();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [adminAuthenticated, fetchUsers]);
+
+  // Fetch stats separately after users are loaded
+  useEffect(() => {
+    if (adminAuthenticated === true && users.length > 0) {
       fetchUserStats();
     }
-  }, [adminAuthenticated, fetchUsers, fetchUserStats]);
+  }, [adminAuthenticated, users, fetchUserStats]);
 
   // Calculate statistics
   const { totalUsers, totalImages, avgImagesPerUser } = calculateStats(users, userStats);

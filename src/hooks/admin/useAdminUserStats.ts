@@ -1,18 +1,47 @@
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User, UserStats } from "@/types/admin";
+
+// Generate stable user stats that don't change on every render
+const generateMockStats = (users: User[]): UserStats[] => {
+  // Check if we already have stored mock stats
+  const storedStats = localStorage.getItem('admin_mock_stats');
+  if (storedStats) {
+    return JSON.parse(storedStats);
+  }
+  
+  // Create new mock stats with fixed image counts
+  const mockStats = users.map((user, index) => ({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    imageCount: (index + 1) * 5, // Predictable pattern: 5, 10, 15, etc.
+  }));
+  
+  // Store the generated stats
+  localStorage.setItem('admin_mock_stats', JSON.stringify(mockStats));
+  return mockStats;
+};
 
 /**
  * Hook for managing mock user statistics in the admin dashboard
  */
 export function useAdminUserStats(
   users: User[],
-  setUserStats: (stats: UserStats[]) => void,
+  setUserStats: React.Dispatch<React.SetStateAction<UserStats[]>>,
   setLoadingStats: (loading: boolean) => void,
   adminAuthenticated: boolean | undefined
 ) {
   const { toast } = useToast();
+  const [mockStatsCache, setMockStatsCache] = useState<UserStats[]>([]);
+
+  // Initialize mock stats when users change
+  useEffect(() => {
+    if (users.length > 0) {
+      setMockStatsCache(generateMockStats(users));
+    }
+  }, [users]);
 
   const fetchUserStats = useCallback(async () => {
     if (adminAuthenticated !== true) return;
@@ -21,15 +50,8 @@ export function useAdminUserStats(
       setLoadingStats(true);
       console.log("Fetching user stats data...");
       
-      // Generate mock stats based on users
-      const mockStats = users.map(user => ({
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        imageCount: Math.floor(Math.random() * 10), // Random count for sample data
-      }));
-      
-      setUserStats(mockStats);
+      // Use cached mock stats
+      setUserStats(mockStatsCache);
       console.log("Mock user stats loaded");
     } catch (error) {
       console.error("Error in fetchUserStats:", error);
@@ -44,12 +66,12 @@ export function useAdminUserStats(
         id: user.id,
         username: user.username,
         email: user.email,
-        imageCount: Math.floor(Math.random() * 10), // Random count for sample data
+        imageCount: 1, // Default value
       })));
     } finally {
       setLoadingStats(false);
     }
-  }, [users, adminAuthenticated, setUserStats, setLoadingStats, toast]);
+  }, [users, adminAuthenticated, setUserStats, setLoadingStats, toast, mockStatsCache]);
 
   // Calculate statistics
   const calculateStats = (users: User[], userStats: UserStats[]) => {
