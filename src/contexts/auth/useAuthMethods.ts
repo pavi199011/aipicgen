@@ -4,24 +4,26 @@ import { AuthUser } from "./types";
 import { useSignInMethods } from './methods/useSignInMethods';
 import { useSignUpMethods } from './methods/useSignUpMethods';
 import { useAccountMethods } from './methods/useAccountMethods';
-import { AdminCredentials } from "@/types/admin";
 
 export function useAuthMethods() {
   const [user, setUser] = useState<AuthUser | null>(null);
   
   const { 
     loading: signInLoading, 
+    setLoading: setSignInLoading,
     signIn, 
     adminSignIn 
   } = useSignInMethods();
   
   const { 
     loading: signUpLoading, 
+    setLoading: setSignUpLoading,
     signUp 
   } = useSignUpMethods();
   
   const { 
     loading: accountLoading, 
+    setLoading: setAccountLoading,
     signOut, 
     resetPassword 
   } = useAccountMethods();
@@ -29,10 +31,11 @@ export function useAuthMethods() {
   // Compute loading state based on all possible loading states
   const loading = signInLoading || signUpLoading || accountLoading;
   
-  // Create a unified setLoading function to pass down
-  const setLoading = () => {
-    // This is intentionally empty as each sub-hook manages its own loading state
-    // We include it to maintain the same interface as before
+  // Create a unified setLoading function that propagates to all sub-hooks
+  const setLoading = (isLoading: boolean) => {
+    setSignInLoading(isLoading);
+    setSignUpLoading(isLoading);
+    setAccountLoading(isLoading);
   };
 
   return {

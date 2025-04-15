@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { AuthUser } from "../types";
 
 export function useSignInMethods() {
   const [loading, setLoading] = useState(false);
