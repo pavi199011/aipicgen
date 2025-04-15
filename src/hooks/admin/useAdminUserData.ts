@@ -41,6 +41,25 @@ const generateMockUsers = (): User[] => {
   return mockUsers;
 };
 
+// Add a new user to the mock user list
+export const addNewUserToMockData = (userData: {
+  id: string;
+  email?: string;
+  username?: string;
+  created_at: string;
+  is_suspended?: boolean;
+}): void => {
+  const storedUsers = localStorage.getItem('admin_mock_users');
+  let users = storedUsers ? JSON.parse(storedUsers) : [];
+  
+  // Check if user already exists
+  const exists = users.some(user => user.id === userData.id);
+  if (!exists) {
+    users.push(userData);
+    localStorage.setItem('admin_mock_users', JSON.stringify(users));
+  }
+};
+
 /**
  * Hook for managing mock user data in the admin dashboard
  */

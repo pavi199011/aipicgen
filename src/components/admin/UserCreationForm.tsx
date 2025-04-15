@@ -10,6 +10,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { addNewUserToMockData } from "@/hooks/admin/useAdminUserData";
+import { addNewUserToMockStats } from "@/hooks/admin/useAdminUserStats";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -42,6 +44,26 @@ export const UserCreationForm = ({ onCreateUser }: UserCreationFormProps) => {
       setIsSubmitting(true);
       setErrorMessage(null);
       await onCreateUser(data);
+      
+      // Add the newly created user to the admin mock data
+      const newUserId = `user-${Date.now()}`;
+      const newUser = {
+        id: newUserId,
+        email: data.email,
+        username: data.username,
+        created_at: new Date().toISOString(),
+        is_suspended: false
+      };
+      
+      // Add user to mock data for admin dashboard
+      addNewUserToMockData(newUser);
+      
+      // Add user stats to mock stats for admin dashboard
+      addNewUserToMockStats({
+        id: newUserId,
+        username: data.username,
+        email: data.email
+      });
       
       toast({
         title: "User created",
