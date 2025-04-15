@@ -1,0 +1,210 @@
+
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { User, UserDetailData, UserSortState, UserFilterState } from "@/types/admin";
+import { useToast } from "@/hooks/use-toast";
+
+export function useAdminUserManagement() {
+  const { toast } = useToast();
+  const [sortState, setSortState] = useState<UserSortState>({ 
+    field: "created_at", 
+    direction: "desc" 
+  });
+  const [filterState, setFilterState] = useState<UserFilterState>({ 
+    username: "" 
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
+
+  // Fetch user data from user_statistics view with pagination
+  const { data: users, isLoading, error, refetch } = useQuery({
+    queryKey: ["users", sortState, filterState, currentPage],
+    queryFn: async () => {
+      console.log("Fetching user data with filters:", filterState);
+      
+      // First get total count for pagination
+      let countQuery = supabase
+        .from("user_statistics")
+        .select("id", { count: "exact", head: true });
+
+      // Apply filters if provided
+      if (filterState.username) {
+        countQuery = countQuery.ilike("username", `%${filterState.username}%`);
+      }
+
+      const { count, error: countError } = await countQuery;
+      
+      if (countError) {
+        console.error("Error fetching count:", countError);
+        throw countError;
+      }
+      
+      console.log("Total user count:", count);
+      
+      // Calculate total pages
+      const calculatedTotalPages = Math.max(1, Math.ceil((count || 0) / pageSize));
+      setTotalPages(calculatedTotalPages);
+      
+      // Adjust current page if it's beyond the total pages
+      if (currentPage > calculatedTotalPages) {
+        setCurrentPage(calculatedTotalPages);
+      }
+
+      // Now fetch the actual data with pagination
+      let query = supabase
+        .from("user_statistics")
+        .select("id, username, full_name, created_at, image_count, avatar_url, is_admin")
+        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+
+      // Apply filters if provided
+      if (filterState.username) {
+        query = query.ilike("username", `%${filterState.username}%`);
+      }
+
+      // Apply sorting
+      query = query.order(sortState.field, { 
+        ascending: sortState.direction === "asc" 
+      });
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
+
+      console.log("Fetched user data:", data);
+      
+      // After getting the stats, fetch email data from auth.users through our function
+      if (data && data.length > 0) {
+        try {
+          // Get user IDs from the fetched data
+          const userIds = data.map(user => user.id as string);
+          
+          // Use the get_user_emails function to get emails
+          const { data: emailsData, error: emailsError } = await supabase
+            .rpc('get_user_emails', { user_ids: userIds });
+          
+          if (emailsError) {
+            console.error("Error fetching emails:", emailsError);
+            return data as UserDetailData[]; // Return data without emails if there's an error
+          }
+          
+          // Create a mapping of user IDs to emails
+          const emailMap = (emailsData || []).reduce((map, item) => {
+            if (item.id) {
+              map[item.id] = item.email;
+            }
+            return map;
+          }, {} as Record<string, string | null>);
+          
+          // Merge the email data with the user data
+          const usersWithEmail = data.map(user => ({
+            ...user,
+            email: emailMap[user.id || ''] || null
+          }));
+          
+          return usersWithEmail as UserDetailData[];
+        } catch (emailError) {
+          console.error("Error processing emails:", emailError);
+          return data as UserDetailData[]; // Return data without emails if exception
+        }
+      }
+      
+      // Return the data without emails if no users found
+      return data as UserDetailData[];
+    },
+  });
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error fetching users",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
+
+  const handleSort = (field: UserSortState["field"]) => {
+    setSortState(prev => ({
+      field,
+      direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
+    }));
+  };
+
+  const handleFilter = (filters: UserFilterState) => {
+    setFilterState(filters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageItems = 5;
+    
+    if (totalPages <= maxPageItems) {
+      // Show all pages if there are few pages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always include first page
+      pageNumbers.push(1);
+      
+      // Calculate middle pages
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust if at start or end
+      if (currentPage <= 2) {
+        endPage = 4;
+      } else if (currentPage >= totalPages - 1) {
+        startPage = totalPages - 3;
+      }
+      
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pageNumbers.push("ellipsis1");
+      }
+      
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pageNumbers.push("ellipsis2");
+      }
+      
+      // Always include last page
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
+  };
+
+  return {
+    users,
+    isLoading,
+    sortState,
+    filterState,
+    currentPage,
+    totalPages,
+    handleSort,
+    handleFilter,
+    handlePageChange,
+    refetch,
+    getPageNumbers
+  };
+}
