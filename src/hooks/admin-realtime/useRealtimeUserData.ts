@@ -18,7 +18,7 @@ export function useRealtimeUserData() {
       // Fetch only the columns we know exist in the profiles table
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, created_at, updated_at");
+        .select("id, username, created_at, updated_at, phone, avatar_url, full_name");
       
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
@@ -34,33 +34,49 @@ export function useRealtimeUserData() {
       console.log("Fetched profiles:", profiles);
       
       if (!profiles || profiles.length === 0) {
-        console.log("No users found, creating mock data");
+        console.log("No users found, creating realistic mock data");
         
-        // If no users found in database, create mock data
+        // If no users found in database, create more realistic mock data
         const mockUsers: User[] = [
           {
             id: "mock-user-1",
             username: "admin_user",
             email: "admin@example.com",
             full_name: "Admin User",
-            created_at: new Date().toISOString(),
+            created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
             is_suspended: false
           },
           {
             id: "mock-user-2",
-            username: "regular_user",
-            email: "user@example.com",
-            full_name: "Regular User",
-            created_at: new Date().toISOString(),
+            username: "john_doe",
+            email: "john.doe@example.com",
+            full_name: "John Doe",
+            created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago
             is_suspended: false
           },
           {
             id: "mock-user-3",
-            username: "test_user",
-            email: "test@example.com", 
-            full_name: "Test User",
-            created_at: new Date().toISOString(),
+            username: "jane_smith",
+            email: "jane.smith@example.com", 
+            full_name: "Jane Smith",
+            created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+            is_suspended: false
+          },
+          {
+            id: "mock-user-4",
+            username: "mark_wilson",
+            email: "mark.wilson@example.com", 
+            full_name: "Mark Wilson",
+            created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
             is_suspended: true
+          },
+          {
+            id: "mock-user-5",
+            username: "sarah_johnson",
+            email: "sarah.johnson@example.com", 
+            full_name: "Sarah Johnson",
+            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+            is_suspended: false
           }
         ];
         
@@ -69,29 +85,32 @@ export function useRealtimeUserData() {
         return;
       }
 
-      // Map profiles to user format with mock data for missing fields
+      // Map profiles to user format with generated or existing data
       const mappedUsers = profiles.map(profile => {
-        // Generate deterministic email and full name based on username
-        const username = profile.username || `user-${profile.id.substring(0, 8)}`;
-        const email = profile.username 
-          ? `${profile.username.toLowerCase()}@example.com` 
-          : `user-${profile.id.substring(0, 8)}@example.com`;
-        
-        // Generate a proper full name from the username
-        const fullName = profile.username
+        // Use existing full_name if available, otherwise generate from username
+        const fullName = profile.full_name || (profile.username
           ? profile.username
               .split(/[_.-]/)
               .map(part => part.charAt(0).toUpperCase() + part.slice(1))
               .join(' ')
-          : `User ${profile.id.substring(0, 6)}`;
+          : `User ${profile.id.substring(0, 6)}`);
+        
+        // Generate deterministic email based on username or use a fallback pattern
+        const username = profile.username || `user-${profile.id.substring(0, 8)}`;
+        const email = profile.username 
+          ? `${profile.username.toLowerCase().replace(/[^a-z0-9]/g, '.')}@example.com` 
+          : `user-${profile.id.substring(0, 8)}@example.com`;
         
         return {
           id: profile.id,
           email: email,
           username: username,
           full_name: fullName,
+          avatar_url: profile.avatar_url,
           created_at: profile.created_at || new Date().toISOString(),
-          is_suspended: false
+          updated_at: profile.updated_at,
+          phone: profile.phone,
+          is_suspended: false // Default to not suspended
         };
       });
       
