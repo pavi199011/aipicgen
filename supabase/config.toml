@@ -1,6 +1,35 @@
 
-[global]
 project_id = "aaivsyxvtpmottrhqzvf"
 
-[functions.generate-image]
-verify_jwt = true
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+port = 54325
+
+[realtime]
+enabled = true
+
+[storage]
+enabled = true
+
+[edge_functions]
+[edge_functions.create-admin]
+verify_jwt = false
+
+[edge_functions.generate-image]

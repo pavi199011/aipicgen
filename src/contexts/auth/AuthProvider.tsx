@@ -15,7 +15,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn, 
     signUp, 
     signOut, 
-    resetPassword 
+    resetPassword,
+    adminSignIn 
   } = useAuthMethods();
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("username, avatar_url")
+            .select("username, avatar_url, is_admin")
             .eq("id", session.user.id)
             .single();
 
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: session.user.email,
             username: profile?.username || session.user.email?.split('@')[0],
             avatarUrl: profile?.avatar_url || null,
-            isAdmin: session.user.email?.includes("admin") || false
+            isAdmin: profile?.is_admin || false
           });
         }
       } catch (error) {
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("username, avatar_url")
+            .select("username, avatar_url, is_admin")
             .eq("id", session.user.id)
             .single();
 
@@ -62,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: session.user.email,
             username: profile?.username || session.user.email?.split('@')[0],
             avatarUrl: profile?.avatar_url || null,
-            isAdmin: session.user.email?.includes("admin") || false
+            isAdmin: profile?.is_admin || false
           });
         } catch (error) {
           console.error("Error fetching user profile:", error);
@@ -86,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signOut,
     resetPassword,
+    adminSignIn
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

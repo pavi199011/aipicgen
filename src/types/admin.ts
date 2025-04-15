@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email?: string;
@@ -5,6 +6,8 @@ export interface User {
   full_name?: string;
   created_at: string;
   is_suspended?: boolean;
+  is_admin?: boolean;
+  avatarUrl?: string | null;
 }
 
 export interface UserStats {
@@ -13,6 +16,7 @@ export interface UserStats {
   username?: string;
   full_name?: string;
   imageCount: number;
+  avatar_url?: string | null;
 }
 
 export type SortDirection = "asc" | "desc";

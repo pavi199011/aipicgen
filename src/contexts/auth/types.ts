@@ -2,7 +2,7 @@
 export interface AuthUser {
   id: string;
   email?: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   username?: string;
   isAdmin?: boolean;
 }
@@ -14,4 +14,5 @@ export interface AuthState {
   signUp: (email: string, password: string, username: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  adminSignIn: (credentials: { identifier: string; password: string }) => Promise<void>;
 }

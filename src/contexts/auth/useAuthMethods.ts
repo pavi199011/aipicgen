@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AuthUser } from "./types";
+import { AdminCredentials } from "@/types/admin";
 
 export function useAuthMethods() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -26,6 +26,34 @@ export function useAuthMethods() {
       toast({
         title: "Sign in failed",
         description: error.message || "There was an error signing in.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const adminSignIn = async (credentials: AdminCredentials) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email: credentials.identifier, 
+        password: credentials.password 
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Admin login successful",
+        description: "You have successfully signed in as an administrator.",
+      });
+      
+    } catch (error: any) {
+      console.error("Error signing in as admin:", error);
+      toast({
+        title: "Admin sign in failed",
+        description: error.message || "There was an error signing in as administrator.",
         variant: "destructive",
       });
       throw error;
@@ -120,6 +148,7 @@ export function useAuthMethods() {
     loading,
     setLoading,
     signIn,
+    adminSignIn,
     signUp,
     signOut,
     resetPassword,
