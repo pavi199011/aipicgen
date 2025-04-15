@@ -5,19 +5,36 @@ import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { UserDetailData } from "@/types/admin";
 import UserEmail from "./UserEmail";
+import { UserX, UserCheck, Trash2 } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 
 interface UserTableRowsProps {
   users: UserDetailData[];
   isLoading: boolean;
   onShowDetails: (user: UserDetailData) => void;
+  onSuspendUser?: (userId: string) => void;
+  onUnsuspendUser?: (userId: string) => void;
+  onDeleteUser?: (userId: string) => void;
 }
 
-const UserTableRows = ({ users, isLoading, onShowDetails }: UserTableRowsProps) => {
+const UserTableRows = ({ 
+  users, 
+  isLoading, 
+  onShowDetails,
+  onSuspendUser,
+  onUnsuspendUser,
+  onDeleteUser
+}: UserTableRowsProps) => {
   if (isLoading) {
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={6} className="h-24 text-center">
+          <TableCell colSpan={7} className="h-24 text-center">
             Loading users...
           </TableCell>
         </TableRow>
@@ -29,7 +46,7 @@ const UserTableRows = ({ users, isLoading, onShowDetails }: UserTableRowsProps) 
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={6} className="h-24 text-center">
+          <TableCell colSpan={7} className="h-24 text-center">
             No users found.
           </TableCell>
         </TableRow>
@@ -40,18 +57,23 @@ const UserTableRows = ({ users, isLoading, onShowDetails }: UserTableRowsProps) 
   return (
     <TableBody>
       {users.map((user) => (
-        <TableRow key={user.id} className="cursor-pointer hover:bg-gray-50" onClick={() => onShowDetails(user)}>
-          <TableCell className="font-medium">{user.username || "N/A"}</TableCell>
-          <TableCell>
-            <UserEmail email={user.email} />
+        <TableRow key={user.id} className="hover:bg-gray-50">
+          <TableCell className="font-medium">
+            <div 
+              className="cursor-pointer hover:underline"
+              onClick={() => onShowDetails(user)}
+            >
+              {user.username || "N/A"}
+            </div>
           </TableCell>
+          <TableCell><UserEmail email={user.email} /></TableCell>
           <TableCell>
             {user.created_at 
               ? formatDistanceToNow(new Date(user.created_at), { addSuffix: true }) 
               : "N/A"}
           </TableCell>
           <TableCell className="text-right">{user.image_count}</TableCell>
-          <TableCell className="text-right">
+          <TableCell>
             {user.is_suspended ? (
               <Badge variant="destructive" className="ml-auto">Suspended</Badge>
             ) : (
@@ -59,12 +81,75 @@ const UserTableRows = ({ users, isLoading, onShowDetails }: UserTableRowsProps) 
             )}
           </TableCell>
           <TableCell className="text-right">
-            <Button variant="ghost" size="sm" className="h-8" onClick={(e) => {
-              e.stopPropagation();
-              onShowDetails(user);
-            }}>
-              Details
-            </Button>
+            <div className="flex items-center justify-end space-x-1">
+              <TooltipProvider>
+                {!user.is_suspended ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => onSuspendUser?.(user.id)}
+                      >
+                        <UserX className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Suspend user</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => onUnsuspendUser?.(user.id)}
+                      >
+                        <UserCheck className="h-4 w-4 text-green-600" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Unsuspend user</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => onDeleteUser?.(user.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete user</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => onShowDetails(user)}
+                    >
+                      <span className="text-xs font-medium">Details</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View user details</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </TableCell>
         </TableRow>
       ))}

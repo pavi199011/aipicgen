@@ -3,19 +3,57 @@ import { UserDetailData } from "@/types/admin";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
-import { Ban, CheckCircle2, Mail } from "lucide-react";
+import { Mail, UserX, UserCheck } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserDetailDialogProps {
   user: UserDetailData;
   onClose: () => void;
+  onUserUpdated?: () => void;
 }
 
-const UserDetailDialog = ({ user, onClose }: UserDetailDialogProps) => {
+const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProps) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { toast } = useToast();
+  
   const getUserInitials = () => {
     if (user.username) {
       return user.username.substring(0, 2).toUpperCase();
     }
     return "U";
+  };
+
+  const handleToggleSuspension = async () => {
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_suspended: !user.is_suspended })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: user.is_suspended ? "User Unsuspended" : "User Suspended",
+        description: `The user has been ${user.is_suspended ? "unsuspended" : "suspended"} successfully.`,
+      });
+      
+      if (onUserUpdated) {
+        onUserUpdated();
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error updating user suspension status:", error);
+      toast({
+        title: "Action Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -74,8 +112,26 @@ const UserDetailDialog = ({ user, onClose }: UserDetailDialogProps) => {
         </div>
       </div>
       
-      <div className="flex justify-end space-x-2">
-        <Button variant="ghost" onClick={onClose}>
+      <div className="flex justify-between space-x-2">
+        <Button 
+          variant={user.is_suspended ? "outline" : "destructive"} 
+          onClick={handleToggleSuspension}
+          disabled={isUpdating}
+        >
+          {user.is_suspended ? (
+            <>
+              <UserCheck className="h-4 w-4 mr-2" />
+              Unsuspend User
+            </>
+          ) : (
+            <>
+              <UserX className="h-4 w-4 mr-2" />
+              Suspend User
+            </>
+          )}
+        </Button>
+        
+        <Button variant="ghost" onClick={onClose} disabled={isUpdating}>
           Close
         </Button>
       </div>
