@@ -33,6 +33,8 @@ const UserManagement = () => {
   const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ["users", sortState, filterState, currentPage],
     queryFn: async () => {
+      console.log("Fetching user data with filters:", filterState);
+      
       // First get total count for pagination
       let countQuery = supabase
         .from("user_statistics")
@@ -46,8 +48,11 @@ const UserManagement = () => {
       const { count, error: countError } = await countQuery;
       
       if (countError) {
+        console.error("Error fetching count:", countError);
         throw countError;
       }
+      
+      console.log("Total user count:", count);
       
       // Calculate total pages
       const calculatedTotalPages = Math.max(1, Math.ceil((count || 0) / pageSize));
@@ -59,9 +64,10 @@ const UserManagement = () => {
       }
 
       // Now fetch the actual data with pagination
+      // Specifically include all fields we need, especially email
       let query = supabase
         .from("user_statistics")
-        .select("*")
+        .select("id, username, email, full_name, created_at, image_count, avatar_url, is_admin, is_suspended")
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
       // Apply filters if provided
@@ -77,9 +83,11 @@ const UserManagement = () => {
       const { data, error } = await query;
 
       if (error) {
+        console.error("Error fetching users:", error);
         throw error;
       }
 
+      console.log("Fetched user data:", data);
       return data as UserDetailData[];
     },
   });
