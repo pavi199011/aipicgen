@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/types/admin";
 import { supabase } from "@/integrations/supabase/client";
+import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
 
 /**
  * Hook for managing user data in the admin dashboard
@@ -21,7 +22,10 @@ export function useAdminUserData(
       setLoading(true);
       console.log("Fetching user data from profiles...");
       
-      // Fetch from profiles table instead of auth API
+      // Use a slight delay to ensure auth is properly initialized
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Fetch from profiles table with RLS policy in place for admin access
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, created_at");

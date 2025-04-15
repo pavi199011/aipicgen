@@ -54,7 +54,7 @@ const AdminDashboard = () => {
       // Add a small delay to ensure authentication is fully processed
       const timer = setTimeout(() => {
         fetchUsers();
-      }, 300);
+      }, 500);
       
       return () => clearTimeout(timer);
     }
