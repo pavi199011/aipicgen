@@ -24,7 +24,7 @@ export const UserFilter = ({ filterState, onFilterChange }: UserFilterProps) => 
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="text"
-          placeholder="Filter by username or email..."
+          placeholder="Search by name, username or email..."
           value={filterState.username}
           onChange={handleInputChange}
           className="pl-9 w-full"

@@ -15,10 +15,10 @@ export function useRealtimeUserData() {
       setLoading(true);
       console.log("Fetching users from profiles table...");
       
-      // Fetch user profiles
+      // Fetch profiles with enhanced data
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, created_at")
+        .select("id, username, full_name, email, created_at")
         .order('created_at', { ascending: false });
       
       if (profilesError) {
@@ -45,8 +45,9 @@ export function useRealtimeUserData() {
       const mappedUsers = profiles.map(profile => {
         return {
           id: profile.id,
-          email: `user-${profile.id.substring(0, 8)}@example.com`, // Placeholder email
+          email: profile.email || `user-${profile.id.substring(0, 8)}@example.com`,
           username: profile.username || `user-${profile.id.substring(0, 8)}`,
+          full_name: profile.full_name || '',
           created_at: profile.created_at || new Date().toISOString(),
           is_suspended: false
         };

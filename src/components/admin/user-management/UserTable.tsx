@@ -45,6 +45,24 @@ export const UserTable = ({
               </TableHead>
               <TableHead
                 className="cursor-pointer"
+                onClick={() => onSort("full_name")}
+              >
+                <div className="flex items-center">
+                  Full Name
+                  {getSortIcon("full_name")}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => onSort("email")}
+              >
+                <div className="flex items-center">
+                  Email
+                  {getSortIcon("email")}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
                 onClick={() => onSort("created_at")}
               >
                 <div className="flex items-center">
@@ -59,7 +77,7 @@ export const UserTable = ({
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   <div className="flex flex-col items-center">
                     <Users className="h-8 w-8 text-gray-300 mb-2" />
                     No users match your filters
@@ -77,6 +95,8 @@ export const UserTable = ({
                       {user.username || 'No username'}
                     </button>
                   </TableCell>
+                  <TableCell>{user.full_name || 'Not provided'}</TableCell>
+                  <TableCell>{user.email || 'No email'}</TableCell>
                   <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     {user.is_suspended ? (

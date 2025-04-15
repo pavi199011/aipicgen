@@ -74,8 +74,12 @@ export function useUserManagement(users: User[], userStats: UserStats[] = []) {
     return users.filter(user => {
       const username = user.username?.toLowerCase() || '';
       const email = user.email?.toLowerCase() || '';
+      const fullName = user.full_name?.toLowerCase() || '';
       const searchTerm = filterState.username.toLowerCase();
-      return username.includes(searchTerm) || email.includes(searchTerm);
+      
+      return username.includes(searchTerm) || 
+             email.includes(searchTerm) || 
+             fullName.includes(searchTerm);
     });
   }, [users, filterState.username]);
 
@@ -89,6 +93,14 @@ export function useUserManagement(users: User[], userStats: UserStats[] = []) {
           const usernameA = a.username?.toLowerCase() || '';
           const usernameB = b.username?.toLowerCase() || '';
           return usernameA.localeCompare(usernameB) * direction;
+        case "full_name":
+          const fullNameA = a.full_name?.toLowerCase() || '';
+          const fullNameB = b.full_name?.toLowerCase() || '';
+          return fullNameA.localeCompare(fullNameB) * direction;
+        case "email":
+          const emailA = a.email?.toLowerCase() || '';
+          const emailB = b.email?.toLowerCase() || '';
+          return emailA.localeCompare(emailB) * direction;
         case "created_at":
           return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * direction;
         default:

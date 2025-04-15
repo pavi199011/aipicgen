@@ -1,51 +1,66 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { User, UserIcon, Calendar, Image } from "lucide-react";
+import { Calendar, Hash, Image, Mail, User } from "lucide-react";
 
 interface UserInfoCardProps {
   id: string;
   created_at: string;
   imageCount: number;
+  email?: string;
+  full_name?: string;
 }
 
-export const UserInfoCard = ({ id, created_at, imageCount }: UserInfoCardProps) => {
-  // Format date for better readability
-  const formatDate = (dateString: string) => {
+export const UserInfoCard = ({ id, created_at, imageCount, email, full_name }: UserInfoCardProps) => {
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return date.toLocaleString();
   };
 
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
-        <div className="flex items-center space-x-2">
-          <UserIcon className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">User ID:</span>
-          <span className="text-sm text-muted-foreground truncate max-w-[200px]">
-            {id}
-          </span>
+        {full_name && (
+          <div className="flex items-start space-x-2">
+            <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Full Name</p>
+              <p className="text-sm text-muted-foreground break-all">{full_name}</p>
+            </div>
+          </div>
+        )}
+        
+        {email && (
+          <div className="flex items-start space-x-2">
+            <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Email</p>
+              <p className="text-sm text-muted-foreground break-all">{email}</p>
+            </div>
+          </div>
+        )}
+        
+        <div className="flex items-start space-x-2">
+          <Hash className="h-4 w-4 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="text-sm font-medium">User ID</p>
+            <p className="text-sm text-muted-foreground break-all">{id}</p>
+          </div>
         </div>
-
-        <div className="flex items-center space-x-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Created:</span>
-          <span className="text-sm text-muted-foreground">
-            {formatDate(created_at)}
-          </span>
+        
+        <div className="flex items-start space-x-2">
+          <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="text-sm font-medium">Joined</p>
+            <p className="text-sm text-muted-foreground">{formatDate(created_at)}</p>
+          </div>
         </div>
-
-        <div className="flex items-center space-x-2">
-          <Image className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Images Generated:</span>
-          <span className="text-sm text-muted-foreground">
-            {imageCount}
-          </span>
+        
+        <div className="flex items-start space-x-2">
+          <Image className="h-4 w-4 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="text-sm font-medium">Images Generated</p>
+            <p className="text-sm text-muted-foreground">{imageCount}</p>
+          </div>
         </div>
       </CardContent>
     </Card>

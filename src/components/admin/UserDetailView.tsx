@@ -56,13 +56,16 @@ export const UserDetailView = ({
         <div className="space-y-6">
           <UserInfoHeader 
             username={userData.username} 
-            email={userData.email} 
+            email={userData.email}
+            full_name={userData.full_name} 
           />
 
           <UserInfoCard 
             id={userData.id}
             created_at={userData.created_at}
             imageCount={userData.imageCount}
+            email={userData.email}
+            full_name={userData.full_name}
           />
 
           <div className="flex justify-between">
