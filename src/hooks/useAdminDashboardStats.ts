@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -63,19 +62,26 @@ export function useAdminDashboardStats(period: string = 'week') {
         // Get unique active users
         const activeUsers = new Set(activeUsersData?.map(item => item.user_id)).size;
 
-        // Fetch content by type (model type)
-        const { data: contentTypesData, error: contentTypesError } = await supabase
+        // Instead of using group, we'll fetch all images and manually count by model
+        const { data: modelData, error: contentTypesError } = await supabase
           .from('generated_images')
-          .select('model, count')
-          .limit(1000)
-          .group('model');
+          .select('model')
+          .limit(1000);
 
         if (contentTypesError) throw contentTypesError;
-
-        // Format content types data
-        const contentTypes = contentTypesData.map(item => ({
-          name: item.model,
-          value: item.count
+        
+        // Process the model data to count occurrences of each model
+        const modelCounts: Record<string, number> = {};
+        modelData?.forEach(item => {
+          if (item.model) {
+            modelCounts[item.model] = (modelCounts[item.model] || 0) + 1;
+          }
+        });
+        
+        // Convert to the required format
+        const contentTypes = Object.entries(modelCounts).map(([name, value]) => ({
+          name,
+          value
         }));
 
         // Calculate user registration trends
