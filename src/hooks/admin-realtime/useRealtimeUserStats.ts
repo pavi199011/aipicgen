@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStats } from '@/types/admin';
 import { useToast } from '@/hooks/use-toast';
@@ -9,70 +9,55 @@ export function useRealtimeUserStats() {
   const { toast } = useToast();
 
   // Function to fetch user statistics
-  const fetchUserStats = async (users: User[]) => {
+  const fetchUserStats = useCallback(async (users: User[]) => {
     try {
-      console.log("Fetching stats for users:", users);
+      console.log("Fetching statistics for users...");
       
-      if (!users.length) {
+      if (!users || users.length === 0) {
         console.log("No users to fetch stats for");
+        setRealtimeStats([]);
         return;
       }
       
-      // Get image counts for each user
+      // Fetch image counts for each user
       const statsPromises = users.map(async (user) => {
-        // For testing, generate random image counts if real data isn't available
-        try {
-          const { count, error } = await supabase
-            .from("generated_images")
-            .select("id", { count: "exact" })
-            .eq("user_id", user.id);
-            
-          if (error) {
-            console.error("Error fetching image count:", error);
-            // Generate a random count instead
-            return {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              imageCount: Math.floor(Math.random() * 10),
-            };
-          }
+        const { count, error } = await supabase
+          .from("generated_images")
+          .select("id", { count: "exact" })
+          .eq("user_id", user.id);
           
+        if (error) {
+          console.error(`Error fetching image count for user ${user.id}:`, error);
           return {
             id: user.id,
-            username: user.username,
-            email: user.email,
-            imageCount: count || 0,
-          };
-        } catch (error) {
-          console.error("Error in stats promise:", error);
-          return {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            imageCount: Math.floor(Math.random() * 10),
+            username: user.username || '',
+            email: user.email || '',
+            imageCount: 0
           };
         }
+        
+        return {
+          id: user.id,
+          username: user.username || '',
+          email: user.email || '',
+          imageCount: count || 0
+        };
       });
       
       const stats = await Promise.all(statsPromises);
-      console.log("Generated stats:", stats);
+      console.log("User statistics fetched successfully:", stats);
       setRealtimeStats(stats);
       
-      toast({
-        title: "Stats Updated",
-        description: `Updated stats for ${stats.length} users`,
-        variant: "default",
-      });
     } catch (error) {
-      console.error("Error fetching user stats:", error);
+      console.error("Error in fetchUserStats:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch user statistics",
+        description: "Failed to fetch user statistics. Please try again.",
         variant: "destructive",
       });
+      setRealtimeStats([]);
     }
-  };
+  }, [toast]);
 
   return {
     realtimeStats,
