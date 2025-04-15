@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +9,7 @@ import { AdminManagement } from "@/components/admin/AdminManagement";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -21,7 +21,6 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check if admin is authenticated
   useEffect(() => {
     if (!adminAuthenticated) {
       navigate("/admin/login");
@@ -31,7 +30,6 @@ const AdminDashboard = () => {
     }
   }, [adminAuthenticated, navigate]);
 
-  // Fetch users from Supabase
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -50,7 +48,6 @@ const AdminDashboard = () => {
         console.error("Error fetching profiles:", profilesError);
       }
       
-      // Combine auth users with profiles for display
       const formattedUsers = authUsers.users.map(user => {
         const profile = profiles?.find(p => p.id === user.id);
         return {
@@ -75,12 +72,10 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fetch user statistics (image counts)
   const fetchUserStats = async () => {
     try {
       setLoadingStats(true);
       
-      // Get all users
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
       if (authError) {
@@ -88,7 +83,6 @@ const AdminDashboard = () => {
         return;
       }
       
-      // Get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username");
@@ -97,13 +91,11 @@ const AdminDashboard = () => {
         console.error("Error fetching profiles for stats:", profilesError);
       }
       
-      // Create a map of profiles for faster lookups
       const profilesMap = new Map();
       (profiles || []).forEach(profile => {
         profilesMap.set(profile.id, profile);
       });
       
-      // For each user, fetch their image count
       const statsPromises = authUsers.users.map(async (user) => {
         const profile = profilesMap.get(user.id);
         
@@ -145,7 +137,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Delete a user
   const handleDeleteUser = async (userId) => {
     try {
       const { error } = await supabase.auth.admin.deleteUser(userId);
@@ -160,7 +151,6 @@ const AdminDashboard = () => {
         return;
       }
       
-      // Update local state
       setUsers(users.filter(user => user.id !== userId));
       setUserStats(userStats.filter(stat => stat.id !== userId));
       
@@ -178,7 +168,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Add a new admin (placeholder for now)
   const handleAddAdmin = async (email, password) => {
     toast({
       title: "Feature Coming Soon",
@@ -186,23 +175,18 @@ const AdminDashboard = () => {
     });
   };
 
-  // Calculate dashboard stats
   const totalUsers = users.length;
   
-  // Calculate total images
   const totalImages = userStats.reduce((sum, user) => sum + user.imageCount, 0);
   
-  // Calculate average images per user
   const avgImagesPerUser = totalUsers > 0 
     ? (totalImages / totalUsers).toFixed(1) 
     : "0.0";
   
-  // Find current admins (placeholder)
   const currentAdmins = [
     { id: "admin-1", username: "admin_test", email: ADMIN_CREDENTIALS.email }
   ];
 
-  // Handle sign out
   const handleSignOut = async () => {
     adminLogout();
     toast({

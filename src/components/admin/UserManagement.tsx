@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Pencil, Trash2, Search, Ban, X, Check } from "lucide-react";
 import { 
@@ -37,12 +36,14 @@ interface UserManagementProps {
   users: User[];
   loading: boolean;
   onDeleteUser: (userId: string) => void;
+  userStats?: any[]; // Add this prop to fix the type error
 }
 
 export const UserManagement = ({ 
   users, 
   loading,
-  onDeleteUser
+  onDeleteUser,
+  userStats = [] // Provide default empty array
 }: UserManagementProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);

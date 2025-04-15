@@ -1,14 +1,14 @@
 
-import { Navbar } from "@/components/home/Navbar";
-import { HeroSection } from "@/components/home/HeroSection";
-import { FeaturesSection } from "@/components/home/FeaturesSection";
-import { HowItWorksSection } from "@/components/home/HowItWorksSection";
-import { TestimonialsSection } from "@/components/home/TestimonialsSection";
-import { CTASection } from "@/components/home/CTASection";
-import { HomeFooter } from "@/components/home/HomeFooter";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
+import Navbar from "@/components/home/Navbar";
+import HeroSection from "@/components/home/HeroSection";
+import FeaturesSection from "@/components/home/FeaturesSection";
+import HowItWorksSection from "@/components/home/HowItWorksSection";
+import TestimonialsSection from "@/components/home/TestimonialsSection";
+import CTASection from "@/components/home/CTASection";
+import HomeFooter from "@/components/home/HomeFooter";
 
 const Index = () => {
   return (
