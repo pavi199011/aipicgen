@@ -15,12 +15,12 @@ export interface UserStats {
   email?: string;
   username?: string;
   full_name?: string;
-  imageCount: number;
+  image_count: number; // Changed from imageCount to image_count
   avatar_url?: string | null;
 }
 
 export type SortDirection = "asc" | "desc";
-export type SortField = "username" | "created_at" | "imageCount" | "full_name" | "email";
+export type SortField = "username" | "created_at" | "image_count" | "full_name" | "email"; // Changed from imageCount to image_count
 
 export interface UserSortState {
   field: SortField;

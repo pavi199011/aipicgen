@@ -63,9 +63,9 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
                 </Button>
               </TableHead>
               <TableHead className="text-right">
-                <Button variant="ghost" onClick={() => onSort("imageCount")} className="p-0 text-left font-medium">
+                <Button variant="ghost" onClick={() => onSort("image_count")} className="p-0 text-left font-medium">
                   Images
-                  <ArrowUpDown className={`ml-2 h-4 w-4 ${sortState.field === "imageCount" ? "opacity-100" : "opacity-50"}`} />
+                  <ArrowUpDown className={`ml-2 h-4 w-4 ${sortState.field === "image_count" ? "opacity-100" : "opacity-50"}`} />
                 </Button>
               </TableHead>
               <TableHead className="text-right">Status</TableHead>
@@ -95,7 +95,7 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
                       ? formatDistanceToNow(new Date(user.created_at), { addSuffix: true }) 
                       : "N/A"}
                   </TableCell>
-                  <TableCell className="text-right">{user.imageCount}</TableCell>
+                  <TableCell className="text-right">{user.image_count}</TableCell>
                   <TableCell className="text-right">
                     {user.is_suspended ? (
                       <Badge variant="destructive" className="ml-auto">Suspended</Badge>

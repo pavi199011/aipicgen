@@ -22,7 +22,7 @@ const UserDetailDialog = ({ user, onClose }: UserDetailDialogProps) => {
     <div className="grid gap-6">
       <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4">
         <Avatar className="h-20 w-20">
-          <AvatarImage src={user.avatarUrl || ""} alt={user.username || "User"} />
+          <AvatarImage src={user.avatarUrl || user.avatar_url || ""} alt={user.username || "User"} />
           <AvatarFallback className="text-lg">{getUserInitials()}</AvatarFallback>
         </Avatar>
         
@@ -64,7 +64,7 @@ const UserDetailDialog = ({ user, onClose }: UserDetailDialogProps) => {
         
         <div className="space-y-1">
           <p className="text-sm font-medium text-gray-500">Images Generated</p>
-          <p className="text-sm">{user.imageCount}</p>
+          <p className="text-sm">{user.image_count}</p>
         </div>
       </div>
       
