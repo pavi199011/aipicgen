@@ -85,7 +85,13 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_user_emails: {
+        Args: { user_ids: string[] }
+        Returns: {
+          id: string
+          email: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

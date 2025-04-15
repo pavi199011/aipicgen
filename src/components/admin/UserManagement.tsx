@@ -88,14 +88,13 @@ const UserManagement = () => {
 
       console.log("Fetched user data:", data);
       
-      // After getting the stats, fetch email data from auth.users through our new view
+      // After getting the stats, fetch email data from auth.users through our function
       if (data && data.length > 0) {
         try {
           // Get user IDs from the fetched data
-          const userIds = data.map(user => user.id);
+          const userIds = data.map(user => user.id as string);
           
-          // Use the admin_user_statistics view to get emails
-          // This uses a raw query instead of the typed client to bypass type checking
+          // Use the get_user_emails function to get emails
           const { data: emailsData, error: emailsError } = await supabase
             .rpc('get_user_emails', { user_ids: userIds });
           
