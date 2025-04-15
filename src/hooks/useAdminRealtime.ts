@@ -10,6 +10,77 @@ export function useAdminRealtime() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
 
+  // Function to fetch all users and their stats
+  const fetchUserData = async () => {
+    try {
+      // Fetch auth users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+      if (authError) {
+        console.warn("Error fetching auth users:", authError.message);
+        return;
+      }
+      
+      // Get all profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, created_at");
+        
+      if (profilesError) {
+        console.warn("Error fetching profiles:", profilesError.message);
+      }
+      
+      const profilesMap = new Map();
+      (profiles || []).forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+      
+      // Map auth users to our user format
+      const users = authUsers.users.map(authUser => {
+        const profile = profilesMap.get(authUser.id);
+        return {
+          id: authUser.id,
+          email: authUser.email,
+          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
+          created_at: authUser.created_at || new Date().toISOString(),
+        };
+      });
+      
+      setRealtimeUsers(users);
+      
+      // Get image counts for each user
+      const statsPromises = users.map(async (user) => {
+        const { count, error } = await supabase
+          .from("generated_images")
+          .select("id", { count: "exact" })
+          .eq("user_id", user.id);
+          
+        if (error) {
+          console.error("Error fetching image count:", error);
+          return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            imageCount: 0,
+          };
+        }
+        
+        return {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          imageCount: count || 0,
+        };
+      });
+      
+      const stats = await Promise.all(statsPromises);
+      setRealtimeStats(stats);
+      
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
   // Set up realtime subscriptions
   useEffect(() => {
     console.log("Setting up realtime subscriptions");
@@ -22,75 +93,15 @@ export function useAdminRealtime() {
         async (payload) => {
           console.log('Profile change received:', payload);
           
-          // Handle different event types
+          // When profile changes, refresh all data 
+          // This is simpler than trying to update just the changed records
+          fetchUserData();
+          
           if (payload.eventType === 'INSERT') {
-            // Get email from auth for new user
-            const { data: authData } = await supabase.auth.admin.getUserById(payload.new.id);
-            
-            const newUser = {
-              id: payload.new.id,
-              username: payload.new.username || 'No Username',
-              created_at: payload.new.created_at || new Date().toISOString(),
-              email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
-            };
-            
-            setRealtimeUsers(prev => [...prev, newUser]);
-            
-            // Also update stats
-            const { count } = await supabase
-              .from("generated_images")
-              .select("id", { count: "exact" })
-              .eq("user_id", payload.new.id);
-              
-            const newStat = {
-              id: payload.new.id,
-              username: payload.new.username || 'No Username',
-              email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
-              imageCount: count || 0,
-            };
-            
-            setRealtimeStats(prev => [...prev, newStat]);
-            
             toast({
-              title: 'New User',
-              description: `User ${payload.new.username || 'Unknown'} has joined.`,
+              title: 'User Profile Created',
+              description: `User profile for ${payload.new.username || 'Unknown'} has been created.`,
             });
-          } else if (payload.eventType === 'UPDATE') {
-            // Get email from auth for updated user
-            const { data: authData } = await supabase.auth.admin.getUserById(payload.new.id);
-            
-            const updatedUser = {
-              id: payload.new.id,
-              username: payload.new.username || 'No Username',
-              created_at: payload.new.created_at || new Date().toISOString(),
-              email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
-            };
-            
-            setRealtimeUsers(prev => 
-              prev.map(user => user.id === payload.new.id ? updatedUser : user)
-            );
-            
-            // Also update stats
-            setRealtimeStats(prev => 
-              prev.map(stat => {
-                if (stat.id === payload.new.id) {
-                  return {
-                    ...stat,
-                    username: payload.new.username || 'No Username',
-                    email: authData?.user?.email || `${payload.new.username || 'user'}@example.com`,
-                  };
-                }
-                return stat;
-              })
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setRealtimeUsers(prev => 
-              prev.filter(user => user.id !== payload.old.id)
-            );
-            
-            setRealtimeStats(prev => 
-              prev.filter(stat => stat.id !== payload.old.id)
-            );
           }
         }
       )
@@ -100,22 +111,7 @@ export function useAdminRealtime() {
           console.log('Generated image change received:', payload);
           
           // Update stats when a new image is created or deleted
-          if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-            // We need to refetch stats to get accurate counts
-            fetchUserStats();
-          }
-        }
-      )
-      .on('postgres_changes', 
-        { event: 'INSERT', schema: 'auth', table: 'users' },
-        async (payload) => {
-          console.log('Auth user created:', payload);
-          // We don't get the full user data here, but we can trigger a profile fetch
-          // The trigger we created will insert a profile record for us
-          // Wait a bit for the profile to be created
-          setTimeout(() => {
-            fetchUserStats();
-          }, 1000);
+          fetchUserData();
         }
       )
       .subscribe(status => {
@@ -124,7 +120,7 @@ export function useAdminRealtime() {
         
         if (status === 'SUBSCRIBED') {
           // Immediately fetch data when subscription is active
-          fetchUserStats();
+          fetchUserData();
         }
       });
     
@@ -134,69 +130,10 @@ export function useAdminRealtime() {
     };
   }, [toast]);
 
-  // Function to fetch user stats
-  const fetchUserStats = async () => {
-    try {
-      // Fetch profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, username, created_at');
-      
-      if (profilesError) throw profilesError;
-      
-      // Fetch image counts for each profile and build users data
-      const usersPromises = (profiles || []).map(async (profile) => {
-        const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
-        
-        return {
-          id: profile.id,
-          username: profile.username || 'No Username', 
-          email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
-          created_at: profile.created_at || new Date().toISOString(),
-        };
-      });
-      
-      const users = await Promise.all(usersPromises);
-      setRealtimeUsers(users);
-      
-      // Fetch image counts for each profile and build stats
-      const statsPromises = (profiles || []).map(async (profile) => {
-        const { count, error } = await supabase
-          .from('generated_images')
-          .select('id', { count: 'exact' })
-          .eq('user_id', profile.id);
-        
-        if (error) {
-          console.error('Error fetching image count:', error);
-          return {
-            id: profile.id,
-            username: profile.username || 'No Username',
-            imageCount: 0
-          };
-        }
-        
-        const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
-        
-        return {
-          id: profile.id,
-          username: profile.username || 'No Username',
-          email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
-          imageCount: count || 0
-        };
-      });
-      
-      const stats = await Promise.all(statsPromises);
-      setRealtimeStats(stats);
-      
-    } catch (error) {
-      console.error('Error fetching user stats:', error);
-    }
-  };
-
   return {
     realtimeUsers,
     realtimeStats,
     isSubscribed,
-    fetchUserStats
+    fetchUserStats: fetchUserData
   };
 }

@@ -9,7 +9,8 @@ import { AdminDashboardLoading } from "@/components/admin/AdminDashboardLoading"
 import { AdminRedirectLoader } from "@/components/admin/AdminRedirectLoader";
 import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard = () => {
   const { theme, setTheme } = useTheme();
@@ -67,9 +68,32 @@ const AdminDashboard = () => {
     }
   };
 
-  // Find current admins from user roles
+  // Find current admins by checking the user_roles table
+  const findAdmins = async () => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
+    
+    return (data || []).map(item => item.user_id);
+  };
+  
+  // Filter admin users based on role
+  const [adminUserIds, setAdminUserIds] = useState<string[]>([]);
+  
+  useEffect(() => {
+    if (displayUsers.length > 0) {
+      findAdmins().then(adminIds => {
+        setAdminUserIds(adminIds);
+      });
+    }
+  }, [displayUsers]);
+  
+  // Find current admins from user roles and emails
   const currentAdmins = displayUsers.filter(user => 
-    user.email?.includes("admin") || user.username?.toLowerCase().includes("admin")
+    adminUserIds.includes(user.id) || 
+    user.email?.includes("admin") || 
+    user.username?.toLowerCase().includes("admin")
   );
 
   // Show loading state while authentication is being checked

@@ -15,33 +15,41 @@ export function useUserData(userId: string | undefined) {
       setLoading(true);
       console.log("Fetching users...");
       
-      // Fetch auth users with profiles joined
+      // Fetch auth users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+      if (authError) {
+        console.warn("Error fetching auth users:", authError.message);
+        throw authError;
+      }
+      
+      // Get all profiles to join with auth users
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, created_at");
         
       if (profilesError) {
         console.warn("Error fetching user profiles:", profilesError.message);
-        throw profilesError;
       }
       
-      // Map profiles to users with auth information
-      const enhancedUsers = await Promise.all(
-        (profiles || []).map(async (profile) => {
-          // Try to get email from auth - this is only for admin display purposes
-          const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
-          
-          return {
-            id: profile.id,
-            username: profile.username || 'No Username',
-            created_at: profile.created_at || new Date().toISOString(),
-            email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
-          };
-        })
-      );
+      const profilesMap = new Map();
+      (profiles || []).forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
       
-      console.log("Users data fetched:", enhancedUsers);
-      setUsers(enhancedUsers);
+      // Map auth users to our user format
+      const mappedUsers = authUsers.users.map(authUser => {
+        const profile = profilesMap.get(authUser.id);
+        return {
+          id: authUser.id,
+          email: authUser.email,
+          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
+          created_at: authUser.created_at || new Date().toISOString(),
+        };
+      });
+      
+      console.log("Users data fetched:", mappedUsers);
+      setUsers(mappedUsers);
     } catch (error: any) {
       console.error("Error fetching users:", error);
       toast({
@@ -69,7 +77,9 @@ export function useUserData(userId: string | undefined) {
         .delete()
         .eq("id", userId);
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Error deleting profile:", profileError);
+      }
       
       // Finally delete the auth user
       const { error: authError } = await supabase.auth.admin.deleteUser(userId);
@@ -88,7 +98,7 @@ export function useUserData(userId: string | undefined) {
       console.error("Error deleting user:", error);
       toast({
         title: "Error",
-        description: "Failed to delete user. " + error.message,
+        description: "Failed to delete user: " + error.message,
         variant: "destructive",
       });
     }

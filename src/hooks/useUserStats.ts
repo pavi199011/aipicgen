@@ -13,39 +13,51 @@ export function useUserStats(userId: string | undefined) {
     try {
       setLoadingStats(true);
       
-      // Fetch all profiles
-      const { data: profilesData, error: profilesError } = await supabase
+      // Fetch auth users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+      if (authError) {
+        console.warn("Error fetching auth users:", authError.message);
+        throw authError;
+      }
+      
+      // Get all profiles to join with auth users
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username");
         
       if (profilesError) {
-        console.warn("Error fetching profiles:", profilesError);
-        throw profilesError;
+        console.warn("Error fetching user profiles:", profilesError.message);
       }
       
-      // For each profile, fetch their image count
-      const statsPromises = (profilesData || []).map(async (profile) => {
+      const profilesMap = new Map();
+      (profiles || []).forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+      
+      // For each user, fetch their image count
+      const statsPromises = authUsers.users.map(async (authUser) => {
+        const profile = profilesMap.get(authUser.id);
+        
         const { count, error } = await supabase
           .from("generated_images")
           .select("id", { count: "exact" })
-          .eq("user_id", profile.id);
+          .eq("user_id", authUser.id);
           
         if (error) {
           console.error("Error fetching image count:", error);
           return {
-            id: profile.id,
-            username: profile.username,
+            id: authUser.id,
+            username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
+            email: authUser.email,
             imageCount: 0,
           };
         }
         
-        // Try to get email from auth - this is only for admin display purposes
-        const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
-        
         return {
-          id: profile.id,
-          username: profile.username || 'No Username',
-          email: authData?.user?.email || `${profile.username || 'user'}@example.com`,
+          id: authUser.id,
+          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
+          email: authUser.email,
           imageCount: count || 0,
         };
       });
