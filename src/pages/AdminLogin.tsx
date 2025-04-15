@@ -27,11 +27,6 @@ const AdminLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
-  // Redirect if already logged in and is admin
-  if (user?.isAdmin) {
-    return <Navigate to="/admin" replace />;
-  }
-  
   const form = useForm<AdminCredentials>({
     resolver: zodResolver(adminLoginSchema),
     defaultValues: {
@@ -59,6 +54,11 @@ const AdminLogin = () => {
       setIsSubmitting(false);
     }
   };
+  
+  // Move the redirect logic after all hooks have been initialized
+  if (user?.isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
 
   return (
     <AuthCard>
