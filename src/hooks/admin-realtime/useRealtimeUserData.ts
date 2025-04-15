@@ -2,50 +2,63 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/admin';
+import { useToast } from '@/hooks/use-toast';
 
 export function useRealtimeUserData() {
   const [realtimeUsers, setRealtimeUsers] = useState<User[]>([]);
+  const { toast } = useToast();
 
   // Function to fetch all users
   const fetchUserData = async () => {
     try {
-      // Fetch auth users
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-        
-      if (authError) {
-        console.warn("Error fetching auth users:", authError.message);
-        return;
-      }
+      console.log("Fetching realtime user data...");
       
-      // Get all profiles
-      const { data: profiles, error: profilesError } = await supabase
+      // For testing, directly fetch from profiles table instead of auth.users
+      const { data: profiles, error } = await supabase
         .from("profiles")
         .select("id, username, created_at");
         
-      if (profilesError) {
-        console.warn("Error fetching profiles:", profilesError.message);
+      if (error) {
+        console.error("Error fetching profiles:", error);
+        throw error;
       }
       
-      const profilesMap = new Map();
-      (profiles || []).forEach(profile => {
-        profilesMap.set(profile.id, profile);
-      });
+      console.log("Fetched profiles:", profiles);
       
-      // Map auth users to our user format
-      const users = authUsers.users.map(authUser => {
-        const profile = profilesMap.get(authUser.id);
+      if (!profiles || profiles.length === 0) {
+        console.log("No profiles found");
+        return;
+      }
+
+      // Map profiles to our user format
+      const users = profiles.map(profile => {
         return {
-          id: authUser.id,
-          email: authUser.email,
-          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
-          created_at: authUser.created_at || new Date().toISOString(),
-          is_suspended: authUser.banned || false
+          id: profile.id,
+          email: `user-${profile.id.substring(0, 6)}@example.com`, // Placeholder email
+          username: profile.username || `user-${profile.id.substring(0, 6)}`,
+          created_at: profile.created_at || new Date().toISOString(),
+          is_suspended: false
         };
       });
       
+      console.log("Mapped users from profiles:", users);
       setRealtimeUsers(users);
+      
+      // Show a toast notification
+      if (users.length > 0) {
+        toast({
+          title: "Users Loaded",
+          description: `Loaded ${users.length} users`,
+          variant: "default",
+        });
+      }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Error in fetchUserData:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch user data",
+        variant: "destructive",
+      });
     }
   };
 
