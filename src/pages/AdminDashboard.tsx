@@ -5,6 +5,7 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminDashboardContent } from "@/components/admin/AdminDashboardContent";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { AdminDashboardLoading } from "@/components/admin/AdminDashboardLoading";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
 const AdminDashboard = () => {
   const {
@@ -23,6 +24,10 @@ const AdminDashboard = () => {
     fetchUsers,
     fetchUserStats
   } = useAdminDashboard();
+  
+  // Set up realtime updates
+  const { isSubscribed, fetchAllData } = useAdminRealtime();
+  
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,6 +71,18 @@ const AdminDashboard = () => {
       fetchUserStats();
     }
   }, [adminAuthenticated, users, fetchUserStats]);
+
+  // Refresh data periodically using realtime data when available
+  useEffect(() => {
+    if (adminAuthenticated === true && isSubscribed) {
+      const intervalId = setInterval(() => {
+        console.log("Refreshing data from realtime...");
+        fetchAllData();
+      }, 30000); // Refresh every 30 seconds
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [adminAuthenticated, isSubscribed, fetchAllData]);
 
   // Show loading state only while checking authentication
   if (adminAuthenticated === undefined) {

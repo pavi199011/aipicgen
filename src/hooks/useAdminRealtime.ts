@@ -3,7 +3,6 @@ import { useCallback } from 'react';
 import { useRealtimeUserData } from './admin-realtime/useRealtimeUserData';
 import { useRealtimeUserStats } from './admin-realtime/useRealtimeUserStats';
 import { useRealtimeSubscription } from './admin-realtime/useRealtimeSubscription';
-import { UserStats } from '@/types/admin';
 
 export function useAdminRealtime() {
   const { realtimeUsers, fetchUserData } = useRealtimeUserData();
@@ -25,6 +24,6 @@ export function useAdminRealtime() {
     realtimeUsers,
     realtimeStats,
     isSubscribed,
-    fetchUserStats: fetchAllData
+    fetchAllData
   };
 }

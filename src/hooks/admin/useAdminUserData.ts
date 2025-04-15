@@ -20,34 +20,49 @@ export function useAdminUserData(
     
     try {
       setLoading(true);
-      console.log("Fetching user data from profiles...");
+      console.log("Fetching real user data from auth.users...");
       
       // Use a slight delay to ensure auth is properly initialized
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      // Fetch from profiles table with RLS policy in place for admin access
+      // Fetch auth users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+      if (authError) {
+        console.error("Error fetching auth users:", authError);
+        throw authError;
+      }
+      
+      console.log("Auth users data:", authUsers);
+      
+      // Get all profiles to join with auth users
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, created_at");
         
       if (profilesError) {
         console.error("Error fetching user profiles:", profilesError);
-        throw profilesError;
       }
       
-      // Map profiles to our user format
-      const users = (profiles || []).map(profile => {
+      const profilesMap = new Map();
+      (profiles || []).forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+      
+      // Map auth users to our user format
+      const users = authUsers.users.map(authUser => {
+        const profile = profilesMap.get(authUser.id);
         return {
-          id: profile.id,
-          email: `${profile.username || 'user'}@example.com`, // We don't have emails in profiles
-          username: profile.username || 'No Username',
-          created_at: profile.created_at || new Date().toISOString(),
-          is_suspended: false
+          id: authUser.id,
+          email: authUser.email,
+          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
+          created_at: authUser.created_at || new Date().toISOString(),
+          is_suspended: authUser.banned || false
         };
       });
       
       setUsers(users);
-      console.log("User data loaded:", users);
+      console.log("Real user data loaded:", users);
     } catch (error) {
       console.error("Error in fetchUsers:", error);
       toast({
@@ -71,15 +86,12 @@ export function useAdminUserData(
         .delete()
         .eq("user_id", userId);
         
-      // Then delete the profile
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", userId);
+      // Then delete the auth user (this will cascade to the profile)
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
       
-      if (profileError) {
-        console.error("Error deleting profile:", profileError);
-        throw profileError;
+      if (authError) {
+        console.error("Error deleting auth user:", authError);
+        throw authError;
       }
       
       toast({

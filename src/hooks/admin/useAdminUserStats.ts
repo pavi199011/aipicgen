@@ -20,7 +20,7 @@ export function useAdminUserStats(
     
     try {
       setLoadingStats(true);
-      console.log("Fetching user stats data...");
+      console.log("Fetching real user stats data...");
       
       if (users.length === 0) {
         console.log("No users to fetch stats for");
@@ -55,7 +55,7 @@ export function useAdminUserStats(
       
       const stats = await Promise.all(statsPromises);
       setUserStats(stats);
-      console.log("User stats loaded:", stats);
+      console.log("Real user stats loaded:", stats);
     } catch (error) {
       console.error("Error in fetchUserStats:", error);
       toast({

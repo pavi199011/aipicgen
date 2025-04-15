@@ -39,6 +39,7 @@ export function useRealtimeUserData() {
           email: authUser.email,
           username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
           created_at: authUser.created_at || new Date().toISOString(),
+          is_suspended: authUser.banned || false
         };
       });
       
