@@ -7,7 +7,7 @@ import { User, UserStats } from "@/types/admin";
  * Hook for managing mock user data in the admin dashboard
  */
 export function useAdminUserData(
-  setUsers: (users: User[]) => void,
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>,
   setLoading: (loading: boolean) => void,
   adminAuthenticated: boolean | undefined
 ) {
