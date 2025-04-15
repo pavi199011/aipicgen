@@ -1,9 +1,9 @@
 
 // Administrator credentials for testing
 export const ADMIN_CREDENTIALS = {
-  username: "admin_test",
-  email: "admin@example.com",
-  password: "admin123"
+  username: "admin@elevate.network",
+  email: "admin@elevate.network",
+  password: "admin2025@#"
 };
 
 // Route prefix for all admin pages
