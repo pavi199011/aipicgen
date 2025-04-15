@@ -1,6 +1,6 @@
 
 export const usersData = {
-  totalUsers: 1,458,
+  totalUsers: 1458,
   growthRate: 12.4,
   activeUsers: 973,
   activeGrowthRate: 8.2,
@@ -147,3 +147,4 @@ export const activityData = [
     status: "pending",
   },
 ];
+
