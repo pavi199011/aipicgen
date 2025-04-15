@@ -1,13 +1,10 @@
 
-// Admin route - matches App.tsx ADMIN_ROUTE
-export const ADMIN_ROUTE = "admin-portal";
-
-// Admin credentials - for development purposes only
+// Administrator credentials for testing
 export const ADMIN_CREDENTIALS = {
+  username: "admin_test",
   email: "admin@example.com",
-  username: "admin_user",
-  password: "SecureAdminPass2025!"
+  password: "admin123"
 };
 
-// Session timeout in minutes
-export const SESSION_TIMEOUT = 30;
+// Route prefix for all admin pages
+export const ADMIN_ROUTE = "admin";

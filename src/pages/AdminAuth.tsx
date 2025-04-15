@@ -3,104 +3,68 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield } from "lucide-react";
-import { AdminAuthCard } from "@/components/admin/AdminAuthCard";
-import { AdminLoginForm, AdminLoginFormValues } from "@/components/admin/AdminLoginForm";
-import { AdminLockoutAlert } from "@/components/admin/AdminLockoutAlert";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { AdminTestCredentials } from "@/components/admin/AdminTestCredentials";
-import { AdminRedirectLoader } from "@/components/admin/AdminRedirectLoader";
 import { useToast } from "@/hooks/use-toast";
-import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { useAdminLockout } from "@/hooks/useAdminLockout";
 
 const AdminAuth = () => {
   const { loading, adminAuthenticated, adminLogin } = useAdminAuth();
-  const { 
-    isLockedOut, 
-    lockoutTimeRemaining, 
-    formatLockoutTime,
-    incrementLoginAttempt,
-    resetLoginAttempts
-  } = useAdminLockout();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  console.log("AdminAuth component rendering, authenticated:", adminAuthenticated, "loading:", loading);
-
   // Redirect if admin is already authenticated
   useEffect(() => {
     if (adminAuthenticated && !isRedirecting) {
-      console.log("User is authenticated, redirecting to admin portal");
       setIsRedirecting(true);
       
-      // Small delay before redirect to avoid white flash
+      // Small delay before redirect for better UX
       const redirectTimer = setTimeout(() => {
-        navigate(`/${ADMIN_ROUTE}`);
+        navigate("/admin");
       }, 100);
       
       return () => clearTimeout(redirectTimer);
     }
   }, [adminAuthenticated, navigate, isRedirecting]);
 
-  const handleLogin = async (values: AdminLoginFormValues) => {
-    console.log("Login attempt with:", values);
-    
-    // Ensure values has all required fields for AdminCredentials
-    const credentials = {
-      identifier: values.identifier || "",
-      password: values.password || ""
-    };
-    
-    // Check if account is locked out
-    if (isLockedOut) {
-      toast({
-        title: "Account temporarily locked",
-        description: `Too many failed attempts. Please try again in ${formatLockoutTime(lockoutTimeRemaining)}`,
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleLogin = async (values) => {
     try {
-      const result = await adminLogin(credentials);
-      console.log("Login result:", result);
+      const result = await adminLogin(values);
       
       if (result.success) {
-        // Reset login attempts on successful login
-        resetLoginAttempts();
-        
-        // Show success message before navigation
         toast({
           title: "Success",
-          description: "Logged in successfully",
+          description: "Logged in to admin portal successfully",
         });
         
-        // Set redirecting state to prevent multiple redirects
         setIsRedirecting(true);
-        
-        // Small delay before redirect to avoid white flash
         setTimeout(() => {
-          navigate(`/${ADMIN_ROUTE}`);
+          navigate("/admin");
         }, 100);
-      } else {
-        // Increment failed login attempts
-        incrementLoginAttempt();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error);
     }
   };
 
-  // Show a loading state during redirection to avoid white flash
-  if (isRedirecting || (adminAuthenticated && !loading)) {
-    return <AdminRedirectLoader />;
+  // Show a loading state during redirection
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-900 p-4">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+          <p className="mt-4 text-white font-medium">Redirecting to admin portal...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-900 p-4">
       <div className="w-full max-w-md">
-        <AdminAuthCard>
+        <Card className="shadow-xl border-0">
           <div className="space-y-1 p-6 pb-2">
             <div className="flex justify-between items-center">
               <div className="flex items-center">
@@ -119,22 +83,15 @@ const AdminAuth = () => {
             </p>
           </div>
           
-          <div className="p-6 pt-2">
-            {isLockedOut && (
-              <AdminLockoutAlert 
-                lockoutTimeRemaining={lockoutTimeRemaining}
-                formatLockoutTime={formatLockoutTime}
-              />
-            )}
-            
+          <CardContent className="p-6 pt-2">
             <AdminLoginForm 
               onSubmit={handleLogin} 
-              loading={loading || isLockedOut} 
+              loading={loading} 
             />
             
             <AdminTestCredentials />
-          </div>
-        </AdminAuthCard>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

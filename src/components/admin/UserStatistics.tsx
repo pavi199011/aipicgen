@@ -1,15 +1,29 @@
 
 import { useState } from "react";
+import { Search, BarChart } from "lucide-react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SortDirection, SortField, User, UserFilterState, UserSortState, UserStats } from "@/types/admin";
-import { UserDetailView } from "./UserDetailView";
-import { UserStatsFilter } from "./user-statistics/UserStatsFilter";
-import { UserStatsTable } from "./user-statistics/UserStatsTable";
-import { UserStatsPagination } from "./user-statistics/UserStatsPagination";
-import { UserSummary } from "./user-management/UserSummary";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+interface UserStat {
+  id: string;
+  username?: string;
+  email?: string;
+  imageCount: number;
+}
 
 interface UserStatisticsProps {
-  userStats: UserStats[];
+  userStats: UserStat[];
   loadingStats: boolean;
   onDeleteUser?: (userId: string) => void;
 }
@@ -17,137 +31,98 @@ interface UserStatisticsProps {
 export const UserStatistics = ({ 
   userStats, 
   loadingStats,
-  onDeleteUser = () => {} 
+  onDeleteUser
 }: UserStatisticsProps) => {
-  const [sortState, setSortState] = useState<UserSortState>({
-    field: "imageCount",
-    direction: "desc"
-  });
-  
-  const [filterState, setFilterState] = useState<UserFilterState>({
-    username: ""
-  });
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
-  const [detailViewOpen, setDetailViewOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const handleSort = (field: SortField) => {
-    setSortState({
-      field,
-      direction: sortState.field === field && sortState.direction === "asc" ? "desc" : "asc"
-    });
-  };
-
-  const handleFilterChange = (field: keyof UserFilterState, value: string) => {
-    setFilterState({
-      ...filterState,
-      [field]: value
-    });
-    setCurrentPage(1); // Reset to first page when filtering
-  };
-
-  const openUserDetail = (user: UserStats) => {
-    setSelectedUser(user);
-    setDetailViewOpen(true);
-  };
-
-  const closeUserDetail = () => {
-    setDetailViewOpen(false);
-    // Clear the selection after animation completes
-    setTimeout(() => setSelectedUser(null), 300);
-  };
-
-  // Convert UserStats to User for the detail view
-  const selectedUserAsUser = selectedUser ? {
-    id: selectedUser.id,
-    email: selectedUser.email,
-    username: selectedUser.username,
-    created_at: new Date().toISOString() // We don't have this in stats, using current date as fallback
-  } : null;
-
-  // Filter users based on the filter state
-  const filteredUsers = userStats.filter(user => {
+  // Filter users based on search term
+  const filteredStats = userStats.filter(user => {
     const username = user.username?.toLowerCase() || '';
-    return username.includes(filterState.username.toLowerCase());
+    const email = user.email?.toLowerCase() || '';
+    const search = searchTerm.toLowerCase();
+    return username.includes(search) || email.includes(search);
   });
 
-  // Sort users based on the sort state
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    const direction = sortState.direction === "asc" ? 1 : -1;
-    
-    switch (sortState.field) {
-      case "username":
-        const usernameA = a.username?.toLowerCase() || '';
-        const usernameB = b.username?.toLowerCase() || '';
-        return usernameA.localeCompare(usernameB) * direction;
-      case "imageCount":
-        return (a.imageCount - b.imageCount) * direction;
-      default:
-        return 0;
-    }
-  });
+  // Sort by image count (descending)
+  const sortedStats = [...filteredStats].sort((a, b) => b.imageCount - a.imageCount);
 
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
-  const paginatedUsers = sortedUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Calculate total images
+  const totalImages = userStats.reduce((sum, user) => sum + user.imageCount, 0);
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, filteredUsers.length);
-
-  return (
-    <>
-      <h2 className="text-2xl font-bold mb-6">User Statistics</h2>
-      
-      {loadingStats ? (
+  if (loadingStats) {
+    return (
+      <div>
+        <h2 className="text-2xl font-bold mb-6">User Statistics</h2>
+        <div className="mb-4">
+          <Skeleton className="h-10 w-full" />
+        </div>
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className="h-12 w-full" />
           ))}
         </div>
-      ) : (
-        <div className="space-y-4">
-          <UserStatsFilter 
-            filterState={filterState}
-            onFilterChange={handleFilterChange}
-          />
-          
-          <UserStatsTable 
-            paginatedUsers={paginatedUsers}
-            sortState={sortState}
-            onSort={handleSort}
-            onUserSelect={openUserDetail}
-            filteredUsers={filteredUsers}
-          />
-          
-          <UserStatsPagination 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-          
-          <UserSummary 
-            currentCount={paginatedUsers.length}
-            filteredCount={filteredUsers.length}
-            totalCount={userStats.length}
-            startIndex={startIndex}
-            endIndex={endIndex}
-          />
-        </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* User Detail View */}
-      <UserDetailView 
-        user={selectedUserAsUser}
-        userStats={selectedUser}
-        open={detailViewOpen}
-        onClose={closeUserDetail}
-        onDeleteUser={onDeleteUser}
-      />
-    </>
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-6">User Statistics</h2>
+      
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder="Search users by username or email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+      
+      <div className="mb-6">
+        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-4 flex justify-between items-center">
+            <div className="flex items-center">
+              <BarChart className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+              <span className="font-medium">Total Generated Images:</span>
+            </div>
+            <Badge className="text-lg py-1 px-3 bg-blue-600">{totalImages}</Badge>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Username</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="text-right">Images Generated</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedStats.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                    No users found matching your search
+                  </TableCell>
+                </TableRow>
+              ) : (
+                sortedStats.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.username || 'No username'}</TableCell>
+                    <TableCell>{user.email || 'No email'}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {user.imageCount}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

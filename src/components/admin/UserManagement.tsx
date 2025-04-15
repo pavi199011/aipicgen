@@ -1,137 +1,248 @@
 
+import { useState } from "react";
+import { Pencil, Trash2, Search, Ban, X, Check } from "lucide-react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger, 
+  DialogClose
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, UserStats } from "@/types/admin";
-import { UserDetailView } from "./UserDetailView";
-import { UserTable } from "./user-management/UserTable";
-import { UserFilter } from "./user-management/UserFilter";
-import { UserPagination } from "./user-management/UserPagination";
-import { UserSummary } from "./user-management/UserSummary";
-import { useUserManagement } from "./user-management/useUserManagement";
-import { ConfirmationDialog } from "./ConfirmationDialog";
+
+interface User {
+  id: string;
+  username?: string;
+  email?: string;
+  created_at: string;
+  is_suspended?: boolean;
+}
 
 interface UserManagementProps {
   users: User[];
   loading: boolean;
   onDeleteUser: (userId: string) => void;
-  onSuspendUser?: (userId: string) => void;
-  userStats?: UserStats[]; // Optional stats for detailed view
 }
 
 export const UserManagement = ({ 
   users, 
-  loading, 
-  onDeleteUser,
-  onSuspendUser,
-  userStats = []
+  loading,
+  onDeleteUser
 }: UserManagementProps) => {
-  const {
-    sortState,
-    filterState,
-    selectedUser,
-    detailViewOpen,
-    currentPage,
-    confirmationOpen,
-    actionToConfirm,
-    totalPages,
-    currentUsers,
-    filteredUsers,
-    handleSort,
-    handleFilterChange,
-    openUserDetail,
-    closeUserDetail,
-    confirmAction,
-    cancelAction,
-    setCurrentPage,
-    getSelectedUserStats
-  } = useUserManagement(users, userStats);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
 
-  const handleConfirmAction = () => {
-    if (!actionToConfirm) return;
-    
-    if (actionToConfirm.type === 'delete') {
-      onDeleteUser(actionToConfirm.userId);
-    } else if (actionToConfirm.type === 'suspend' && onSuspendUser) {
-      onSuspendUser(actionToConfirm.userId);
+  // Filter users based on search term
+  const filteredUsers = users.filter(user => {
+    const username = user.username?.toLowerCase() || '';
+    const email = user.email?.toLowerCase() || '';
+    const search = searchTerm.toLowerCase();
+    return username.includes(search) || email.includes(search);
+  });
+
+  const handleDeleteClick = (user: User) => {
+    setSelectedUser(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleEditClick = (user: User) => {
+    setSelectedUser(user);
+    setEditDialogOpen(true);
+  };
+
+  const handleSuspendClick = (user: User) => {
+    setSelectedUser(user);
+    setSuspendDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedUser) {
+      onDeleteUser(selectedUser.id);
+      setDeleteDialogOpen(false);
     }
-    
-    cancelAction();
   };
 
   if (loading) {
-    return <UserLoadingSkeleton />;
+    return (
+      <div>
+        <h2 className="text-2xl font-bold mb-6">User Management</h2>
+        <div className="mb-4">
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-12 w-full" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <>
+    <div>
       <h2 className="text-2xl font-bold mb-6">User Management</h2>
       
-      <div className="space-y-4">
-        <UserFilter 
-          filterState={filterState} 
-          onFilterChange={handleFilterChange} 
-        />
-        
-        <UserTable 
-          users={currentUsers}
-          sortState={sortState}
-          onSort={handleSort}
-          onUserSelect={openUserDetail}
-          onConfirmDelete={(userId) => confirmAction('delete', userId)}
-          onConfirmSuspend={(userId) => confirmAction('suspend', userId)}
-        />
-        
-        <UserPagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-        
-        <UserSummary 
-          currentCount={currentUsers.length}
-          filteredCount={filteredUsers.length}
-          totalCount={users.length}
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder="Search users by username or email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
         />
       </div>
-
-      <UserDetailView 
-        user={selectedUser}
-        userStats={getSelectedUserStats()}
-        open={detailViewOpen}
-        onClose={closeUserDetail}
-        onDeleteUser={(userId) => confirmAction('delete', userId)}
-      />
-
-      <ConfirmationDialog
-        open={confirmationOpen}
-        onClose={cancelAction}
-        onConfirm={handleConfirmAction}
-        title={actionToConfirm?.type === 'delete' ? "Delete User" : "Suspend User"}
-        description={
-          actionToConfirm?.type === 'delete' 
-            ? "Are you sure you want to delete this user? This action cannot be undone."
-            : "Are you sure you want to suspend this user? They will no longer be able to log in."
-        }
-        confirmLabel={actionToConfirm?.type === 'delete' ? "Delete" : "Suspend"}
-        variant="destructive"
-      />
-    </>
+      
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Username</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Created Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No users found matching your search
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.username || 'No username'}</TableCell>
+                    <TableCell>{user.email || 'No email'}</TableCell>
+                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {user.is_suspended ? (
+                        <Badge variant="destructive">Suspended</Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Active</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => handleEditClick(user)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => handleSuspendClick(user)}
+                        >
+                          <Ban className="h-4 w-4" />
+                          <span className="sr-only">Suspend</span>
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="icon"
+                          onClick={() => handleDeleteClick(user)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedUser?.username || selectedUser?.email}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit User Dialog (Placeholder) */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Edit details for {selectedUser?.username || selectedUser?.email}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-center text-muted-foreground">
+              User editing functionality will be implemented in a future update.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setEditDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Suspend User Dialog (Placeholder) */}
+      <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend User</DialogTitle>
+            <DialogDescription>
+              {selectedUser?.is_suspended 
+                ? `Are you sure you want to reactivate ${selectedUser?.username || selectedUser?.email}?`
+                : `Are you sure you want to suspend ${selectedUser?.username || selectedUser?.email}?`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-center text-muted-foreground">
+              User suspension functionality will be implemented in a future update.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setSuspendDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
-
-// Loading skeleton component
-const UserLoadingSkeleton = () => (
-  <>
-    <h2 className="text-2xl font-bold mb-6">User Management</h2>
-    <div className="space-y-4">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="flex items-center space-x-4">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
-          </div>
-        </div>
-      ))}
-    </div>
-  </>
-);

@@ -1,128 +1,267 @@
 
-import { useTheme } from "next-themes";
-import { useToast } from "@/hooks/use-toast";
-import { useAdminDashboardData } from "@/hooks/useAdminDashboardData";
-import { useAdminRealtime } from "@/hooks/useAdminRealtime";
-import { AdminDashboardLayout } from "@/components/admin/AdminDashboardLayout";
-import { AdminTabs } from "@/components/admin/AdminTabs";
-import { AdminDashboardLoading } from "@/components/admin/AdminDashboardLoading";
-import { AdminRedirectLoader } from "@/components/admin/AdminRedirectLoader";
-import { ADMIN_ROUTE } from "@/components/admin/AdminConstants";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminHeader } from "@/components/admin/AdminHeader";
+import { DashboardOverview } from "@/components/admin/DashboardOverview";
+import { UserManagement } from "@/components/admin/UserManagement";
+import { UserStatistics } from "@/components/admin/UserStatistics";
+import { AdminManagement } from "@/components/admin/AdminManagement";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard = () => {
-  const { theme, setTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [users, setUsers] = useState([]);
+  const [userStats, setUserStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const { adminAuthenticated, adminLogout } = useAdminAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  const {
-    currentTab,
-    isLoading,
-    authLoading,
-    adminAuthenticated,
-    users,
-    userStats,
-    loading,
-    loadingStats,
-    deleteUser,
-    fetchUsers,
-    fetchUserStats,
-    addAdmin,
-    createUser,
-    handleSignOut,
-  } = useAdminDashboardData();
-  
-  // Set up real-time updates
-  const { realtimeUsers, realtimeStats, isSubscribed } = useAdminRealtime();
-  
-  // Use real-time data when available
-  const displayUsers = realtimeUsers.length > 0 ? realtimeUsers : users;
-  const displayStats = realtimeStats.length > 0 ? realtimeStats : userStats;
-  
-  // Show toast when real-time connection is established
+
+  // Check if admin is authenticated
   useEffect(() => {
-    if (isSubscribed) {
+    if (!adminAuthenticated) {
+      navigate("/admin/login");
+    } else {
+      fetchUsers();
+      fetchUserStats();
+    }
+  }, [adminAuthenticated, navigate]);
+
+  // Fetch users from Supabase
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error("Error fetching users:", authError);
+        return;
+      }
+      
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, created_at");
+        
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+      }
+      
+      // Combine auth users with profiles for display
+      const formattedUsers = authUsers.users.map(user => {
+        const profile = profiles?.find(p => p.id === user.id);
+        return {
+          id: user.id,
+          email: user.email,
+          username: profile?.username || user.email?.split('@')[0] || 'No Username',
+          created_at: profile?.created_at || user.created_at,
+          is_suspended: user.banned || false
+        };
+      });
+      
+      setUsers(formattedUsers);
+    } catch (error) {
+      console.error("Error in fetchUsers:", error);
       toast({
-        title: "Real-time Updates",
-        description: "Connected to real-time data stream.",
+        title: "Error",
+        description: "Failed to fetch users. Check console for details.",
+        variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-  }, [isSubscribed, toast]);
-  
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const handleHeaderAction = (action: string) => {
-    if (action === "profile") {
+  // Fetch user statistics (image counts)
+  const fetchUserStats = async () => {
+    try {
+      setLoadingStats(true);
+      
+      // Get all users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error("Error fetching users for stats:", authError);
+        return;
+      }
+      
+      // Get all profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username");
+        
+      if (profilesError) {
+        console.error("Error fetching profiles for stats:", profilesError);
+      }
+      
+      // Create a map of profiles for faster lookups
+      const profilesMap = new Map();
+      (profiles || []).forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+      
+      // For each user, fetch their image count
+      const statsPromises = authUsers.users.map(async (user) => {
+        const profile = profilesMap.get(user.id);
+        
+        const { count, error } = await supabase
+          .from("generated_images")
+          .select("id", { count: "exact" })
+          .eq("user_id", user.id);
+          
+        if (error) {
+          console.error("Error fetching image count:", error);
+          return {
+            id: user.id,
+            username: profile?.username || user.email?.split('@')[0] || 'No Username',
+            email: user.email,
+            imageCount: 0,
+          };
+        }
+        
+        return {
+          id: user.id,
+          username: profile?.username || user.email?.split('@')[0] || 'No Username',
+          email: user.email,
+          imageCount: count || 0,
+        };
+      });
+      
+      const stats = await Promise.all(statsPromises);
+      setUserStats(stats);
+      
+    } catch (error) {
+      console.error("Error in fetchUserStats:", error);
       toast({
-        title: "Profile",
-        description: "Profile functionality will be implemented soon.",
+        title: "Error",
+        description: "Failed to fetch user statistics. Check console for details.",
+        variant: "destructive",
       });
-    } else if (action === "settings") {
-      navigate(`/${ADMIN_ROUTE}#settings`);
-    } else if (action === "logout") {
-      handleSignOut();
+    } finally {
+      setLoadingStats(false);
     }
   };
 
-  // Simplified admin detection based on username/email patterns
-  // since the user_roles table has been dropped
-  const findAdmins = async () => {
-    return []; // Return an empty array as placeholder
-  };
-  
-  // Filter admin users based on heuristics
-  const [adminUserIds, setAdminUserIds] = useState<string[]>([]);
-  
-  useEffect(() => {
-    if (displayUsers.length > 0) {
-      findAdmins().then(adminIds => {
-        setAdminUserIds(adminIds);
+  // Delete a user
+  const handleDeleteUser = async (userId) => {
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+      
+      if (error) {
+        console.error("Error deleting user:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete user. Check console for details.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Update local state
+      setUsers(users.filter(user => user.id !== userId));
+      setUserStats(userStats.filter(stat => stat.id !== userId));
+      
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error in handleDeleteUser:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user. Check console for details.",
+        variant: "destructive",
       });
     }
-  }, [displayUsers]);
+  };
+
+  // Add a new admin (placeholder for now)
+  const handleAddAdmin = async (email, password) => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "Adding new admins will be implemented in a future update.",
+    });
+  };
+
+  // Calculate dashboard stats
+  const totalUsers = users.length;
   
-  // Find current admins from usernames/emails (simplified approach)
-  const currentAdmins = displayUsers.filter(user => 
-    adminUserIds.includes(user.id) || 
-    user.email?.includes("admin") || 
-    user.username?.toLowerCase().includes("admin")
-  );
+  // Calculate total images
+  const totalImages = userStats.reduce((sum, user) => sum + user.imageCount, 0);
+  
+  // Calculate average images per user
+  const avgImagesPerUser = totalUsers > 0 
+    ? (totalImages / totalUsers).toFixed(1) 
+    : "0.0";
+  
+  // Find current admins (placeholder)
+  const currentAdmins = [
+    { id: "admin-1", username: "admin_test", email: ADMIN_CREDENTIALS.email }
+  ];
 
-  // Show loading state while authentication is being checked
-  if (isLoading || authLoading) {
-    return <AdminDashboardLoading />;
-  }
-
-  // If not authenticated after loading is complete, show redirect message
-  if (!adminAuthenticated) {
-    return <AdminRedirectLoader />;
-  }
+  // Handle sign out
+  const handleSignOut = async () => {
+    adminLogout();
+    toast({
+      title: "Signed Out",
+      description: "You have been signed out of the admin portal",
+    });
+    navigate("/admin/login");
+  };
 
   return (
-    <AdminDashboardLayout
-      signOut={handleSignOut}
-      currentTab={currentTab}
-      isDarkMode={theme === "dark"}
-      toggleTheme={toggleTheme}
-      onHeaderAction={handleHeaderAction}
-    >
-      <AdminTabs
-        users={displayUsers}
-        userStats={displayStats}
-        loading={loading}
-        loadingStats={loadingStats}
-        deleteUser={deleteUser}
-        fetchUsers={fetchUsers}
-        fetchUserStats={fetchUserStats}
-        addAdmin={addAdmin}
-        createUser={createUser}
-        currentAdmins={currentAdmins}
-      />
-    </AdminDashboardLayout>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AdminHeader onSignOut={handleSignOut} />
+      
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+        
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-4 mb-8">
+            <TabsTrigger value="overview">Dashboard</TabsTrigger>
+            <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="statistics">User Statistics</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            <DashboardOverview
+              userCount={totalUsers}
+              totalImages={totalImages}
+              avgImagesPerUser={avgImagesPerUser}
+              loading={loading}
+              loadingStats={loadingStats}
+            />
+          </TabsContent>
+          
+          <TabsContent value="users">
+            <UserManagement 
+              users={users}
+              loading={loading}
+              onDeleteUser={handleDeleteUser}
+            />
+          </TabsContent>
+          
+          <TabsContent value="statistics">
+            <UserStatistics 
+              userStats={userStats}
+              loadingStats={loadingStats}
+              onDeleteUser={handleDeleteUser}
+            />
+          </TabsContent>
+          
+          <TabsContent value="settings">
+            <AdminManagement 
+              currentAdmins={currentAdmins}
+              onAddAdmin={handleAddAdmin}
+            />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
   );
 };
 

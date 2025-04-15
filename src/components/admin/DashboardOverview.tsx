@@ -1,9 +1,7 @@
 
 import { Users, ImageIcon, BarChart } from "lucide-react";
-import { StatsCard } from "./dashboard/StatsCard";
-import { GrowthChart } from "./dashboard/GrowthChart";
-import { RecentActivity } from "./dashboard/RecentActivity";
-import { SystemStatus } from "./dashboard/SystemStatus";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardOverviewProps {
   userCount: number;
@@ -20,47 +18,65 @@ export const DashboardOverview = ({
   loading,
   loadingStats
 }: DashboardOverviewProps) => {
-  // Calculate percentage changes (demo data)
-  const userChange = 12.8; // percent
-  const imageChange = 8.3; // percent
-  const avgChange = -2.5; // percent
-  
   return (
-    <>
+    <div>
       <h2 className="text-2xl font-bold mb-6">Dashboard Overview</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatsCard
+        <StatCard
           title="Total Users"
           value={userCount}
-          icon={<Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
-          change={userChange}
+          icon={<Users className="h-8 w-8 text-blue-600" />}
           loading={loading}
         />
         
-        <StatsCard
-          title="Total Images"
+        <StatCard
+          title="Total Images Generated"
           value={totalImages}
-          icon={<ImageIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
-          change={imageChange}
+          icon={<ImageIcon className="h-8 w-8 text-purple-600" />}
           loading={loadingStats}
         />
         
-        <StatsCard
-          title="Avg Images per User"
+        <StatCard
+          title="Average Images per User"
           value={avgImagesPerUser}
-          icon={<BarChart className="h-5 w-5 text-green-600 dark:text-green-400" />}
-          change={avgChange}
+          icon={<BarChart className="h-8 w-8 text-green-600" />}
           loading={loadingStats}
         />
       </div>
       
-      <GrowthChart />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <RecentActivity />
-        <SystemStatus />
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-200">
+        <p>The dashboard overview shows key metrics for your AI Image Generation Platform. More analytics features will be added in future updates.</p>
       </div>
-    </>
+    </div>
+  );
+};
+
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  loading: boolean;
+}
+
+const StatCard = ({ title, value, icon, loading }: StatCardProps) => {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <p className="text-3xl font-bold">{value}</p>
+            )}
+          </div>
+          <div className="p-2 bg-primary/10 rounded-full">
+            {icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
