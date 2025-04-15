@@ -17,20 +17,11 @@ export function useAdminManagement() {
       
       if (error) throw error;
       
-      // If user creation successful, assign admin role
+      // Since user_roles table has been dropped, we'll use simplified admin roles
+      // In a real application, you would need to recreate the user_roles table
+      
+      // If user creation successful, create or update profile
       if (data?.user) {
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({ 
-            user_id: data.user.id, 
-            role: 'admin' 
-          });
-          
-        if (roleError) {
-          console.error("Error assigning admin role:", roleError);
-          // Don't throw here, as the user is already created
-        }
-        
         // Ensure the profile exists
         const { error: profileError } = await supabase
           .from("profiles")

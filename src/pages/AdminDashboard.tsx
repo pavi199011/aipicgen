@@ -68,17 +68,13 @@ const AdminDashboard = () => {
     }
   };
 
-  // Find current admins by checking the user_roles table
+  // Simplified admin detection based on username/email patterns
+  // since the user_roles table has been dropped
   const findAdmins = async () => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('user_id')
-      .eq('role', 'admin');
-    
-    return (data || []).map(item => item.user_id);
+    return []; // Return an empty array as placeholder
   };
   
-  // Filter admin users based on role
+  // Filter admin users based on heuristics
   const [adminUserIds, setAdminUserIds] = useState<string[]>([]);
   
   useEffect(() => {
@@ -89,7 +85,7 @@ const AdminDashboard = () => {
     }
   }, [displayUsers]);
   
-  // Find current admins from user roles and emails
+  // Find current admins from usernames/emails (simplified approach)
   const currentAdmins = displayUsers.filter(user => 
     adminUserIds.includes(user.id) || 
     user.email?.includes("admin") || 

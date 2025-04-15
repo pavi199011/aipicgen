@@ -25,16 +25,12 @@ export function useAdminAuth() {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // Check if the current user has admin role
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .eq('role', 'admin')
-            .maybeSingle();
-            
-          if (roleData?.role === 'admin') {
-            console.log("User is authenticated as admin via session");
+          // Since user_roles table has been dropped, we'll use simplified admin check
+          // In a real application, you would need to recreate the user_roles table or implement an alternative
+          // For now, we'll check local storage as a fallback
+          const savedAuth = localStorage.getItem('adminAuthenticated');
+          if (savedAuth === 'true') {
+            console.log("Found existing admin authentication in local storage");
             setAdminAuthenticated(true);
             return;
           }
@@ -65,47 +61,11 @@ export function useAdminAuth() {
       console.log("Admin login attempt:", identifier);
       setLoading(true);
       
-      // For development purposes, we're using simplified admin authentication
-      // In production, you would verify against the admin_users table and use proper password hashing
-      
-      // Check if the identifier is an email or username
-      const isEmail = identifier.includes('@');
-      
-      // Try to query the admin_users table first
-      try {
-        const { data, error } = await supabase
-          .from('admin_users')
-          .select('*')
-          .or(
-            isEmail 
-              ? `email.eq.${identifier}` 
-              : `username.eq.${identifier}`
-          )
-          .single();
-          
-        if (!error && data) {
-          // In production, you would verify the password hash here
-          if (data.password_hash !== password) {
-            throw new Error('Invalid password');
-          }
-          
-          // Update last login timestamp
-          await supabase
-            .from('admin_users')
-            .update({ last_login: new Date().toISOString() })
-            .eq('id', data.id);
-          
-          setAdminAuthenticated(true);
-          // Persist authentication state
-          localStorage.setItem('adminAuthenticated', 'true');
-          console.log("Admin authenticated via database lookup");
-          return { success: true };
-        }
-      } catch (e) {
-        console.log("No admin user found in database, checking hardcoded credentials");
-      }
+      // Since admin_users table has been dropped, we'll use simplified admin authentication
+      // In a real application, you would need to recreate the admin_users table
+      // For now, we'll just check the hardcoded credentials
         
-      // For development, check if using our hardcoded admin credentials
+      // Check if using our hardcoded admin credentials
       const isAdminUser = (
         identifier === ADMIN_CREDENTIALS.username || 
         identifier === ADMIN_CREDENTIALS.email
