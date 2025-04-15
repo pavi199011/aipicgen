@@ -1,6 +1,5 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AuthUser } from "@/contexts/AuthContext";
+import { AuthUser } from "@/contexts/auth";
 
 interface ProfileDetailsCardProps {
   user: AuthUser;

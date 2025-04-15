@@ -1,6 +1,6 @@
 
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useFetchImages } from "@/hooks/useFetchImages";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";

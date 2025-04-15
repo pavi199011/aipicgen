@@ -1,5 +1,5 @@
 
-import { AuthUser } from "@/contexts/AuthContext";
+import { AuthUser } from "@/contexts/auth";
 import ProfileTabs from "./ProfileTabs";
 
 interface ProfileContentProps {

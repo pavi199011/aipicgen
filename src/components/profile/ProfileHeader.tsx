@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 
 const ProfileHeader = () => {
