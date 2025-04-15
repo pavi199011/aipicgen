@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { motion } from "framer-motion";
 import { 
@@ -32,7 +32,25 @@ import {
 export function AdminSidebar() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState("overview");
+  const location = useLocation();
+  
+  // Determine active section based on current route
+  const getActiveSection = (path: string) => {
+    if (path === "/admin") return "overview";
+    if (path.startsWith("/admin/users")) return "users";
+    if (path.startsWith("/admin/content")) return "content";
+    if (path.startsWith("/admin/analytics")) return "analytics";
+    if (path.startsWith("/admin/activity")) return "activity";
+    if (path.startsWith("/admin/settings")) return "settings";
+    return "overview";
+  };
+  
+  const [activeSection, setActiveSection] = useState(getActiveSection(location.pathname));
+  
+  // Update active section when route changes
+  useEffect(() => {
+    setActiveSection(getActiveSection(location.pathname));
+  }, [location.pathname]);
 
   const menuItems = [
     {
@@ -45,31 +63,31 @@ export function AdminSidebar() {
       id: "users",
       label: "User Management",
       icon: Users,
-      onClick: () => setActiveSection("users")
+      onClick: () => navigate("/admin/users")
     },
     {
       id: "content",
       label: "Content",
       icon: Image,
-      onClick: () => setActiveSection("content")
+      onClick: () => navigate("/admin/content")
     },
     {
       id: "analytics",
       label: "Analytics",
       icon: BarChart3,
-      onClick: () => setActiveSection("analytics")
+      onClick: () => navigate("/admin/analytics")
     },
     {
       id: "activity",
       label: "Activity Log",
       icon: Activity,
-      onClick: () => setActiveSection("activity")
+      onClick: () => navigate("/admin/activity")
     },
     {
       id: "settings",
       label: "Settings",
       icon: Settings,
-      onClick: () => setActiveSection("settings")
+      onClick: () => navigate("/admin/settings")
     }
   ];
 

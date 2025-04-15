@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { UserDetailData, UserSortState } from "@/types/admin";
 import { ArrowUpDown, RefreshCcw, Ban, Check } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import UserDetailDialog from "./UserDetailDialog";
 import { Badge } from "@/components/ui/badge";
 
@@ -31,6 +31,14 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
     setSelectedUser(user);
   };
 
+  const getSortIcon = (field: UserSortState["field"]) => {
+    if (sortState.field !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+    }
+    
+    return <ArrowUpDown className="ml-2 h-4 w-4 opacity-100" />;
+  };
+
   return (
     <div>
       <div className="flex justify-end mb-4">
@@ -47,25 +55,25 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
               <TableHead className="w-[200px]">
                 <Button variant="ghost" onClick={() => onSort("username")} className="p-0 text-left font-medium">
                   Username
-                  <ArrowUpDown className={`ml-2 h-4 w-4 ${sortState.field === "username" ? "opacity-100" : "opacity-50"}`} />
+                  {getSortIcon("username")}
                 </Button>
               </TableHead>
               <TableHead>
                 <Button variant="ghost" onClick={() => onSort("email")} className="p-0 text-left font-medium">
                   Email
-                  <ArrowUpDown className={`ml-2 h-4 w-4 ${sortState.field === "email" ? "opacity-100" : "opacity-50"}`} />
+                  {getSortIcon("email")}
                 </Button>
               </TableHead>
               <TableHead>
                 <Button variant="ghost" onClick={() => onSort("created_at")} className="p-0 text-left font-medium">
                   Joined
-                  <ArrowUpDown className={`ml-2 h-4 w-4 ${sortState.field === "created_at" ? "opacity-100" : "opacity-50"}`} />
+                  {getSortIcon("created_at")}
                 </Button>
               </TableHead>
               <TableHead className="text-right">
                 <Button variant="ghost" onClick={() => onSort("image_count")} className="p-0 text-left font-medium">
                   Images
-                  <ArrowUpDown className={`ml-2 h-4 w-4 ${sortState.field === "image_count" ? "opacity-100" : "opacity-50"}`} />
+                  {getSortIcon("image_count")}
                 </Button>
               </TableHead>
               <TableHead className="text-right">Status</TableHead>
