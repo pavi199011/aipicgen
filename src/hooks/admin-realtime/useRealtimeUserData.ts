@@ -18,8 +18,7 @@ export function useRealtimeUserData() {
       // Fetch profiles with enhanced data
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, full_name, email, created_at")
-        .order('created_at', { ascending: false });
+        .select("id, username, full_name, email, created_at");
       
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
