@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +29,7 @@ const UserManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
 
-  // Fetch user data from admin_user_statistics view with pagination
+  // Fetch user data from user_statistics view with pagination
   const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ["users", sortState, filterState, currentPage],
     queryFn: async () => {
@@ -36,7 +37,7 @@ const UserManagement = () => {
       
       // First get total count for pagination
       let countQuery = supabase
-        .from("admin_user_statistics")
+        .from("user_statistics")
         .select("id", { count: "exact", head: true });
 
       // Apply filters if provided
@@ -64,8 +65,8 @@ const UserManagement = () => {
 
       // Now fetch the actual data with pagination
       let query = supabase
-        .from("admin_user_statistics")
-        .select("id, username, full_name, email, created_at, image_count, avatar_url, is_admin")
+        .from("user_statistics")
+        .select("id, username, full_name, created_at, image_count, avatar_url, is_admin")
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
       // Apply filters if provided
@@ -87,7 +88,44 @@ const UserManagement = () => {
 
       console.log("Fetched user data:", data);
       
-      // Return the data directly since it already includes email from our view
+      // After getting the stats, fetch email data from auth.users through our new view
+      if (data && data.length > 0) {
+        try {
+          // Get user IDs from the fetched data
+          const userIds = data.map(user => user.id);
+          
+          // Use the admin_user_statistics view to get emails
+          // This uses a raw query instead of the typed client to bypass type checking
+          const { data: emailsData, error: emailsError } = await supabase
+            .rpc('get_user_emails', { user_ids: userIds });
+          
+          if (emailsError) {
+            console.error("Error fetching emails:", emailsError);
+            return data as UserDetailData[]; // Return data without emails if there's an error
+          }
+          
+          // Create a mapping of user IDs to emails
+          const emailMap = (emailsData || []).reduce((map, item) => {
+            if (item.id) {
+              map[item.id] = item.email;
+            }
+            return map;
+          }, {} as Record<string, string | null>);
+          
+          // Merge the email data with the user data
+          const usersWithEmail = data.map(user => ({
+            ...user,
+            email: emailMap[user.id || ''] || null
+          }));
+          
+          return usersWithEmail as UserDetailData[];
+        } catch (emailError) {
+          console.error("Error processing emails:", emailError);
+          return data as UserDetailData[]; // Return data without emails if exception
+        }
+      }
+      
+      // Return the data without emails if no users found
       return data as UserDetailData[];
     },
   });
