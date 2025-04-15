@@ -10,6 +10,10 @@ import {
 
 interface ContentStatsProps {
   data: {
+    totalImages: number;
+    growthRate: number;
+    conversionRate: number;
+    conversionGrowth: number;
     contentTypes: { name: string; value: number }[];
   };
 }

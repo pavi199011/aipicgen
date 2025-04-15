@@ -12,6 +12,10 @@ import {
 
 interface UserStatsProps {
   data: {
+    totalUsers: number;
+    growthRate: number;
+    activeUsers: number;
+    activeGrowthRate: number;
     dailyRegistrations: { name: string; value: number }[];
     weeklyRegistrations: { name: string; value: number }[];
     monthlyRegistrations: { name: string; value: number }[];
