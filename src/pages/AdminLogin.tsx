@@ -28,11 +28,20 @@ const AdminLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const [loginSuccess, setLoginSuccess] = useState(false);
   
   // Display loading state on mount
   useEffect(() => {
     console.log("AdminLogin mounted, authLoading:", authLoading);
   }, [authLoading]);
+  
+  // Handle redirection after successful admin login
+  useEffect(() => {
+    if (user?.isAdmin && loginSuccess) {
+      console.log("User is verified admin, redirecting to admin dashboard");
+      navigate('/admin', { replace: true });
+    }
+  }, [user, loginSuccess, navigate]);
   
   const form = useForm<AdminCredentials>({
     resolver: zodResolver(adminLoginSchema),
@@ -46,24 +55,28 @@ const AdminLogin = () => {
     try {
       setError(null);
       setIsSubmitting(true);
+      setLoginSuccess(false);
       
       console.log("Form submitted, attempting admin login");
       const result = await adminSignIn(values);
       
-      console.log("Admin login successful, redirecting", result);
-      // Successful login will redirect automatically due to the useEffect in AuthProvider
+      console.log("Admin login successful, waiting for auth state to update", result);
+      setLoginSuccess(true);
+      // Redirection will happen via the useEffect that watches for user.isAdmin
       
     } catch (error: any) {
       console.error("Admin login error:", error);
       setError(error.message || "Invalid admin credentials or you don't have admin privileges.");
+      setLoginSuccess(false);
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  // If user is logged in and is an admin, redirect to admin dashboard
-  if (user?.isAdmin) {
-    console.log("User is admin, redirecting to admin dashboard");
+  // If user is logged in and is an admin, but not via this login process
+  // (i.e., they were already logged in and navigated here), redirect to admin dashboard
+  if (user?.isAdmin && !isSubmitting && !loginSuccess) {
+    console.log("User is already admin, redirecting to admin dashboard");
     return <Navigate to="/admin" replace />;
   }
 
