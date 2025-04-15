@@ -29,12 +29,13 @@ export function useAdminAuthState() {
         console.error("Error checking admin auth:", error);
         setAdminAuthenticated(false);
       } finally {
+        // Set loading to false regardless of outcome
         setLoading(false);
       }
     };
     
-    // Check authentication immediately without delay
-    checkAuth();
+    // Small timeout to ensure state is properly updated
+    setTimeout(checkAuth, 50);
   }, []);
 
   return {

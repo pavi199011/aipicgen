@@ -12,7 +12,7 @@ const AdminDashboard = () => {
     setActiveTab,
     users,
     userStats,
-    loading,
+    loading: dataLoading,
     loadingStats,
     handleDeleteUser,
     handleSignOut,
@@ -48,21 +48,8 @@ const AdminDashboard = () => {
     }
   }, [adminAuthenticated, navigate, isRedirecting]);
 
-  // Fetch data only when authenticated and active tab changes
-  useEffect(() => {
-    if (adminAuthenticated === true) {
-      console.log("Fetching dashboard data for tab:", activeTab);
-      if (activeTab === "users" || activeTab === "overview") {
-        fetchUsers();
-      }
-      if (activeTab === "statistics" || activeTab === "overview") {
-        fetchUserStats();
-      }
-    }
-  }, [activeTab, adminAuthenticated, fetchUsers, fetchUserStats]);
-
-  // Show loading state while checking authentication or during redirect
-  if (loading || adminAuthenticated === undefined || isRedirecting) {
+  // Show loading state only while checking authentication
+  if (adminAuthenticated === undefined) {
     return <AdminDashboardLoading />;
   }
 
@@ -83,7 +70,7 @@ const AdminDashboard = () => {
           setActiveTab={setActiveTab}
           users={users}
           userStats={userStats}
-          loading={loading}
+          loading={dataLoading}
           loadingStats={loadingStats}
           totalUsers={totalUsers}
           totalImages={totalImages}

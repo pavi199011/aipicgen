@@ -27,7 +27,7 @@ const AdminAuth = () => {
       // Use a slight delay to ensure state updates properly
       setTimeout(() => {
         navigate("/admin");
-      }, 50);
+      }, 100);
     }
   }, [adminAuthenticated, navigate, isRedirecting]);
 
@@ -44,7 +44,9 @@ const AdminAuth = () => {
         
         console.log("Login successful, redirecting to admin dashboard");
         setIsRedirecting(true);
-        navigate("/admin");
+        setTimeout(() => {
+          navigate("/admin");
+        }, 100);
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -103,6 +105,6 @@ const AdminAuth = () => {
       </div>
     </div>
   );
-};
+}
 
 export default AdminAuth;
