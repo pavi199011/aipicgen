@@ -40,6 +40,8 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/login" element={<AdminAuth />} />
               <Route path="/admin/loading" element={<AdminDashboardLoading />} />
+              {/* Redirect /admin/auth to /admin/login for compatibility */}
+              <Route path="/admin/auth" element={<Navigate to="/admin/login" />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

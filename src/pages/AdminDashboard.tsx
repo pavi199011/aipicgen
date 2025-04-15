@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminDashboardContent } from "@/components/admin/AdminDashboardContent";
@@ -21,18 +21,20 @@ const AdminDashboard = () => {
     avgImagesPerUser,
     adminAuthenticated
   } = useAdminDashboard();
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     // If authentication check has completed and user is not authenticated
     if (adminAuthenticated === false) {
       console.log("User not authenticated, redirecting to login");
+      setIsRedirecting(true);
       navigate("/admin/login");
     }
   }, [adminAuthenticated, navigate]);
 
   // Show loading state while checking authentication or loading data
-  if (loading || adminAuthenticated === undefined) {
+  if (loading || adminAuthenticated === undefined || isRedirecting) {
     return <AdminDashboardLoading />;
   }
 

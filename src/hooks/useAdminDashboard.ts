@@ -14,8 +14,9 @@ export function useAdminDashboard() {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("Admin authenticated state in dashboard:", adminAuthenticated);
     // Only fetch data if the user is authenticated
-    if (adminAuthenticated) {
+    if (adminAuthenticated === true) {
       fetchUsers();
       fetchUserStats();
     }

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export function useAdminAuthState() {
   const [loading, setLoading] = useState(true);
-  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
+  const [adminAuthenticated, setAdminAuthenticated] = useState<boolean | undefined>(undefined);
 
   // Check for existing admin authentication on mount
   useEffect(() => {
@@ -17,22 +17,9 @@ export function useAdminAuthState() {
       try {
         setLoading(true);
         
-        // First try to get the current session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          // Since user_roles table has been dropped, we'll use simplified admin check
-          const savedAuth = localStorage.getItem('adminAuthenticated');
-          if (savedAuth === 'true') {
-            console.log("Found existing admin authentication in local storage");
-            setAdminAuthenticated(true);
-            setLoading(false);
-            return;
-          }
-        }
-        
-        // If no valid session, check local storage fallback
+        // Check local storage first as it's faster
         const savedAuth = localStorage.getItem('adminAuthenticated');
+        
         if (savedAuth === 'true') {
           console.log("Found existing admin authentication in local storage");
           setAdminAuthenticated(true);
