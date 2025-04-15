@@ -65,7 +65,7 @@ export const activityData = [
     },
     action: "Logged in to the admin dashboard",
     timestamp: "2025-04-15T16:45:00",
-    type: "login",
+    type: "login" as const,
     status: "success",
   },
   {
@@ -77,7 +77,7 @@ export const activityData = [
     action: "Generated a new image",
     target: "Sunset landscape",
     timestamp: "2025-04-15T16:32:00",
-    type: "content",
+    type: "content" as const,
     status: "success",
   },
   {
@@ -88,7 +88,7 @@ export const activityData = [
     },
     action: "Created a new account",
     timestamp: "2025-04-15T16:15:00",
-    type: "registration",
+    type: "registration" as const,
     status: "success",
   },
   {
@@ -99,7 +99,7 @@ export const activityData = [
     },
     action: "Updated profile settings",
     timestamp: "2025-04-15T15:55:00",
-    type: "settings",
+    type: "settings" as const,
   },
   {
     id: "5",
@@ -110,7 +110,7 @@ export const activityData = [
     action: "Failed to generate image",
     target: "Urban cityscape",
     timestamp: "2025-04-15T15:30:00",
-    type: "content",
+    type: "content" as const,
     status: "warning",
   },
   {
@@ -121,7 +121,7 @@ export const activityData = [
     },
     action: "Updated system settings",
     timestamp: "2025-04-15T15:10:00",
-    type: "admin",
+    type: "admin" as const,
   },
   {
     id: "7",
@@ -131,7 +131,7 @@ export const activityData = [
     },
     action: "Uploaded custom image",
     timestamp: "2025-04-15T14:45:00",
-    type: "content",
+    type: "content" as const,
     status: "success",
   },
   {
@@ -143,8 +143,7 @@ export const activityData = [
     action: "Processing image request",
     target: "Pet portrait",
     timestamp: "2025-04-15T14:30:00",
-    type: "content",
+    type: "content" as const,
     status: "pending",
   },
 ];
-
