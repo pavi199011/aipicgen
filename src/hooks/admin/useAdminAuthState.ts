@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Hook that manages admin authentication state
@@ -13,10 +12,9 @@ export function useAdminAuthState() {
   // Check for existing admin authentication on mount
   useEffect(() => {
     console.log("Checking admin authentication...");
+    
     const checkAuth = async () => {
       try {
-        setLoading(true);
-        
         // Check local storage first as it's faster
         const savedAuth = localStorage.getItem('adminAuthenticated');
         
@@ -35,7 +33,10 @@ export function useAdminAuthState() {
       }
     };
     
-    checkAuth();
+    // Add a slight delay to ensure component mounts properly
+    setTimeout(() => {
+      checkAuth();
+    }, 100);
   }, []);
 
   return {

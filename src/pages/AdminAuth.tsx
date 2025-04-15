@@ -18,15 +18,20 @@ const AdminAuth = () => {
 
   // Redirect if admin is already authenticated
   useEffect(() => {
+    console.log("Admin auth page - authentication status:", adminAuthenticated);
+    
     if (adminAuthenticated === true) {
       console.log("User is authenticated, redirecting to admin dashboard");
       setIsRedirecting(true);
-      navigate("/admin");
+      setTimeout(() => {
+        navigate("/admin");
+      }, 100);
     }
   }, [adminAuthenticated, navigate]);
 
   const handleLogin = async (values) => {
     try {
+      console.log("Attempting login with:", values);
       const result = await adminLogin(values);
       
       if (result.success) {

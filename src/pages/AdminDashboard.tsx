@@ -35,7 +35,6 @@ const AdminDashboard = () => {
 
   // Handle authentication redirect
   useEffect(() => {
-    // If authentication check has completed and user is not authenticated
     if (adminAuthenticated === false) {
       console.log("User not authenticated, redirecting to login");
       setIsRedirecting(true);
@@ -43,10 +42,10 @@ const AdminDashboard = () => {
     }
   }, [adminAuthenticated, navigate]);
 
-  // Refresh data when active tab changes
+  // Don't fetch data until authentication is confirmed
   useEffect(() => {
     if (adminAuthenticated === true) {
-      console.log("Tab changed to:", activeTab);
+      console.log("Fetching dashboard data...");
       if (activeTab === "users" || activeTab === "overview") {
         fetchUsers();
       }
@@ -56,7 +55,7 @@ const AdminDashboard = () => {
     }
   }, [activeTab, adminAuthenticated, fetchUsers, fetchUserStats]);
 
-  // Show loading state while checking authentication or loading data
+  // Show loading state while checking authentication
   if (loading || adminAuthenticated === undefined || isRedirecting) {
     return <AdminDashboardLoading />;
   }
