@@ -6,16 +6,19 @@ import { useToast } from '@/hooks/use-toast';
 
 export function useRealtimeUserStats() {
   const [realtimeStats, setRealtimeStats] = useState<UserStats[]>([]);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   // Function to fetch user statistics
   const fetchUserStats = useCallback(async (users: User[]) => {
     try {
+      setLoading(true);
       console.log("Fetching statistics for users...");
       
       if (!users || users.length === 0) {
         console.log("No users to fetch stats for");
         setRealtimeStats([]);
+        setLoading(false);
         return;
       }
       
@@ -56,11 +59,14 @@ export function useRealtimeUserStats() {
         variant: "destructive",
       });
       setRealtimeStats([]);
+    } finally {
+      setLoading(false);
     }
   }, [toast]);
 
   return {
     realtimeStats,
+    loading,
     fetchUserStats
   };
 }

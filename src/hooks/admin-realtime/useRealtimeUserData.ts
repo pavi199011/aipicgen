@@ -1,23 +1,25 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/admin';
 import { useToast } from '@/hooks/use-toast';
 
 export function useRealtimeUserData() {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  // Function to fetch all users from auth.users
-  const fetchUserData = async () => {
+  // Function to fetch all users from profiles table
+  const fetchUserData = useCallback(async () => {
     try {
-      console.log("Fetching users from auth.users table...");
+      setLoading(true);
+      console.log("Fetching users from profiles table...");
       
-      // Directly query profiles table to get user information
-      // Since we can't access auth.users directly, we'll use profiles instead
+      // Fetch user profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, created_at");
+        .select("id, username, created_at")
+        .order('created_at', { ascending: false });
       
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
@@ -26,6 +28,7 @@ export function useRealtimeUserData() {
           description: "Failed to fetch user profiles. Please try again.",
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
       
@@ -34,11 +37,11 @@ export function useRealtimeUserData() {
       if (!profiles || profiles.length === 0) {
         console.log("No users found");
         setUsers([]);
+        setLoading(false);
         return;
       }
 
-      // Get emails from auth if possible, otherwise use empty values
-      // This is a workaround since we can't directly access auth.users
+      // Map profiles to user format
       const mappedUsers = profiles.map(profile => {
         return {
           id: profile.id,
@@ -59,12 +62,14 @@ export function useRealtimeUserData() {
         description: "Failed to fetch user data. Please check your connection.",
         variant: "destructive",
       });
-      setUsers([]);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [toast]);
 
   return {
     users,
+    loading: loading,
     fetchUserData
   };
 }

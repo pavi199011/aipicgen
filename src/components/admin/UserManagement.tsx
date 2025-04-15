@@ -1,3 +1,4 @@
+
 import { User, UserStats } from "@/types/admin";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserFilter } from "./user-management/UserFilter";
@@ -8,7 +9,7 @@ import { UserDetailView } from "./UserDetailView";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import { useUserManagement } from "./user-management/useUserManagement";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 
 interface UserManagementProps {
   users: User[];
@@ -81,8 +82,13 @@ export const UserManagement = ({
             size="sm" 
             onClick={onRefreshUsers}
             className="flex items-center gap-2"
+            disabled={loading}
           >
-            <RefreshCw className="h-4 w-4" />
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
             <span>Refresh Users</span>
           </Button>
         )}
@@ -95,34 +101,51 @@ export const UserManagement = ({
         />
       </div>
       
-      <div className="space-y-4">
-        <UserTable
-          users={currentUsers}
-          sortState={sortState}
-          onSort={handleSort}
-          onUserSelect={openUserDetail}
-          onConfirmDelete={(userId) => confirmAction('delete', userId)}
-          onConfirmSuspend={(userId) => confirmAction('suspend', userId)}
-        />
-        
-        {filteredUsers.length > 0 && (
-          <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:space-y-0 sm:space-x-4">
-            <UserSummary
-              currentCount={currentUsers.length}
-              filteredCount={filteredUsers.length}
-              totalCount={users.length}
-              startIndex={indexOfFirstItem}
-              endIndex={Math.min(indexOfLastItem, filteredUsers.length)}
-            />
-            
-            <UserPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        )}
-      </div>
+      {users.length === 0 && !loading ? (
+        <div className="text-center py-10 bg-gray-50 rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <p className="text-muted-foreground">No users found. Try refreshing or checking your connection.</p>
+          {onRefreshUsers && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onRefreshUsers}
+              className="mt-4"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              <span>Refresh Users</span>
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <UserTable
+            users={currentUsers}
+            sortState={sortState}
+            onSort={handleSort}
+            onUserSelect={openUserDetail}
+            onConfirmDelete={(userId) => confirmAction('delete', userId)}
+            onConfirmSuspend={(userId) => confirmAction('suspend', userId)}
+          />
+          
+          {filteredUsers.length > 0 && (
+            <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:space-y-0 sm:space-x-4">
+              <UserSummary
+                currentCount={currentUsers.length}
+                filteredCount={filteredUsers.length}
+                totalCount={users.length}
+                startIndex={indexOfFirstItem}
+                endIndex={Math.min(indexOfLastItem, filteredUsers.length)}
+              />
+              
+              <UserPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </div>
+      )}
       
       <UserDetailView
         user={selectedUser}
@@ -147,4 +170,4 @@ export const UserManagement = ({
       />
     </div>
   );
-};
+}

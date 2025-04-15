@@ -7,6 +7,7 @@ import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { AdminDashboardLoading } from "@/components/admin/AdminDashboardLoading";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const AdminDashboard = () => {
   const {
@@ -26,8 +27,8 @@ const AdminDashboard = () => {
     fetchUserStats
   } = useAdminDashboard();
   
-  // Set up data loading from auth.users
-  const { users: authUsers, realtimeStats, fetchAllData } = useAdminRealtime();
+  // Set up data loading from profiles
+  const { users: realtimeUsers, realtimeStats, loading: realtimeLoading, fetchAllData } = useAdminRealtime();
   
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
@@ -75,23 +76,32 @@ const AdminDashboard = () => {
     return <AdminDashboardLoading />;
   }
 
-  // Use auth users when available, fallback to regular users
-  const displayUsers = authUsers.length > 0 ? authUsers : users;
+  // Use realtime users when available, fallback to regular users
+  const displayUsers = realtimeUsers.length > 0 ? realtimeUsers : users;
   const displayStats = realtimeStats.length > 0 ? realtimeStats : userStats;
+  const isLoading = dataLoading || loadingStats || realtimeLoading;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <AdminHeader onSignOut={handleSignOut} />
       
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          {isLoading && (
+            <div className="flex items-center text-muted-foreground">
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <span>Loading data...</span>
+            </div>
+          )}
+        </div>
         
         <AdminDashboardContent
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           users={displayUsers}
           userStats={displayStats}
-          loading={dataLoading}
+          loading={isLoading}
           loadingStats={loadingStats}
           totalUsers={displayUsers.length || 0}
           totalImages={displayStats.reduce((sum, user) => sum + user.imageCount, 0)}
