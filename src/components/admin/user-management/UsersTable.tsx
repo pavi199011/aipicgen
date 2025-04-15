@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, Info } from "lucide-react";
 import { UserDetailData, UserSortState } from "@/types/admin";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import UserDetailDialog from "./UserDetailDialog";
@@ -25,26 +25,39 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
     setSelectedUser(user);
   };
 
-  return (
-    <div>
-      <div className="flex justify-between mb-4">
+  // Create header content for the table container
+  const tableHeaderContent = (
+    <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center text-sm text-muted-foreground">
+        <Info className="h-4 w-4 mr-1" />
+        <span>{users.length} users found</span>
+      </div>
+      <div className="flex space-x-2">
         <DebugButton users={users} />
-        
-        <Button variant="outline" onClick={onRefresh} disabled={isLoading}>
+        <Button variant="outline" onClick={onRefresh} disabled={isLoading} size="sm">
           <RefreshCcw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
       </div>
-      
-      <UserTableContainer>
-        <UserTableHeader sortState={sortState} onSort={onSort} />
-        <UserTableRows 
-          users={users} 
-          isLoading={isLoading} 
-          onShowDetails={handleShowDetails} 
-        />
-      </UserTableContainer>
+    </div>
+  );
 
+  return (
+    <UserTableContainer
+      title="User Management"
+      description="View and manage all registered users in the system"
+      headerContent={tableHeaderContent}
+      isLoading={isLoading}
+      loadingRows={5}
+      bordered={true}
+    >
+      <UserTableHeader sortState={sortState} onSort={onSort} />
+      <UserTableRows 
+        users={users} 
+        isLoading={isLoading} 
+        onShowDetails={handleShowDetails} 
+      />
+      
       {selectedUser && (
         <Dialog open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
           <DialogContent className="sm:max-w-[600px]">
@@ -55,7 +68,7 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </UserTableContainer>
   );
 };
 
