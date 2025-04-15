@@ -83,14 +83,19 @@ export function useAdminUserManagement() {
           // Get user IDs from the fetched data
           const userIds = data.map(user => user.id as string);
           
+          console.log("User IDs for email lookup:", userIds);
+          
           // Use the get_user_emails function to get emails
           const { data: emailsData, error: emailsError } = await supabase
             .rpc('get_user_emails', { user_ids: userIds });
           
           if (emailsError) {
             console.error("Error fetching emails:", emailsError);
+            console.error("Error details:", emailsError.message, emailsError.details);
             return data as UserDetailData[]; // Return data without emails if there's an error
           }
+          
+          console.log("Fetched email data:", emailsData);
           
           // Create a mapping of user IDs to emails
           const emailMap = (emailsData || []).reduce((map, item) => {
@@ -100,12 +105,19 @@ export function useAdminUserManagement() {
             return map;
           }, {} as Record<string, string | null>);
           
-          // Merge the email data with the user data
-          const usersWithEmail = data.map(user => ({
-            ...user,
-            email: emailMap[user.id || ''] || null
-          }));
+          console.log("Email mapping:", emailMap);
           
+          // Merge the email data with the user data
+          const usersWithEmail = data.map(user => {
+            const userEmail = emailMap[user.id || ''] || null;
+            console.log(`User ${user.username || user.id} email:`, userEmail);
+            return {
+              ...user,
+              email: userEmail
+            };
+          });
+          
+          console.log("Final users with emails:", usersWithEmail);
           return usersWithEmail as UserDetailData[];
         } catch (emailError) {
           console.error("Error processing emails:", emailError);

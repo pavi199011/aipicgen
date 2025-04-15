@@ -39,9 +39,19 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
     return <ArrowUpDown className="ml-2 h-4 w-4 opacity-100" />;
   };
 
+  // Debug function to inspect user data
+  const debugUserData = () => {
+    console.log("Current users data:", users);
+    console.log("Users with email defined:", users.filter(user => !!user.email).length);
+    console.log("Users without email:", users.filter(user => !user.email).length);
+  };
+
   return (
     <div>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between mb-4">
+        <Button variant="outline" size="sm" onClick={debugUserData} className="text-xs">
+          Debug User Data
+        </Button>
         <Button variant="outline" onClick={onRefresh} disabled={isLoading}>
           <RefreshCcw className="h-4 w-4 mr-2" />
           Refresh
@@ -97,7 +107,10 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
               users.map((user) => (
                 <TableRow key={user.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleShowDetails(user)}>
                   <TableCell className="font-medium">{user.username || "N/A"}</TableCell>
-                  <TableCell>{user.email || "N/A"}</TableCell>
+                  <TableCell>
+                    {typeof user.email === 'string' ? user.email : 'Email not available'}
+                    {!user.email && <span className="text-xs text-red-500 ml-1">(missing)</span>}
+                  </TableCell>
                   <TableCell>
                     {user.created_at 
                       ? formatDistanceToNow(new Date(user.created_at), { addSuffix: true }) 

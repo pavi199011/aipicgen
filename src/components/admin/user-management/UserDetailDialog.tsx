@@ -30,7 +30,10 @@ const UserDetailDialog = ({ user, onClose }: UserDetailDialogProps) => {
           <h3 className="text-xl font-semibold">{user.username || "Anonymous"}</h3>
           <div className="flex items-center gap-1 justify-center sm:justify-start">
             <Mail className="h-4 w-4 text-gray-500" />
-            <p className="text-gray-500">{user.email || "No email address available"}</p>
+            <p className="text-gray-500">
+              {typeof user.email === 'string' ? user.email : 'No email address available'}
+              {user.email === null && <span className="text-xs text-red-500 ml-1">(missing)</span>}
+            </p>
           </div>
           {user.full_name && <p className="mt-1">{user.full_name}</p>}
           <div className="mt-2 flex flex-wrap justify-center sm:justify-start gap-2">
