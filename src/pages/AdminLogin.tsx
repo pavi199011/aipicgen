@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -43,9 +42,9 @@ const AdminLogin = () => {
       setIsSubmitting(true);
       
       console.log("Form submitted, attempting admin login");
-      await adminSignIn(values);
+      const result = await adminSignIn(values);
       
-      console.log("Admin login successful, redirecting");
+      console.log("Admin login successful, redirecting", result);
       // Successful login will redirect automatically due to the useEffect in AuthProvider
       
     } catch (error: any) {

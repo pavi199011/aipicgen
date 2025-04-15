@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +34,7 @@ export function useAuthMethods() {
     }
   };
   
-  const adminSignIn = async (credentials: AdminCredentials) => {
+  const adminSignIn = async (credentials: AdminCredentials): Promise<{ success: boolean }> => {
     try {
       setLoading(true);
       console.log("Starting admin sign in process");

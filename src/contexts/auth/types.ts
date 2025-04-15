@@ -14,5 +14,5 @@ export interface AuthState {
   signUp: (email: string, password: string, username: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  adminSignIn: (credentials: { identifier: string; password: string }) => Promise<void>;
+  adminSignIn: (credentials: { identifier: string; password: string }) => Promise<{ success: boolean }>;
 }
