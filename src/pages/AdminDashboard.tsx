@@ -6,6 +6,7 @@ import { AdminDashboardContent } from "@/components/admin/AdminDashboardContent"
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { AdminDashboardLoading } from "@/components/admin/AdminDashboardLoading";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
   const {
@@ -26,7 +27,8 @@ const AdminDashboard = () => {
   } = useAdminDashboard();
   
   // Set up realtime updates
-  const { isSubscribed, fetchAllData } = useAdminRealtime();
+  const { isSubscribed, realtimeUsers, realtimeStats, fetchAllData } = useAdminRealtime();
+  const { toast } = useToast();
   
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
@@ -53,36 +55,23 @@ const AdminDashboard = () => {
     }
   }, [adminAuthenticated, navigate, isRedirecting]);
 
-  // Fetch data when the tab changes or component mounts, with a delay
-  useEffect(() => {
-    if (adminAuthenticated === true) {
-      // Add a small delay to ensure authentication is fully processed
-      const timer = setTimeout(() => {
-        fetchUsers();
-      }, 500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [adminAuthenticated, fetchUsers, activeTab]);
-
-  // Fetch stats when users data is loaded
-  useEffect(() => {
-    if (adminAuthenticated === true && users.length > 0) {
-      fetchUserStats();
-    }
-  }, [adminAuthenticated, users, fetchUserStats]);
-
   // Refresh data periodically using realtime data when available
   useEffect(() => {
     if (adminAuthenticated === true && isSubscribed) {
       const intervalId = setInterval(() => {
-        console.log("Refreshing data from realtime...");
+        console.log("Refreshing admin dashboard data from realtime...");
         fetchAllData();
       }, 30000); // Refresh every 30 seconds
       
+      // Notify user that real-time updates are active
+      toast({
+        title: "Admin Dashboard Active",
+        description: `Real-time updates ${isSubscribed ? 'enabled' : 'connecting...'}`,
+      });
+      
       return () => clearInterval(intervalId);
     }
-  }, [adminAuthenticated, isSubscribed, fetchAllData]);
+  }, [adminAuthenticated, isSubscribed, fetchAllData, toast]);
 
   // Show loading state only while checking authentication
   if (adminAuthenticated === undefined) {
@@ -94,6 +83,10 @@ const AdminDashboard = () => {
     return null;
   }
 
+  // Use realtime data if available, otherwise fall back to regular data
+  const displayUsers = realtimeUsers.length > 0 ? realtimeUsers : users;
+  const displayStats = realtimeStats.length > 0 ? realtimeStats : userStats;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <AdminHeader onSignOut={handleSignOut} />
@@ -101,18 +94,32 @@ const AdminDashboard = () => {
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
         
+        <div className="mb-4">
+          {isSubscribed ? (
+            <div className="p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm text-green-800 dark:text-green-200">
+              Real-time updates are active. Data will refresh automatically.
+            </div>
+          ) : (
+            <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm text-yellow-800 dark:text-yellow-200">
+              Setting up real-time updates...
+            </div>
+          )}
+        </div>
+        
         <AdminDashboardContent
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          users={users}
-          userStats={userStats}
-          loading={dataLoading}
-          loadingStats={loadingStats}
-          totalUsers={totalUsers}
-          totalImages={totalImages}
-          avgImagesPerUser={avgImagesPerUser}
+          users={displayUsers}
+          userStats={displayStats}
+          loading={dataLoading && displayUsers.length === 0}
+          loadingStats={loadingStats && displayStats.length === 0}
+          totalUsers={displayUsers.length}
+          totalImages={displayStats.reduce((sum, user) => sum + user.imageCount, 0)}
+          avgImagesPerUser={displayUsers.length > 0 
+            ? (displayStats.reduce((sum, user) => sum + user.imageCount, 0) / displayUsers.length).toFixed(1)
+            : "0.0"}
           onDeleteUser={handleDeleteUser}
-          onRefreshUsers={fetchUsers}
+          onRefreshUsers={fetchAllData}
         />
       </main>
     </div>
