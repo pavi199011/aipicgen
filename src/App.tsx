@@ -10,9 +10,6 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminAuth from "./pages/AdminAuth";
-import { ADMIN_ROUTE } from "./components/admin/AdminConstants";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const queryClient = new QueryClient();
@@ -30,10 +27,6 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path={`/${ADMIN_ROUTE}`} element={<AdminDashboard />} />
-              <Route path={`/${ADMIN_ROUTE}/login`} element={<AdminAuth />} />
-              {/* Redirects for admin portal cleanup */}
-              <Route path={`/${ADMIN_ROUTE}/*`} element={<AdminDashboard />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
