@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +28,7 @@ const UserManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
 
-  // Fetch user statistics from our view with pagination
+  // Fetch user data from admin_user_statistics view with pagination
   const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ["users", sortState, filterState, currentPage],
     queryFn: async () => {
@@ -37,7 +36,7 @@ const UserManagement = () => {
       
       // First get total count for pagination
       let countQuery = supabase
-        .from("user_statistics")
+        .from("admin_user_statistics")
         .select("id", { count: "exact", head: true });
 
       // Apply filters if provided
@@ -64,10 +63,9 @@ const UserManagement = () => {
       }
 
       // Now fetch the actual data with pagination
-      // Only select columns that are actually in user_statistics view
       let query = supabase
-        .from("user_statistics")
-        .select("id, username, full_name, created_at, image_count, avatar_url, is_admin")
+        .from("admin_user_statistics")
+        .select("id, username, full_name, email, created_at, image_count, avatar_url, is_admin")
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
       // Apply filters if provided
@@ -89,49 +87,7 @@ const UserManagement = () => {
 
       console.log("Fetched user data:", data);
       
-      // After getting the stats, fetch email data from profiles table
-      if (data && data.length > 0) {
-        try {
-          // Get emails from profiles table through a separate query for the same users
-          const userIds = data.map(user => user.id);
-          
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id')
-            .in('id', userIds);
-            
-          if (profilesError) {
-            console.error("Error fetching profiles:", profilesError);
-            return data as UserDetailData[]; // Return data without emails if there's an error
-          }
-          
-          if (!profilesData) {
-            console.error("No profile data returned");
-            return data as UserDetailData[]; // Return data without emails if no profiles
-          }
-          
-          // Create a mapping of user IDs to emails (all will be null since 'email' column doesn't exist in profiles)
-          const emailMap = profilesData.reduce((map, profile) => {
-            if (profile.id) {
-              map[profile.id] = null; // Set email to null since it doesn't exist in profiles
-            }
-            return map;
-          }, {} as Record<string, string | null>);
-          
-          // Merge the email data with the user data
-          const usersWithEmail = data.map(user => ({
-            ...user,
-            email: emailMap[user.id || ''] || null
-          }));
-          
-          return usersWithEmail as UserDetailData[];
-        } catch (emailError) {
-          console.error("Error processing profiles:", emailError);
-          return data as UserDetailData[]; // Return data without emails if exception
-        }
-      }
-      
-      // Return the data without emails if we couldn't fetch them
+      // Return the data directly since it already includes email from our view
       return data as UserDetailData[];
     },
   });
