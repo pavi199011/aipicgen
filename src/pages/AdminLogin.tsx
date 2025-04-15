@@ -67,6 +67,7 @@ const AdminLogin = () => {
     return <Navigate to="/admin" replace />;
   }
 
+  // Only disable form during submission, not during auth loading
   const isFormDisabled = isSubmitting;
 
   return (
@@ -81,11 +82,12 @@ const AdminLogin = () => {
         </p>
       </CardHeader>
       <CardContent>
-        {/* Display loading state if auth is loading but not form submission */}
-        {authLoading && !isSubmitting ? (
+        {/* Only show a loading spinner when we're actively submitting the form,
+            not during initial auth loading check */}
+        {isSubmitting ? (
           <div className="flex flex-col items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-sm text-muted-foreground">Checking authentication status...</p>
+            <p className="text-sm text-muted-foreground">Signing in...</p>
           </div>
         ) : (
           <>

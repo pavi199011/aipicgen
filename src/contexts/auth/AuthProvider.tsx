@@ -49,10 +49,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Error fetching user:", error);
         setUser(null);
       } finally {
+        // Always set loading to false when done, regardless of success or failure
         setLoading(false);
+        console.log("Auth loading state set to false after session check");
       }
     };
 
+    // Set initial loading state
+    setLoading(true);
+    console.log("Initial auth loading state set to true");
+    
     fetchUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -60,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session) {
         try {
+          setLoading(true); // Set loading to true while fetching profile
           const { data: profile } = await supabase
             .from("profiles")
             .select("username, avatar_url, is_admin")
@@ -75,12 +82,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
         } catch (error) {
           console.error("Error fetching user profile:", error);
+          setUser(null);
+        } finally {
+          setLoading(false);
+          console.log("Auth loading state set to false after auth state change");
         }
       } else {
         setUser(null);
+        setLoading(false);
+        console.log("Auth loading state set to false, no session in auth state change");
       }
-      
-      setLoading(false);
     });
 
     return () => {
