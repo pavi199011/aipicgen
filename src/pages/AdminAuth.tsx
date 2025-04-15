@@ -20,14 +20,16 @@ const AdminAuth = () => {
   useEffect(() => {
     console.log("Admin auth page - authentication status:", adminAuthenticated);
     
-    if (adminAuthenticated === true) {
+    if (adminAuthenticated === true && !isRedirecting) {
       console.log("User is authenticated, redirecting to admin dashboard");
       setIsRedirecting(true);
+      
+      // Use a slight delay to ensure state updates properly
       setTimeout(() => {
         navigate("/admin");
-      }, 100);
+      }, 50);
     }
-  }, [adminAuthenticated, navigate]);
+  }, [adminAuthenticated, navigate, isRedirecting]);
 
   const handleLogin = async (values) => {
     try {
@@ -56,7 +58,7 @@ const AdminAuth = () => {
   }
 
   // Display a loading state while checking authentication
-  if (loading) {
+  if (loading && adminAuthenticated === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-900">
         <div className="text-center text-white">

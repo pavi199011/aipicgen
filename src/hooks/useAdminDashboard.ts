@@ -13,9 +13,9 @@ export function useAdminDashboard() {
   const { adminAuthenticated, adminLogout } = useAdminAuth();
   const { toast } = useToast();
 
+  // Only fetch data when authenticated
   useEffect(() => {
     console.log("Admin authenticated state in dashboard:", adminAuthenticated);
-    // Only fetch data if the user is authenticated
     if (adminAuthenticated === true) {
       fetchUsers();
       fetchUserStats();
@@ -29,62 +29,67 @@ export function useAdminDashboard() {
       setLoading(true);
       console.log("Fetching user data...");
       
-      // Fetch auth users (real data)
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.warn("Error fetching auth users:", authError.message);
-        // If there's an error, fallback to the profiles table
-        const { data: profileUsers, error: profileError } = await supabase
+      // Try fetching from auth.admin first
+      try {
+        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+        if (authError) throw authError;
+        
+        // Get profiles to enhance user data
+        const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("id, username, created_at");
           
-        if (profileError) {
-          console.warn("Error fetching profiles:", profileError.message);
-          throw profileError;
+        if (profilesError) {
+          console.warn("Error fetching profiles:", profilesError.message);
         }
         
-        const profileUsersMapped = profileUsers.map(profile => ({
-          id: profile.id,
-          username: profile.username || 'No Username',
-          email: `${profile.username || 'user'}@example.com`, // Placeholder email
-          created_at: profile.created_at || new Date().toISOString(),
-          is_suspended: false
-        }));
+        const profilesMap = new Map();
+        (profiles || []).forEach(profile => {
+          profilesMap.set(profile.id, profile);
+        });
         
-        setUsers(profileUsersMapped);
-        console.log("Loaded user data from profiles:", profileUsersMapped.length, "users");
+        // Map auth users to our user format
+        const mappedUsers = authUsers.users.map(authUser => {
+          const profile = profilesMap.get(authUser.id);
+          return {
+            id: authUser.id,
+            email: authUser.email,
+            username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
+            created_at: profile?.created_at || authUser.created_at || new Date().toISOString(),
+            is_suspended: authUser.banned || false
+          };
+        });
+        
+        setUsers(mappedUsers);
+        console.log("User data loaded:", mappedUsers.length, "users");
         return;
+      } catch (authError) {
+        console.warn("Error fetching auth users:", authError.message);
       }
       
-      // Get profiles to enhance user data
-      const { data: profiles, error: profilesError } = await supabase
+      // Fallback to profiles table if auth.admin fails
+      console.log("Falling back to profiles table...");
+      const { data: profileUsers, error: profileError } = await supabase
         .from("profiles")
         .select("id, username, created_at");
         
-      if (profilesError) {
-        console.warn("Error fetching profiles:", profilesError.message);
+      if (profileError) {
+        console.warn("Error fetching profiles:", profileError.message);
+        throw profileError;
       }
       
-      const profilesMap = new Map();
-      (profiles || []).forEach(profile => {
-        profilesMap.set(profile.id, profile);
-      });
+      const profileUsersMapped = profileUsers.map(profile => ({
+        id: profile.id,
+        username: profile.username || 'No Username',
+        email: `${profile.username || 'user'}@example.com`, // Placeholder email
+        created_at: profile.created_at || new Date().toISOString(),
+        is_suspended: false
+      }));
       
-      // Map auth users to our user format
-      const mappedUsers = authUsers.users.map(authUser => {
-        const profile = profilesMap.get(authUser.id);
-        return {
-          id: authUser.id,
-          email: authUser.email,
-          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
-          created_at: profile?.created_at || authUser.created_at || new Date().toISOString(),
-          is_suspended: authUser.banned || false
-        };
-      });
+      setUsers(profileUsersMapped);
+      console.log("Loaded user data from profiles:", profileUsersMapped.length, "users");
       
-      setUsers(mappedUsers);
-      console.log("User data loaded:", mappedUsers.length, "users");
     } catch (error) {
       console.error("Error in fetchUsers:", error);
       toast({

@@ -29,20 +29,26 @@ const AdminDashboard = () => {
 
   // Get active tab from URL hash
   useEffect(() => {
-    const hash = location.hash.replace('#', '') || "overview";
-    setActiveTab(hash);
+    if (location.hash) {
+      const hash = location.hash.replace('#', '');
+      setActiveTab(hash);
+    } else {
+      setActiveTab("overview");
+    }
   }, [location.hash, setActiveTab]);
 
   // Handle authentication redirect
   useEffect(() => {
-    if (adminAuthenticated === false) {
+    console.log("Admin dashboard auth check:", adminAuthenticated);
+    
+    if (adminAuthenticated === false && !isRedirecting) {
       console.log("User not authenticated, redirecting to login");
       setIsRedirecting(true);
       navigate("/admin/login");
     }
-  }, [adminAuthenticated, navigate]);
+  }, [adminAuthenticated, navigate, isRedirecting]);
 
-  // Fetch data based on active tab
+  // Fetch data only when authenticated and active tab changes
   useEffect(() => {
     if (adminAuthenticated === true) {
       console.log("Fetching dashboard data for tab:", activeTab);
@@ -55,9 +61,14 @@ const AdminDashboard = () => {
     }
   }, [activeTab, adminAuthenticated, fetchUsers, fetchUserStats]);
 
-  // Show loading state while checking authentication
+  // Show loading state while checking authentication or during redirect
   if (loading || adminAuthenticated === undefined || isRedirecting) {
     return <AdminDashboardLoading />;
+  }
+
+  // Safety check to prevent rendering when not authenticated
+  if (adminAuthenticated === false) {
+    return null;
   }
 
   return (

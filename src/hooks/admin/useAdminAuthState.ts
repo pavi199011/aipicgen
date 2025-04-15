@@ -13,9 +13,9 @@ export function useAdminAuthState() {
   useEffect(() => {
     console.log("Checking admin authentication...");
     
-    const checkAuth = async () => {
+    const checkAuth = () => {
       try {
-        // Check local storage first as it's faster
+        // Check local storage for authentication state
         const savedAuth = localStorage.getItem('adminAuthenticated');
         
         if (savedAuth === 'true') {
@@ -33,10 +33,8 @@ export function useAdminAuthState() {
       }
     };
     
-    // Add a slight delay to ensure component mounts properly
-    setTimeout(() => {
-      checkAuth();
-    }, 100);
+    // Check authentication immediately without delay
+    checkAuth();
   }, []);
 
   return {
