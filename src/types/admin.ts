@@ -29,3 +29,8 @@ export interface UserFilterState {
 export interface UserDetailData extends User, UserStats {
   // Combined interface for user details
 }
+
+export interface AdminCredentials {
+  identifier: string; // Can be username or email
+  password: string;
+}
