@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -107,6 +108,44 @@ export function useAdminDashboardStats(period: string = 'week') {
         const contentGrowthRate = 12.3; // Mock value
         const conversionGrowth = 2.1; // Mock value
 
+        // Fetch recent activity data
+        const { data: activityData, error: activityError } = await supabase
+          .from('generated_images')
+          .select('id, created_at, prompt, model, user_id')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (activityError) throw activityError;
+
+        // Get usernames for activity data
+        const userIds = activityData?.map(item => item.user_id) || [];
+        const { data: usersData, error: usersDataError } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .in('id', userIds);
+
+        if (usersDataError) throw usersDataError;
+
+        // Create a map of user IDs to usernames
+        const userMap = new Map();
+        usersData?.forEach(user => {
+          userMap.set(user.id, {
+            name: user.username || 'Anonymous User',
+            avatarUrl: user.avatar_url
+          });
+        });
+
+        // Format activity data
+        const formattedActivityData = activityData?.map(item => ({
+          id: item.id,
+          user: userMap.get(item.user_id) || { name: 'Anonymous User' },
+          action: `Generated an image with prompt "${item.prompt.substring(0, 30)}${item.prompt.length > 30 ? '...' : ''}"`,
+          target: item.model,
+          timestamp: item.created_at,
+          type: 'content',
+          status: 'success'
+        })) || [];
+
         setStats({
           users: {
             totalUsers: totalUsers || 0,
@@ -125,7 +164,7 @@ export function useAdminDashboardStats(period: string = 'week') {
             conversionGrowth,
             contentTypes: contentTypes.length > 0 ? contentTypes : [{ name: 'No Data', value: 0 }]
           },
-          activityData: [] // We'll implement real activity data in a future enhancement
+          activityData: formattedActivityData
         });
       } catch (err: any) {
         console.error('Error fetching admin stats:', err);

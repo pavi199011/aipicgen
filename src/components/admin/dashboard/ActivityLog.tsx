@@ -66,6 +66,14 @@ const getStatusBadge = (status?: string) => {
 };
 
 export function ActivityLog({ data }: ActivityLogProps) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="text-center p-6 text-gray-500">
+        No recent activity found.
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-4 max-h-96 overflow-auto pr-2">
       {data.map((item, index) => (

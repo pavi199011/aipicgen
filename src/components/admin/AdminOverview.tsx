@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
@@ -18,7 +17,6 @@ import {
 import { UserStats } from "./dashboard/UserStats";
 import { ContentStats } from "./dashboard/ContentStats";
 import { ActivityLog } from "./dashboard/ActivityLog";
-import { activityData } from "./dashboard/mockData";
 import { useAdminDashboardStats } from "@/hooks/useAdminDashboardStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -259,7 +257,7 @@ export function AdminOverview() {
             <CardDescription>Latest actions across the platform</CardDescription>
           </CardHeader>
           <CardContent>
-            <ActivityLog data={activityData} />
+            <ActivityLog data={stats?.activityData || []} />
           </CardContent>
         </Card>
       </motion.div>
