@@ -41,23 +41,28 @@ const AdminLogin = () => {
     try {
       setError(null);
       setIsSubmitting(true);
+      
+      console.log("Form submitted, attempting admin login");
       await adminSignIn(values);
       
-      // If adminSignIn succeeds, the AuthProvider will update the user
-      // The condition at the top will redirect to the admin dashboard
+      console.log("Admin login successful, redirecting");
+      // Successful login will redirect automatically due to the useEffect in AuthProvider
+      
     } catch (error: any) {
       console.error("Admin login error:", error);
       setError(error.message || "Invalid admin credentials or you don't have admin privileges.");
-      form.reset({ identifier: values.identifier, password: "" });
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  // Move the redirect logic after all hooks have been initialized
+  // If user is logged in and is an admin, redirect to admin dashboard
   if (user?.isAdmin) {
+    console.log("User is admin, redirecting to admin dashboard");
     return <Navigate to="/admin" replace />;
   }
+
+  const isFormDisabled = isSubmitting || authLoading;
 
   return (
     <AuthCard>
@@ -93,7 +98,7 @@ const AdminLogin = () => {
                       <Input 
                         placeholder="admin" 
                         className="pl-10" 
-                        disabled={isSubmitting}
+                        disabled={isFormDisabled}
                         {...field}
                       />
                     </div>
@@ -115,7 +120,7 @@ const AdminLogin = () => {
                         placeholder="••••••••" 
                         type="password" 
                         className="pl-10" 
-                        disabled={isSubmitting}
+                        disabled={isFormDisabled}
                         {...field}
                       />
                     </div>
@@ -127,7 +132,7 @@ const AdminLogin = () => {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isSubmitting}>
+              disabled={isFormDisabled}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -143,7 +148,7 @@ const AdminLogin = () => {
                 variant="link" 
                 className="text-sm"
                 onClick={() => navigate("/auth")}
-                disabled={isSubmitting}
+                disabled={isFormDisabled}
               >
                 Regular User Login
               </Button>

@@ -38,33 +38,49 @@ export function useAuthMethods() {
   const adminSignIn = async (credentials: AdminCredentials) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({ 
+      console.log("Starting admin sign in process");
+      
+      // First, attempt to sign in with credentials
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ 
         email: credentials.identifier, 
         password: credentials.password 
       });
       
-      if (error) throw error;
+      if (signInError) throw signInError;
       
-      // After successful login, verify if this user is an admin
+      console.log("Sign in successful, checking admin status");
+      
+      // If login succeeds, check admin status using the user ID from the session
+      const userId = signInData.user?.id;
+      if (!userId) throw new Error("User ID not found after login");
+      
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("is_admin")
-        .eq("id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("id", userId)
         .single();
       
-      if (profileError) throw profileError;
-      
-      // If the user is not an admin, throw an error
-      if (!profile?.is_admin) {
-        // Sign out the user since they're not an admin
+      if (profileError) {
+        // Important: Sign out if we can't verify admin status
         await supabase.auth.signOut();
-        throw new Error("You don't have administrator privileges.");
+        throw profileError;
+      }
+      
+      console.log("Admin check result:", profile);
+      
+      // If the user is not an admin, sign them out
+      if (!profile?.is_admin) {
+        await supabase.auth.signOut();
+        throw new Error("You don't have administrator privileges");
       }
       
       toast({
         title: "Admin login successful",
         description: "You have successfully signed in as an administrator.",
       });
+      
+      // Return the successful sign-in result
+      return { success: true };
       
     } catch (error: any) {
       console.error("Error signing in as admin:", error);
