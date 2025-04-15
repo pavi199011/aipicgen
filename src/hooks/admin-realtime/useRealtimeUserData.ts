@@ -11,19 +11,24 @@ export function useRealtimeUserData() {
   // Function to fetch all users from auth.users
   const fetchUserData = async () => {
     try {
-      console.log("Fetching users from auth.users...");
+      console.log("Fetching users from auth.users table...");
       
-      // Use auth.admin to access the users table with service role
-      const { data: authUsers, error } = await supabase.auth.admin.listUsers();
-        
+      // Use the service role client to access auth.users
+      const { data, error } = await supabase.auth.admin.listUsers();
+      
       if (error) {
         console.error("Error fetching auth users:", error);
-        throw error;
+        toast({
+          title: "Error",
+          description: "Failed to fetch user data. Please check your permissions.",
+          variant: "destructive",
+        });
+        return;
       }
       
-      console.log("Fetched auth users:", authUsers);
+      console.log("Fetched auth users successfully:", data);
       
-      if (!authUsers || !authUsers.users || authUsers.users.length === 0) {
+      if (!data || !data.users || data.users.length === 0) {
         console.log("No users found");
         setUsers([]);
         return;
@@ -46,7 +51,7 @@ export function useRealtimeUserData() {
       }
 
       // Map auth users to our User format
-      const mappedUsers = authUsers.users.map(authUser => {
+      const mappedUsers = data.users.map(authUser => {
         const profile = profilesMap.get(authUser.id);
         return {
           id: authUser.id,

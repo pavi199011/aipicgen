@@ -11,23 +11,19 @@ export function useAdminRealtime() {
 
   // Create a callback function that fetches both user data and stats
   const fetchAllData = useCallback(async () => {
-    console.log("Fetching all admin data...");
+    console.log("Fetching admin dashboard data...");
     try {
-      // Fetch the user data
+      // Fetch the user data first
       await fetchUserData();
       
       // After user data is fetched, get stats for those users
-      if (users.length > 0) {
-        await fetchUserStats(users);
-      }
-      
-      console.log("Admin data refreshed successfully");
+      await fetchUserStats(users);
       
     } catch (error) {
       console.error("Error refreshing admin data:", error);
       toast({
-        title: "Refresh Failed",
-        description: "Could not refresh dashboard data. Please try again.",
+        title: "Error",
+        description: "Failed to fetch dashboard data. Please try again.",
         variant: "destructive",
       });
     }

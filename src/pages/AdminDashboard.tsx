@@ -7,7 +7,6 @@ import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { AdminDashboardLoading } from "@/components/admin/AdminDashboardLoading";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard = () => {
   const {
@@ -29,7 +28,6 @@ const AdminDashboard = () => {
   
   // Set up data loading from auth.users
   const { users: authUsers, realtimeStats, fetchAllData } = useAdminRealtime();
-  const { toast } = useToast();
   
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
@@ -67,8 +65,10 @@ const AdminDashboard = () => {
       }
     };
     
-    fetchData();
-  }, [fetchAllData]);
+    if (adminAuthenticated) {
+      fetchData();
+    }
+  }, [adminAuthenticated, fetchAllData]);
 
   // Show loading state only while checking authentication
   if (adminAuthenticated === undefined) {
