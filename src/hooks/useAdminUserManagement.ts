@@ -1,12 +1,16 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserDetailData, UserSortState, UserFilterState } from "@/types/admin";
 import { useToast } from "@/hooks/use-toast";
+import { useUserEmails } from "./admin/useUserEmails";
 
 export function useAdminUserManagement() {
   const { toast } = useToast();
+  const { fetchUserEmails } = useUserEmails();
+  
+  // State management
   const [sortState, setSortState] = useState<UserSortState>({ 
     field: "created_at", 
     direction: "desc" 
@@ -18,129 +22,107 @@ export function useAdminUserManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
 
-  // Fetch user data from user_statistics view with pagination
+  /**
+   * Fetch the total count of users matching the filter criteria
+   */
+  const fetchTotalUserCount = async (filters: UserFilterState) => {
+    console.log("Fetching user count with filters:", filters);
+    
+    let countQuery = supabase
+      .from("user_statistics")
+      .select("id", { count: "exact", head: true });
+
+    // Apply filters if provided
+    if (filters.username) {
+      countQuery = countQuery.ilike("username", `%${filters.username}%`);
+    }
+
+    const { count, error: countError } = await countQuery;
+    
+    if (countError) {
+      console.error("Error fetching count:", countError);
+      throw countError;
+    }
+    
+    console.log("Total user count:", count);
+    return count || 0;
+  };
+
+  /**
+   * Fetch user data with filtering, sorting, and pagination
+   */
+  const fetchUserData = async (
+    filters: UserFilterState,
+    sort: UserSortState,
+    page: number,
+    limit: number
+  ) => {
+    console.log("Fetching user data with filters:", filters);
+    
+    // Calculate the range for pagination
+    const start = (page - 1) * limit;
+    const end = page * limit - 1;
+    
+    let query = supabase
+      .from("user_statistics")
+      .select("id, username, full_name, created_at, image_count, avatar_url, is_admin")
+      .range(start, end);
+
+    // Apply filters if provided
+    if (filters.username) {
+      query = query.ilike("username", `%${filters.username}%`);
+    }
+
+    // Apply sorting
+    query = query.order(sort.field, { 
+      ascending: sort.direction === "asc" 
+    });
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error fetching users:", error);
+      throw error;
+    }
+
+    console.log("Fetched user data:", data);
+    return data || [];
+  };
+
+  // Fetch user data with react-query
   const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ["users", sortState, filterState, currentPage],
     queryFn: async () => {
-      console.log("Fetching user data with filters:", filterState);
-      
-      // First get total count for pagination
-      let countQuery = supabase
-        .from("user_statistics")
-        .select("id", { count: "exact", head: true });
-
-      // Apply filters if provided
-      if (filterState.username) {
-        countQuery = countQuery.ilike("username", `%${filterState.username}%`);
-      }
-
-      const { count, error: countError } = await countQuery;
-      
-      if (countError) {
-        console.error("Error fetching count:", countError);
-        throw countError;
-      }
-      
-      console.log("Total user count:", count);
-      
-      // Calculate total pages
-      const calculatedTotalPages = Math.max(1, Math.ceil((count || 0) / pageSize));
-      setTotalPages(calculatedTotalPages);
-      
-      // Adjust current page if it's beyond the total pages
-      if (currentPage > calculatedTotalPages) {
-        setCurrentPage(calculatedTotalPages);
-      }
-
-      // Now fetch the actual data with pagination
-      let query = supabase
-        .from("user_statistics")
-        .select("id, username, full_name, created_at, image_count, avatar_url, is_admin")
-        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
-
-      // Apply filters if provided
-      if (filterState.username) {
-        query = query.ilike("username", `%${filterState.username}%`);
-      }
-
-      // Apply sorting
-      query = query.order(sortState.field, { 
-        ascending: sortState.direction === "asc" 
-      });
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error fetching users:", error);
+      try {
+        // Get total count for pagination
+        const totalCount = await fetchTotalUserCount(filterState);
+        
+        // Calculate total pages
+        const calculatedTotalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+        setTotalPages(calculatedTotalPages);
+        
+        // Adjust current page if it's beyond the total pages
+        if (currentPage > calculatedTotalPages) {
+          setCurrentPage(calculatedTotalPages);
+        }
+        
+        // Fetch the user data for the current page
+        const userData = await fetchUserData(filterState, sortState, currentPage, pageSize);
+        
+        // If we have user data, fetch the email addresses
+        if (userData && userData.length > 0) {
+          return await fetchUserEmails(userData);
+        }
+        
+        return userData as UserDetailData[];
+      } catch (error) {
+        console.error("Error in useAdminUserManagement query:", error);
         throw error;
       }
-
-      console.log("Fetched user data:", data);
-      
-      // After getting the stats, fetch email data from auth.users through our function
-      if (data && data.length > 0) {
-        try {
-          // Get user IDs from the fetched data
-          const userIds = data.map(user => user.id as string);
-          
-          console.log("User IDs for email lookup:", userIds);
-          
-          // Use the get_user_emails function to get emails
-          const { data: emailsData, error: emailsError } = await supabase
-            .rpc('get_user_emails', { user_ids: userIds });
-          
-          if (emailsError) {
-            console.error("Error fetching emails:", emailsError);
-            console.error("Error details:", emailsError.message, emailsError.details);
-            return data as UserDetailData[]; // Return data without emails if there's an error
-          }
-          
-          console.log("Fetched email data:", emailsData);
-          
-          // Create a mapping of user IDs to emails
-          const emailMap = (emailsData || []).reduce((map, item) => {
-            if (item.id) {
-              map[item.id] = item.email;
-            }
-            return map;
-          }, {} as Record<string, string | null>);
-          
-          console.log("Email mapping:", emailMap);
-          
-          // Merge the email data with the user data
-          const usersWithEmail = data.map(user => {
-            const userEmail = emailMap[user.id || ''] || null;
-            console.log(`User ${user.username || user.id} email:`, userEmail);
-            return {
-              ...user,
-              email: userEmail
-            };
-          });
-          
-          console.log("Final users with emails:", usersWithEmail);
-          return usersWithEmail as UserDetailData[];
-        } catch (emailError) {
-          console.error("Error processing emails:", emailError);
-          return data as UserDetailData[]; // Return data without emails if exception
-        }
-      }
-      
-      // Return the data without emails if no users found
-      return data as UserDetailData[];
     },
   });
 
-  // Handle errors
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error fetching users",
-        description: (error as Error).message,
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
-
+  // Handle sort state changes
   const handleSort = (field: UserSortState["field"]) => {
     setSortState(prev => ({
       field,
@@ -148,18 +130,22 @@ export function useAdminUserManagement() {
     }));
   };
 
+  // Handle filter state changes
   const handleFilter = (filters: UserFilterState) => {
     setFilterState(filters);
     setCurrentPage(1); // Reset to first page when filters change
   };
 
+  // Handle page changes
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
-  // Generate page numbers for pagination
+  /**
+   * Generate page numbers for pagination display
+   */
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPageItems = 5;
