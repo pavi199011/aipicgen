@@ -22,11 +22,11 @@ export function useAdminAuthState() {
         
         if (session) {
           // Since user_roles table has been dropped, we'll use simplified admin check
-          // In a real application, you would need to recreate the user_roles table or implement an alternative
           const savedAuth = localStorage.getItem('adminAuthenticated');
           if (savedAuth === 'true') {
             console.log("Found existing admin authentication in local storage");
             setAdminAuthenticated(true);
+            setLoading(false);
             return;
           }
         }

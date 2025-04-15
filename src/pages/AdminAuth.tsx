@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { AdminTestCredentials } from "@/components/admin/AdminTestCredentials";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { AdminRedirectLoader } from "@/components/admin/AdminRedirectLoader";
 
 const AdminAuth = () => {
   const { loading, adminAuthenticated, adminLogin } = useAdminAuth();
@@ -18,14 +19,11 @@ const AdminAuth = () => {
   // Redirect if admin is already authenticated
   useEffect(() => {
     if (adminAuthenticated && !isRedirecting) {
+      console.log("User is authenticated, preparing to redirect");
       setIsRedirecting(true);
       
-      // Small delay before redirect for better UX
-      const redirectTimer = setTimeout(() => {
-        navigate("/admin");
-      }, 100);
-      
-      return () => clearTimeout(redirectTimer);
+      // Redirect immediately without delay
+      navigate("/admin");
     }
   }, [adminAuthenticated, navigate, isRedirecting]);
 
@@ -39,26 +37,19 @@ const AdminAuth = () => {
           description: "Logged in to admin portal successfully",
         });
         
+        console.log("Login successful, redirecting to admin dashboard");
         setIsRedirecting(true);
-        setTimeout(() => {
-          navigate("/admin");
-        }, 100);
+        navigate("/admin");
       }
     } catch (error) {
       console.error("Login error:", error);
+      setIsRedirecting(false);
     }
   };
 
   // Show a loading state during redirection
   if (isRedirecting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-blue-900 to-indigo-900 p-4">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
-          <p className="mt-4 text-white font-medium">Redirecting to admin portal...</p>
-        </div>
-      </div>
-    );
+    return <AdminRedirectLoader />;
   }
 
   return (

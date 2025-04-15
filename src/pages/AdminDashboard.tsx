@@ -1,7 +1,10 @@
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminDashboardContent } from "@/components/admin/AdminDashboardContent";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
+import { AdminDashboardLoading } from "@/components/admin/AdminDashboardLoading";
 
 const AdminDashboard = () => {
   const {
@@ -15,8 +18,23 @@ const AdminDashboard = () => {
     handleSignOut,
     totalUsers,
     totalImages,
-    avgImagesPerUser
+    avgImagesPerUser,
+    adminAuthenticated
   } = useAdminDashboard();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If authentication check has completed and user is not authenticated
+    if (adminAuthenticated === false) {
+      console.log("User not authenticated, redirecting to login");
+      navigate("/admin/login");
+    }
+  }, [adminAuthenticated, navigate]);
+
+  // Show loading state while checking authentication or loading data
+  if (loading || adminAuthenticated === undefined) {
+    return <AdminDashboardLoading />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

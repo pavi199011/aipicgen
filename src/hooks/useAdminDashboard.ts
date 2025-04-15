@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,17 +11,15 @@ export function useAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
   const { adminAuthenticated, adminLogout } = useAdminAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!adminAuthenticated) {
-      navigate("/admin/login");
-    } else {
+    // Only fetch data if the user is authenticated
+    if (adminAuthenticated) {
       fetchUsers();
       fetchUserStats();
     }
-  }, [adminAuthenticated, navigate]);
+  }, [adminAuthenticated]);
 
   const fetchUsers = async () => {
     try {
@@ -168,7 +165,6 @@ export function useAdminDashboard() {
       title: "Signed Out",
       description: "You have been signed out of the admin portal",
     });
-    navigate("/admin/login");
   };
 
   return {
@@ -184,6 +180,7 @@ export function useAdminDashboard() {
     totalImages: userStats.reduce((sum, user) => sum + user.imageCount, 0),
     avgImagesPerUser: users.length > 0 
       ? (userStats.reduce((sum, user) => sum + user.imageCount, 0) / users.length).toFixed(1) 
-      : "0.0"
+      : "0.0",
+    adminAuthenticated
   };
 }
