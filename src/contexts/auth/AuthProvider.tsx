@@ -22,8 +22,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        console.log("Fetching user session...");
+        setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
+          console.log("Session found, fetching profile...");
           const { data: profile } = await supabase
             .from("profiles")
             .select("username, avatar_url, is_admin")
@@ -37,9 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             avatarUrl: profile?.avatar_url || null,
             isAdmin: profile?.is_admin || false
           });
+          console.log("User profile loaded, isAdmin:", profile?.is_admin);
+        } else {
+          console.log("No session found");
+          setUser(null);
         }
       } catch (error) {
         console.error("Error fetching user:", error);
+        setUser(null);
       } finally {
         setLoading(false);
       }

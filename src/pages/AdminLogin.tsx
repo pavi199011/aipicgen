@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { AdminCredentials } from "@/types/admin";
@@ -27,6 +28,11 @@ const AdminLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Display loading state on mount
+  useEffect(() => {
+    console.log("AdminLogin mounted, authLoading:", authLoading);
+  }, [authLoading]);
   
   const form = useForm<AdminCredentials>({
     resolver: zodResolver(adminLoginSchema),
@@ -61,7 +67,7 @@ const AdminLogin = () => {
     return <Navigate to="/admin" replace />;
   }
 
-  const isFormDisabled = isSubmitting || authLoading;
+  const isFormDisabled = isSubmitting;
 
   return (
     <AuthCard>
@@ -75,97 +81,107 @@ const AdminLogin = () => {
         </p>
       </CardHeader>
       <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Authentication Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="identifier"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username or Email</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input 
-                        placeholder="admin" 
-                        className="pl-10" 
-                        disabled={isFormDisabled}
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input 
-                        placeholder="••••••••" 
-                        type="password" 
-                        className="pl-10" 
-                        disabled={isFormDisabled}
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isFormDisabled}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Access Admin Panel"
-              )}
-            </Button>
+        {/* Display loading state if auth is loading but not form submission */}
+        {authLoading && !isSubmitting ? (
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-sm text-muted-foreground">Checking authentication status...</p>
+          </div>
+        ) : (
+          <>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Authentication Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             
-            <div className="text-center mt-4">
-              <Button 
-                variant="link" 
-                className="text-sm"
-                onClick={() => navigate("/auth")}
-                disabled={isFormDisabled}
-              >
-                Regular User Login
-              </Button>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="identifier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username or Email</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input 
+                            placeholder="admin" 
+                            className="pl-10" 
+                            disabled={isFormDisabled}
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input 
+                            placeholder="••••••••" 
+                            type="password" 
+                            className="pl-10" 
+                            disabled={isFormDisabled}
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isFormDisabled}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Access Admin Panel"
+                  )}
+                </Button>
+                
+                <div className="text-center mt-4">
+                  <Button 
+                    variant="link" 
+                    className="text-sm"
+                    onClick={() => navigate("/auth")}
+                    disabled={isFormDisabled}
+                  >
+                    Regular User Login
+                  </Button>
+                </div>
+              </form>
+            </Form>
+            
+            <Separator className="my-6" />
+            
+            <div className="space-y-2">
+              <p className="text-sm text-center text-muted-foreground">
+                First time setup? Create the admin user with default credentials:
+              </p>
+              <p className="text-xs text-center text-muted-foreground">
+                (Username: admin, Email: admin@example.com, Password: Admin2025@#)
+              </p>
+              <CreateAdminButton />
             </div>
-          </form>
-        </Form>
-        
-        <Separator className="my-6" />
-        
-        <div className="space-y-2">
-          <p className="text-sm text-center text-muted-foreground">
-            First time setup? Create the admin user with default credentials:
-          </p>
-          <p className="text-xs text-center text-muted-foreground">
-            (Username: admin, Email: admin@example.com, Password: Admin2025@#)
-          </p>
-          <CreateAdminButton />
-        </div>
+          </>
+        )}
       </CardContent>
     </AuthCard>
   );

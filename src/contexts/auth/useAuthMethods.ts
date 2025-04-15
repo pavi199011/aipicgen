@@ -6,7 +6,7 @@ import { AdminCredentials } from "@/types/admin";
 
 export function useAuthMethods() {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const signIn = async (email: string, password: string) => {
