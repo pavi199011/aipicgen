@@ -1,0 +1,87 @@
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardOverview } from "@/components/admin/DashboardOverview";
+import { UserManagement } from "@/components/admin/UserManagement";
+import { UserStatistics } from "@/components/admin/UserStatistics";
+import { AdminManagement } from "@/components/admin/AdminManagement";
+import { ADMIN_CREDENTIALS } from "@/components/admin/AdminConstants";
+
+interface AdminDashboardContentProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  users: any[];
+  userStats: any[];
+  loading: boolean;
+  loadingStats: boolean;
+  totalUsers: number;
+  totalImages: number;
+  avgImagesPerUser: string;
+  onDeleteUser: (userId: string) => void;
+}
+
+export const AdminDashboardContent = ({
+  activeTab,
+  setActiveTab,
+  users,
+  userStats,
+  loading,
+  loadingStats,
+  totalUsers,
+  totalImages,
+  avgImagesPerUser,
+  onDeleteUser
+}: AdminDashboardContentProps) => {
+  const currentAdmins = [
+    { id: "admin-1", username: "admin_test", email: ADMIN_CREDENTIALS.email }
+  ];
+  
+  const handleAddAdmin = async (email, password) => {
+    // This is a placeholder function
+    return Promise.resolve();
+  };
+
+  return (
+    <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="grid grid-cols-4 mb-8">
+        <TabsTrigger value="overview">Dashboard</TabsTrigger>
+        <TabsTrigger value="users">User Management</TabsTrigger>
+        <TabsTrigger value="statistics">User Statistics</TabsTrigger>
+        <TabsTrigger value="settings">Settings</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="overview">
+        <DashboardOverview
+          userCount={totalUsers}
+          totalImages={totalImages}
+          avgImagesPerUser={avgImagesPerUser}
+          loading={loading}
+          loadingStats={loadingStats}
+        />
+      </TabsContent>
+      
+      <TabsContent value="users">
+        <UserManagement 
+          users={users}
+          loading={loading}
+          onDeleteUser={onDeleteUser}
+          userStats={userStats}
+        />
+      </TabsContent>
+      
+      <TabsContent value="statistics">
+        <UserStatistics 
+          userStats={userStats}
+          loadingStats={loadingStats}
+          onDeleteUser={onDeleteUser}
+        />
+      </TabsContent>
+      
+      <TabsContent value="settings">
+        <AdminManagement 
+          currentAdmins={currentAdmins}
+          onAddAdmin={handleAddAdmin}
+        />
+      </TabsContent>
+    </Tabs>
+  );
+};
