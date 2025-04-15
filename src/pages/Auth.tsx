@@ -10,8 +10,6 @@ import { LoginForm, LoginFormValues } from "@/components/auth/LoginForm";
 import { RegisterForm, RegisterFormValues } from "@/components/auth/RegisterForm";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { useToast } from "@/hooks/use-toast";
-import { addNewUserToMockData } from "@/hooks/admin/useAdminUserData";
-import { addNewUserToMockStats } from "@/hooks/admin/useAdminUserStats";
 
 const Auth = () => {
   const { user, signIn, signUp } = useAuth();
@@ -56,26 +54,6 @@ const Auth = () => {
       setLoading(true);
       // Fixed: Passing the username as the third argument to signUp
       await signUp(values.email, values.password, values.username);
-      
-      // Add the newly registered user to the admin mock data
-      const newUserId = `user-${Date.now()}`;
-      const newUser = {
-        id: newUserId,
-        email: values.email,
-        username: values.username,
-        created_at: new Date().toISOString(),
-        is_suspended: false
-      };
-      
-      // Add user to mock data for admin dashboard
-      addNewUserToMockData(newUser);
-      
-      // Add user stats to mock stats for admin dashboard
-      addNewUserToMockStats({
-        id: newUserId,
-        username: values.username,
-        email: values.email
-      });
       
       // Simplified success flow - no need to check for error property
       toast({

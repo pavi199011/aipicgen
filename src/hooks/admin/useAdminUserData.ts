@@ -1,67 +1,11 @@
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { User, UserStats } from "@/types/admin";
-
-// Generate stable mock users that don't change on every render
-const generateMockUsers = (): User[] => {
-  // Check if we already have stored mock users
-  const storedUsers = localStorage.getItem('admin_mock_users');
-  if (storedUsers) {
-    return JSON.parse(storedUsers);
-  }
-  
-  // Create new mock users with fixed dates
-  const mockUsers = [
-    {
-      id: "mock-user-1",
-      email: "user1@example.com",
-      username: "user_one",
-      created_at: new Date(2025, 3, 10).toISOString(),
-      is_suspended: false
-    },
-    {
-      id: "mock-user-2",
-      email: "user2@example.com",
-      username: "user_two",
-      created_at: new Date(2025, 3, 12).toISOString(),
-      is_suspended: false
-    },
-    {
-      id: "mock-user-3",
-      email: "user3@example.com",
-      username: "user_three",
-      created_at: new Date(2025, 3, 14).toISOString(),
-      is_suspended: true
-    }
-  ];
-  
-  // Store the generated users
-  localStorage.setItem('admin_mock_users', JSON.stringify(mockUsers));
-  return mockUsers;
-};
-
-// Add a new user to the mock user list
-export const addNewUserToMockData = (userData: {
-  id: string;
-  email?: string;
-  username?: string;
-  created_at: string;
-  is_suspended?: boolean;
-}): void => {
-  const storedUsers = localStorage.getItem('admin_mock_users');
-  let users = storedUsers ? JSON.parse(storedUsers) : [];
-  
-  // Check if user already exists
-  const exists = users.some(user => user.id === userData.id);
-  if (!exists) {
-    users.push(userData);
-    localStorage.setItem('admin_mock_users', JSON.stringify(users));
-  }
-};
+import { User } from "@/types/admin";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Hook for managing mock user data in the admin dashboard
+ * Hook for managing user data in the admin dashboard
  */
 export function useAdminUserData(
   setUsers: React.Dispatch<React.SetStateAction<User[]>>,
@@ -69,61 +13,96 @@ export function useAdminUserData(
   adminAuthenticated: boolean | undefined
 ) {
   const { toast } = useToast();
-  const [mockUsersCache, setMockUsersCache] = useState<User[]>([]);
-
-  // Initialize mock users once
-  useEffect(() => {
-    setMockUsersCache(generateMockUsers());
-  }, []);
 
   const fetchUsers = useCallback(async () => {
     if (adminAuthenticated !== true) return;
     
     try {
       setLoading(true);
-      console.log("Fetching user data...");
+      console.log("Fetching real user data...");
       
-      // Use cached mock data
-      setUsers(mockUsersCache);
-      console.log("Mock user data loaded");
+      // Fetch auth users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+      if (authError) {
+        console.warn("Error fetching auth users:", authError.message);
+        throw authError;
+      }
+      
+      // Get all profiles to join with auth users
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, created_at");
+        
+      if (profilesError) {
+        console.warn("Error fetching user profiles:", profilesError.message);
+      }
+      
+      const profilesMap = new Map();
+      (profiles || []).forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+      
+      // Map auth users to our user format
+      const users = authUsers.users.map(authUser => {
+        const profile = profilesMap.get(authUser.id);
+        return {
+          id: authUser.id,
+          email: authUser.email,
+          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
+          created_at: authUser.created_at || new Date().toISOString(),
+          is_suspended: false // We'll implement this feature later
+        };
+      });
+      
+      setUsers(users);
+      console.log("Real user data loaded:", users);
     } catch (error) {
       console.error("Error in fetchUsers:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch users. Using sample data instead.",
+        description: "Failed to fetch users. Please try again later.",
         variant: "destructive",
       });
       
-      // Set sample data if fetching fails
-      setUsers([
-        {
-          id: "sample-1",
-          email: "sample@example.com",
-          username: "sample_user",
-          created_at: new Date().toISOString(),
-          is_suspended: false
-        }
-      ]);
+      // Set empty data if fetching fails
+      setUsers([]);
     } finally {
       setLoading(false);
     }
-  }, [adminAuthenticated, setLoading, setUsers, toast, mockUsersCache]);
+  }, [adminAuthenticated, setLoading, setUsers, toast]);
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      // Update both the local cache and state
-      const updatedUsers = mockUsersCache.filter(user => user.id !== userId);
-      setMockUsersCache(updatedUsers);
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+      // First delete user's images
+      await supabase
+        .from("generated_images")
+        .delete()
+        .eq("user_id", userId);
+        
+      // Then delete the profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
       
-      // Update localStorage
-      localStorage.setItem('admin_mock_users', JSON.stringify(updatedUsers));
+      if (profileError) {
+        console.error("Error deleting profile:", profileError);
+      }
+      
+      // Finally delete the auth user
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      
+      if (authError) throw authError;
       
       toast({
         title: "Success",
         description: "User deleted successfully",
       });
-    } catch (error) {
+      
+      // Refetch the users to update the list
+      fetchUsers();
+    } catch (error: any) {
       console.error("Error in handleDeleteUser:", error);
       toast({
         title: "Error",

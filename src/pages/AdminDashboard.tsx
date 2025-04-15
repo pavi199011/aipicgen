@@ -48,6 +48,20 @@ const AdminDashboard = () => {
     }
   }, [adminAuthenticated, navigate, isRedirecting]);
 
+  // Fetch data when the tab changes or component mounts
+  useEffect(() => {
+    if (adminAuthenticated === true) {
+      fetchUsers();
+    }
+  }, [adminAuthenticated, fetchUsers, activeTab]);
+
+  // Fetch stats when users data is loaded
+  useEffect(() => {
+    if (adminAuthenticated === true && users.length > 0) {
+      fetchUserStats();
+    }
+  }, [adminAuthenticated, users, fetchUserStats]);
+
   // Show loading state only while checking authentication
   if (adminAuthenticated === undefined) {
     return <AdminDashboardLoading />;
