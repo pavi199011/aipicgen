@@ -27,8 +27,8 @@ const AdminDashboard = () => {
     fetchUserStats
   } = useAdminDashboard();
   
-  // Set up realtime updates
-  const { isSubscribed, realtimeUsers, realtimeStats, fetchAllData } = useAdminRealtime();
+  // Set up data loading from auth.users
+  const { users: authUsers, realtimeStats, fetchAllData } = useAdminRealtime();
   const { toast } = useToast();
   
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -56,21 +56,11 @@ const AdminDashboard = () => {
     }
   }, [adminAuthenticated, navigate, isRedirecting]);
 
-  // Initial data load - force fetch regardless of authentication state for testing
+  // Initial data load
   useEffect(() => {
     const fetchData = async () => {
-      console.log("Forcing initial data fetch for admin dashboard");
+      console.log("Initial data fetch for admin dashboard");
       try {
-        // Fetch some test data directly
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, username, created_at')
-          .limit(10);
-          
-        console.log("Fetched profiles:", profiles);
-        
-        // Call the regular fetch functions
-        fetchUsers();
         fetchAllData();
       } catch (error) {
         console.error("Error in initial data fetch:", error);
@@ -78,16 +68,15 @@ const AdminDashboard = () => {
     };
     
     fetchData();
-  }, [fetchUsers, fetchAllData]);
+  }, [fetchAllData]);
 
   // Show loading state only while checking authentication
   if (adminAuthenticated === undefined) {
     return <AdminDashboardLoading />;
   }
 
-  // For testing, don't block rendering even when not authenticated
-  // This will allow us to see if data fetching works regardless of auth state
-  const displayUsers = realtimeUsers.length > 0 ? realtimeUsers : users;
+  // Use auth users when available, fallback to regular users
+  const displayUsers = authUsers.length > 0 ? authUsers : users;
   const displayStats = realtimeStats.length > 0 ? realtimeStats : userStats;
 
   return (
@@ -96,18 +85,6 @@ const AdminDashboard = () => {
       
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-        
-        <div className="mb-4">
-          {isSubscribed ? (
-            <div className="p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm text-green-800 dark:text-green-200">
-              Real-time updates are active. Data will refresh automatically.
-            </div>
-          ) : (
-            <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm text-yellow-800 dark:text-yellow-200">
-              Setting up real-time updates...
-            </div>
-          )}
-        </div>
         
         <AdminDashboardContent
           activeTab={activeTab}

@@ -1,69 +1,78 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/admin';
 import { useToast } from '@/hooks/use-toast';
 
 export function useRealtimeUserData() {
-  const [realtimeUsers, setRealtimeUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const { toast } = useToast();
 
-  // Function to fetch all users
+  // Function to fetch all users from auth.users
   const fetchUserData = async () => {
     try {
-      console.log("Fetching realtime user data...");
+      console.log("Fetching users from auth.users...");
       
-      // For testing, directly fetch from profiles table instead of auth.users
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("id, username, created_at");
+      // Use auth.admin to access the users table with service role
+      const { data: authUsers, error } = await supabase.auth.admin.listUsers();
         
       if (error) {
-        console.error("Error fetching profiles:", error);
+        console.error("Error fetching auth users:", error);
         throw error;
       }
       
-      console.log("Fetched profiles:", profiles);
+      console.log("Fetched auth users:", authUsers);
       
-      if (!profiles || profiles.length === 0) {
-        console.log("No profiles found");
+      if (!authUsers || !authUsers.users || authUsers.users.length === 0) {
+        console.log("No users found");
+        setUsers([]);
         return;
       }
 
-      // Map profiles to our user format
-      const users = profiles.map(profile => {
+      // Also fetch profiles to get usernames
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, created_at");
+      
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+      }
+      
+      const profilesMap = new Map();
+      if (profiles) {
+        profiles.forEach(profile => {
+          profilesMap.set(profile.id, profile);
+        });
+      }
+
+      // Map auth users to our User format
+      const mappedUsers = authUsers.users.map(authUser => {
+        const profile = profilesMap.get(authUser.id);
         return {
-          id: profile.id,
-          email: `user-${profile.id.substring(0, 6)}@example.com`, // Placeholder email
-          username: profile.username || `user-${profile.id.substring(0, 6)}`,
-          created_at: profile.created_at || new Date().toISOString(),
-          is_suspended: false
+          id: authUser.id,
+          email: authUser.email,
+          username: profile?.username || authUser.email?.split('@')[0] || 'No Username',
+          created_at: authUser.created_at || new Date().toISOString(),
+          is_suspended: authUser.banned || false
         };
       });
       
-      console.log("Mapped users from profiles:", users);
-      setRealtimeUsers(users);
+      console.log("Mapped users from auth:", mappedUsers);
+      setUsers(mappedUsers);
       
-      // Show a toast notification
-      if (users.length > 0) {
-        toast({
-          title: "Users Loaded",
-          description: `Loaded ${users.length} users`,
-          variant: "default",
-        });
-      }
     } catch (error) {
       console.error("Error in fetchUserData:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch user data",
+        description: "Failed to fetch user data. Please check your connection.",
         variant: "destructive",
       });
+      setUsers([]);
     }
   };
 
   return {
-    realtimeUsers,
+    users,
     fetchUserData
   };
 }

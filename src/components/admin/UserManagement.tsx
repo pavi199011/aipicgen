@@ -1,4 +1,3 @@
-
 import { User, UserStats } from "@/types/admin";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserFilter } from "./user-management/UserFilter";
@@ -125,7 +124,6 @@ export const UserManagement = ({
         )}
       </div>
       
-      {/* User Detail Dialog */}
       <UserDetailView
         user={selectedUser}
         userStats={getSelectedUserStats()}
@@ -134,7 +132,6 @@ export const UserManagement = ({
         onDeleteUser={onDeleteUser}
       />
       
-      {/* Confirmation Dialog */}
       <ConfirmationDialog
         open={confirmationOpen}
         onClose={cancelAction}
