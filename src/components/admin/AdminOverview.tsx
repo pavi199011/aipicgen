@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAdminDashboardStats } from "@/hooks/useAdminDashboardStats";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
+import { DashboardSummary } from "./dashboard/DashboardSummary";
 import { StatsCards } from "./dashboard/StatsCards";
 import { ChartsSection } from "./dashboard/ChartsSection";
 import { ActivityCard } from "./dashboard/ActivityCard";
@@ -26,6 +27,8 @@ export function AdminOverview() {
   return (
     <div className="space-y-6">
       <DashboardHeader selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} />
+      
+      {stats && <DashboardSummary stats={stats} selectedPeriod={selectedPeriod} />}
       
       {stats && <StatsCards stats={stats} selectedPeriod={selectedPeriod} />}
       
