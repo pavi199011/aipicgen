@@ -15,38 +15,37 @@ export function useRealtimeUserData() {
       setLoading(true);
       console.log("Fetching users from profiles table...");
       
-      // Check if the profiles table has the columns we need
-      const { data: tableInfo, error: tableError } = await supabase
-        .from('information_schema.columns')
-        .select('column_name')
-        .eq('table_name', 'profiles')
-        .eq('table_schema', 'public');
+      // First, try to fetch with all fields
+      // If this fails, we'll fall back to a simpler query
+      try {
+        const { data: profiles, error } = await supabase
+          .from("profiles")
+          .select("id, username, full_name, email, created_at");
         
-      if (tableError) {
-        console.error("Error checking profiles table schema:", tableError);
-        throw new Error("Could not verify table structure");
+        if (!error && profiles && profiles.length > 0) {
+          console.log("Fetched profiles with all fields:", profiles);
+          
+          // Map profiles to user format
+          const mappedUsers = profiles.map(profile => ({
+            id: profile.id,
+            email: profile.email || `user-${profile.id.substring(0, 8)}@example.com`,
+            username: profile.username || `user-${profile.id.substring(0, 8)}`,
+            full_name: profile.full_name || '',
+            created_at: profile.created_at || new Date().toISOString(),
+            is_suspended: false
+          }));
+          
+          setUsers(mappedUsers);
+          return;
+        }
+      } catch (initialError) {
+        console.warn("Full field query failed, falling back to basic query:", initialError);
       }
       
-      const columnsExist = tableInfo?.reduce((acc: {[key: string]: boolean}, col) => {
-        if (col.column_name) {
-          acc[col.column_name] = true;
-        }
-        return acc;
-      }, {}) || {};
-      
-      console.log("Available columns in profiles table:", columnsExist);
-      
-      // Dynamically build the select query based on available columns
-      let selectQuery = "id";
-      if (columnsExist.username) selectQuery += ", username";
-      if (columnsExist.full_name) selectQuery += ", full_name";
-      if (columnsExist.email) selectQuery += ", email";
-      if (columnsExist.created_at) selectQuery += ", created_at";
-      
-      // Fetch profiles with enhanced data
+      // Fallback to basic query with only guaranteed fields
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select(selectQuery);
+        .select("id, username, created_at");
       
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
@@ -59,7 +58,7 @@ export function useRealtimeUserData() {
         return;
       }
       
-      console.log("Fetched profiles successfully:", profiles);
+      console.log("Fetched profiles with basic fields:", profiles);
       
       if (!profiles || profiles.length === 0) {
         console.log("No users found");
@@ -68,13 +67,13 @@ export function useRealtimeUserData() {
         return;
       }
 
-      // Map profiles to user format, safely accessing properties
+      // Map profiles to user format with fallbacks for missing fields
       const mappedUsers = profiles.map(profile => {
         return {
           id: profile.id,
-          email: profile.email || `user-${profile.id.substring(0, 8)}@example.com`,
+          email: `user-${profile.id.substring(0, 8)}@example.com`,
           username: profile.username || `user-${profile.id.substring(0, 8)}`,
-          full_name: profile.full_name || '',
+          full_name: '',
           created_at: profile.created_at || new Date().toISOString(),
           is_suspended: false
         };
