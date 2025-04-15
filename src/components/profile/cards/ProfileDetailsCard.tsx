@@ -1,11 +1,9 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthUser } from "@/contexts/AuthContext";
 
 interface ProfileDetailsCardProps {
-  user: {
-    id: string;
-    email?: string;
-  };
+  user: AuthUser;
 }
 
 const ProfileDetailsCard = ({ user }: ProfileDetailsCardProps) => {
@@ -22,6 +20,12 @@ const ProfileDetailsCard = ({ user }: ProfileDetailsCardProps) => {
           <p className="text-sm font-medium">Email</p>
           <p className="text-sm text-gray-500">{user.email || "No email provided"}</p>
         </div>
+        {user.username && (
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Username</p>
+            <p className="text-sm text-gray-500">{user.username}</p>
+          </div>
+        )}
         <div className="space-y-1">
           <p className="text-sm font-medium">User ID</p>
           <p className="text-sm text-gray-500 break-all">{user.id}</p>

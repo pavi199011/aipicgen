@@ -15,6 +15,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <ProfileHeader />
+      {/* Pass user directly without type conversion, ProfileContent should handle the correct type */}
       <ProfileContent user={user} />
     </div>
   );

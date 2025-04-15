@@ -2,12 +2,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileDetailsCard from "./cards/ProfileDetailsCard";
 import SecurityCard from "./cards/SecurityCard";
+import { AuthUser } from "@/contexts/AuthContext";
 
 interface ProfileTabsProps {
-  user: {
-    id: string;
-    email?: string;
-  };
+  user: AuthUser;
 }
 
 const ProfileTabs = ({ user }: ProfileTabsProps) => {

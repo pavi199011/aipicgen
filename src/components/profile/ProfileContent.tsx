@@ -1,9 +1,9 @@
 
-import { User } from "@supabase/supabase-js";
+import { AuthUser } from "@/contexts/AuthContext";
 import ProfileTabs from "./ProfileTabs";
 
 interface ProfileContentProps {
-  user: User;
+  user: AuthUser;
 }
 
 const ProfileContent = ({ user }: ProfileContentProps) => {

@@ -52,15 +52,15 @@ const Auth = () => {
   const handleRegister = async (values: RegisterFormValues) => {
     try {
       setLoading(true);
-      const result = await signUp(values.email, values.password);
+      // Fixed: Passing the username as the third argument to signUp
+      await signUp(values.email, values.password, values.username);
       
-      if (!result.error) {
-        toast({
-          title: "Registration successful",
-          description: "Your account has been created successfully.",
-        });
-        setActiveTab("login");
-      }
+      // Simplified success flow - no need to check for error property
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created successfully.",
+      });
+      setActiveTab("login");
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({
