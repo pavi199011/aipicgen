@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +44,22 @@ export function useAuthMethods() {
       });
       
       if (error) throw error;
+      
+      // After successful login, verify if this user is an admin
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      if (profileError) throw profileError;
+      
+      // If the user is not an admin, throw an error
+      if (!profile?.is_admin) {
+        // Sign out the user since they're not an admin
+        await supabase.auth.signOut();
+        throw new Error("You don't have administrator privileges.");
+      }
       
       toast({
         title: "Admin login successful",

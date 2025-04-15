@@ -11,10 +11,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { AtSign, Lock, Shield } from "lucide-react";
+import { AtSign, Lock, Shield, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CreateAdminButton } from "@/components/admin/CreateAdminButton";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const adminLoginSchema = z.object({
   identifier: z.string().min(1, "Username or email is required"),
@@ -22,9 +23,10 @@ const adminLoginSchema = z.object({
 });
 
 const AdminLogin = () => {
-  const { user, adminSignIn, loading } = useAuth();
+  const { user, adminSignIn, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   
   const form = useForm<AdminCredentials>({
@@ -37,19 +39,16 @@ const AdminLogin = () => {
 
   const onSubmit = async (values: AdminCredentials) => {
     try {
+      setError(null);
       setIsSubmitting(true);
       await adminSignIn(values);
       
-      // Note: We don't need to navigate here as the AuthProvider will update the user
-      // and the condition at the top will redirect to the admin dashboard if they're an admin
-    } catch (error) {
-      // Error is already handled in adminSignIn
-      toast({
-        title: "Access Denied",
-        description: "Invalid admin credentials or you don't have admin privileges.",
-        variant: "destructive",
-      });
+      // If adminSignIn succeeds, the AuthProvider will update the user
+      // The condition at the top will redirect to the admin dashboard
+    } catch (error: any) {
       console.error("Admin login error:", error);
+      setError(error.message || "Invalid admin credentials or you don't have admin privileges.");
+      form.reset({ identifier: values.identifier, password: "" });
     } finally {
       setIsSubmitting(false);
     }
@@ -72,6 +71,14 @@ const AdminLogin = () => {
         </p>
       </CardHeader>
       <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Authentication Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -86,6 +93,7 @@ const AdminLogin = () => {
                       <Input 
                         placeholder="admin" 
                         className="pl-10" 
+                        disabled={isSubmitting}
                         {...field}
                       />
                     </div>
@@ -107,6 +115,7 @@ const AdminLogin = () => {
                         placeholder="••••••••" 
                         type="password" 
                         className="pl-10" 
+                        disabled={isSubmitting}
                         {...field}
                       />
                     </div>
@@ -119,7 +128,14 @@ const AdminLogin = () => {
               type="submit" 
               className="w-full" 
               disabled={isSubmitting}>
-              {isSubmitting ? "Signing in..." : "Access Admin Panel"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Access Admin Panel"
+              )}
             </Button>
             
             <div className="text-center mt-4">
@@ -127,6 +143,7 @@ const AdminLogin = () => {
                 variant="link" 
                 className="text-sm"
                 onClick={() => navigate("/auth")}
+                disabled={isSubmitting}
               >
                 Regular User Login
               </Button>
