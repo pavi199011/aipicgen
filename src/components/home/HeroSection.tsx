@@ -14,7 +14,7 @@ interface HeroSectionProps {
   aiGeneratedImages: HeroImageProps[];
 }
 
-const HeroSection = ({ aiGeneratedImages }: HeroSectionProps) => {
+const HeroSection = ({ aiGeneratedImages = [] }: HeroSectionProps) => {
   const { user } = useAuth();
 
   return (
