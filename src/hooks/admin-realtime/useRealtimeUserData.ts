@@ -15,10 +15,38 @@ export function useRealtimeUserData() {
       setLoading(true);
       console.log("Fetching users from profiles table...");
       
+      // Check if the profiles table has the columns we need
+      const { data: tableInfo, error: tableError } = await supabase
+        .from('information_schema.columns')
+        .select('column_name')
+        .eq('table_name', 'profiles')
+        .eq('table_schema', 'public');
+        
+      if (tableError) {
+        console.error("Error checking profiles table schema:", tableError);
+        throw new Error("Could not verify table structure");
+      }
+      
+      const columnsExist = tableInfo?.reduce((acc: {[key: string]: boolean}, col) => {
+        if (col.column_name) {
+          acc[col.column_name] = true;
+        }
+        return acc;
+      }, {}) || {};
+      
+      console.log("Available columns in profiles table:", columnsExist);
+      
+      // Dynamically build the select query based on available columns
+      let selectQuery = "id";
+      if (columnsExist.username) selectQuery += ", username";
+      if (columnsExist.full_name) selectQuery += ", full_name";
+      if (columnsExist.email) selectQuery += ", email";
+      if (columnsExist.created_at) selectQuery += ", created_at";
+      
       // Fetch profiles with enhanced data
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, full_name, email, created_at");
+        .select(selectQuery);
       
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
@@ -40,7 +68,7 @@ export function useRealtimeUserData() {
         return;
       }
 
-      // Map profiles to user format
+      // Map profiles to user format, safely accessing properties
       const mappedUsers = profiles.map(profile => {
         return {
           id: profile.id,
@@ -62,6 +90,8 @@ export function useRealtimeUserData() {
         description: "Failed to fetch user data. Please check your connection.",
         variant: "destructive",
       });
+      // Set empty array on error
+      setUsers([]);
     } finally {
       setLoading(false);
     }
