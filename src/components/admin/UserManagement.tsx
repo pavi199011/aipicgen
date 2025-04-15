@@ -64,10 +64,10 @@ const UserManagement = () => {
       }
 
       // Now fetch the actual data with pagination
-      // Specifically include all fields we need, especially email
+      // Only select columns that are actually in user_statistics view
       let query = supabase
         .from("user_statistics")
-        .select("id, username, email, full_name, created_at, image_count, avatar_url, is_admin, is_suspended")
+        .select("id, username, full_name, created_at, image_count, avatar_url, is_admin")
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
       // Apply filters if provided
@@ -88,6 +88,43 @@ const UserManagement = () => {
       }
 
       console.log("Fetched user data:", data);
+      
+      // After getting the stats, fetch email data from auth.users table
+      // We need to get emails from profiles since they're not in user_statistics
+      if (data && data.length > 0) {
+        try {
+          // Get emails from profiles table through a separate query for the same users
+          const userIds = data.map(user => user.id);
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, email')
+            .in('id', userIds);
+            
+          if (profilesError) {
+            console.error("Error fetching emails:", profilesError);
+          } else if (profilesData) {
+            // Create a mapping of user IDs to emails
+            const emailMap = profilesData.reduce((map, profile) => {
+              if (profile.id) {
+                map[profile.id] = profile.email || null;
+              }
+              return map;
+            }, {} as Record<string, string | null>);
+            
+            // Merge the email data with the user data
+            const usersWithEmail = data.map(user => ({
+              ...user,
+              email: emailMap[user.id || ''] || null
+            }));
+            
+            return usersWithEmail as UserDetailData[];
+          }
+        } catch (emailError) {
+          console.error("Error processing emails:", emailError);
+        }
+      }
+      
+      // Return the data without emails if we couldn't fetch them
       return data as UserDetailData[];
     },
   });
