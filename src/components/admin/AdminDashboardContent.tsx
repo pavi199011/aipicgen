@@ -18,6 +18,7 @@ interface AdminDashboardContentProps {
   totalImages: number;
   avgImagesPerUser: string;
   onDeleteUser: (userId: string) => void;
+  onRefreshUsers?: () => void;
 }
 
 export const AdminDashboardContent = ({
@@ -30,7 +31,8 @@ export const AdminDashboardContent = ({
   totalUsers,
   totalImages,
   avgImagesPerUser,
-  onDeleteUser
+  onDeleteUser,
+  onRefreshUsers
 }: AdminDashboardContentProps) => {
   const currentAdmins = [
     { id: "admin-1", username: "admin_test", email: ADMIN_CREDENTIALS.email }
@@ -74,6 +76,7 @@ export const AdminDashboardContent = ({
           loading={loading}
           onDeleteUser={onDeleteUser}
           userStats={userStats}
+          onRefreshUsers={onRefreshUsers}
         />
       </TabsContent>
       

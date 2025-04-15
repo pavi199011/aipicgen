@@ -42,10 +42,10 @@ const AdminDashboard = () => {
     }
   }, [adminAuthenticated, navigate]);
 
-  // Don't fetch data until authentication is confirmed
+  // Fetch data based on active tab
   useEffect(() => {
     if (adminAuthenticated === true) {
-      console.log("Fetching dashboard data...");
+      console.log("Fetching dashboard data for tab:", activeTab);
       if (activeTab === "users" || activeTab === "overview") {
         fetchUsers();
       }
@@ -78,6 +78,7 @@ const AdminDashboard = () => {
           totalImages={totalImages}
           avgImagesPerUser={avgImagesPerUser}
           onDeleteUser={handleDeleteUser}
+          onRefreshUsers={fetchUsers}
         />
       </main>
     </div>
