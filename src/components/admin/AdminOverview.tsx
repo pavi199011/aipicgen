@@ -26,7 +26,11 @@ export function AdminOverview() {
   // Render dashboard with real data
   return (
     <div className="space-y-6">
-      <DashboardHeader selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} />
+      <DashboardHeader 
+        selectedPeriod={selectedPeriod} 
+        setSelectedPeriod={setSelectedPeriod} 
+        stats={stats}
+      />
       
       {stats && <DashboardSummary stats={stats} selectedPeriod={selectedPeriod} />}
       
