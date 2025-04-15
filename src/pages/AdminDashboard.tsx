@@ -3,8 +3,10 @@ import { useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/hooks/use-toast";
-import AdminHeader from "@/components/admin/AdminHeader";
-import UserManagement from "@/components/admin/UserManagement";
+import { motion } from "framer-motion";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminOverview } from "@/components/admin/AdminOverview";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -36,18 +38,22 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminHeader user={user} />
-      
-      <main className="container mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage users and system settings</p>
-        </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-gray-50 dark:bg-slate-900">
+        <AdminSidebar />
         
-        <UserManagement />
-      </main>
-    </div>
+        <div className="flex-1 overflow-auto">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="p-6 md:p-8"
+          >
+            <AdminOverview />
+          </motion.div>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };
 

@@ -115,7 +115,10 @@ const AdminLogin = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isSubmitting || loading}>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isSubmitting}>
               {isSubmitting ? "Signing in..." : "Access Admin Panel"}
             </Button>
             
