@@ -17,8 +17,8 @@ interface UserTableRowsProps {
   users: UserDetailData[];
   isLoading: boolean;
   onShowDetails: (user: UserDetailData) => void;
-  onSuspendUser?: (userId: string) => void;
-  onUnsuspendUser?: (userId: string) => void;
+  onDeactivateUser?: (userId: string) => void;
+  onActivateUser?: (userId: string) => void;
   onDeleteUser?: (userId: string) => void;
 }
 
@@ -26,8 +26,8 @@ const UserTableRows = ({
   users, 
   isLoading, 
   onShowDetails,
-  onSuspendUser,
-  onUnsuspendUser,
+  onDeactivateUser,
+  onActivateUser,
   onDeleteUser
 }: UserTableRowsProps) => {
   if (isLoading) {
@@ -74,8 +74,8 @@ const UserTableRows = ({
           </TableCell>
           <TableCell className="text-right">{user.image_count}</TableCell>
           <TableCell>
-            {user.is_suspended ? (
-              <Badge variant="destructive" className="ml-auto">Suspended</Badge>
+            {!user.is_active ? (
+              <Badge variant="destructive" className="ml-auto">Not Active</Badge>
             ) : (
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 ml-auto">Active</Badge>
             )}
@@ -83,20 +83,20 @@ const UserTableRows = ({
           <TableCell className="text-right">
             <div className="flex items-center justify-end space-x-1">
               <TooltipProvider>
-                {!user.is_suspended ? (
+                {user.is_active ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         className="h-8 w-8 p-0"
-                        onClick={() => onSuspendUser?.(user.id)}
+                        onClick={() => onDeactivateUser?.(user.id)}
                       >
                         <UserX className="h-4 w-4 text-red-600" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Suspend user</p>
+                      <p>Deactivate user</p>
                     </TooltipContent>
                   </Tooltip>
                 ) : (
@@ -106,13 +106,13 @@ const UserTableRows = ({
                         variant="ghost" 
                         size="sm" 
                         className="h-8 w-8 p-0"
-                        onClick={() => onUnsuspendUser?.(user.id)}
+                        onClick={() => onActivateUser?.(user.id)}
                       >
                         <UserCheck className="h-4 w-4 text-green-600" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Unsuspend user</p>
+                      <p>Activate user</p>
                     </TooltipContent>
                   </Tooltip>
                 )}

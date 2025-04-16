@@ -5,7 +5,7 @@ export interface User {
   username?: string;
   full_name?: string;
   created_at: string;
-  is_suspended?: boolean;
+  is_active?: boolean;
   is_admin?: boolean;
   avatarUrl?: string | null;
 }
@@ -16,7 +16,7 @@ export interface UserStats {
   full_name?: string;
   image_count: number;
   avatar_url?: string | null;
-  is_suspended?: boolean;
+  is_active?: boolean;
 }
 
 export type SortDirection = "asc" | "desc";
@@ -35,7 +35,7 @@ export interface UserDetailData extends User, UserStats {
   // Combined interface for user details
   // Make email explicitly optional with null possibility
   email?: string | null;
-  is_suspended?: boolean;
+  is_active?: boolean;
 }
 
 export interface AdminCredentials {

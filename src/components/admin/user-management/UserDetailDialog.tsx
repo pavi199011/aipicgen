@@ -25,19 +25,19 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
     return "U";
   };
 
-  const handleToggleSuspension = async () => {
+  const handleToggleActivation = async () => {
     setIsUpdating(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_suspended: !user.is_suspended })
+        .update({ is_active: !user.is_active })
         .eq('id', user.id);
       
       if (error) throw error;
       
       toast({
-        title: user.is_suspended ? "User Unsuspended" : "User Suspended",
-        description: `The user has been ${user.is_suspended ? "unsuspended" : "suspended"} successfully.`,
+        title: user.is_active ? "User Deactivated" : "User Activated",
+        description: `The user has been ${user.is_active ? "deactivated" : "activated"} successfully.`,
       });
       
       if (onUserUpdated) {
@@ -45,7 +45,7 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
       }
       onClose();
     } catch (error) {
-      console.error("Error updating user suspension status:", error);
+      console.error("Error updating user activation status:", error);
       toast({
         title: "Action Failed",
         description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -81,11 +81,11 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
               </span>
             )}
             <span className={`text-xs px-2.5 py-0.5 rounded ${
-              user.is_suspended 
-                ? "bg-red-100 text-red-800" 
-                : "bg-green-100 text-green-800"
+              user.is_active 
+                ? "bg-green-100 text-green-800" 
+                : "bg-red-100 text-red-800"
             }`}>
-              {user.is_suspended ? "Suspended" : "Active"}
+              {user.is_active ? "Active" : "Not Active"}
             </span>
           </div>
         </div>
@@ -114,19 +114,19 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
       
       <div className="flex justify-between space-x-2">
         <Button 
-          variant={user.is_suspended ? "outline" : "destructive"} 
-          onClick={handleToggleSuspension}
+          variant={user.is_active ? "destructive" : "outline"} 
+          onClick={handleToggleActivation}
           disabled={isUpdating}
         >
-          {user.is_suspended ? (
+          {user.is_active ? (
             <>
-              <UserCheck className="h-4 w-4 mr-2" />
-              Unsuspend User
+              <UserX className="h-4 w-4 mr-2" />
+              Deactivate User
             </>
           ) : (
             <>
-              <UserX className="h-4 w-4 mr-2" />
-              Suspend User
+              <UserCheck className="h-4 w-4 mr-2" />
+              Activate User
             </>
           )}
         </Button>

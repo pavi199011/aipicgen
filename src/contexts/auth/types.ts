@@ -5,6 +5,7 @@ export interface AuthUser {
   avatarUrl?: string | null;
   username?: string;
   isAdmin?: boolean;
+  isActive?: boolean;
 }
 
 export interface AuthState {

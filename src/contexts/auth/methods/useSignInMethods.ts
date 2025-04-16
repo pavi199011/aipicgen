@@ -10,9 +10,27 @@ export function useSignInMethods() {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
+      
+      // Check if user is active
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_active')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (profileError) {
+        console.error("Error checking user status:", profileError);
+        throw new Error("Could not verify user account status");
+      }
+      
+      // If user is not active, sign them out and show an error
+      if (profileData && profileData.is_active === false) {
+        await supabase.auth.signOut();
+        throw new Error("Your account is currently inactive. Please contact an administrator.");
+      }
       
       toast({
         title: "Welcome back!",
@@ -59,7 +77,7 @@ export function useSignInMethods() {
       
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("is_admin")
+        .select("is_admin, is_active")
         .eq("id", userId)
         .single();
       
@@ -77,6 +95,13 @@ export function useSignInMethods() {
         console.log("User is not an admin, signing out");
         await supabase.auth.signOut();
         throw new Error("You don't have administrator privileges");
+      }
+      
+      // If the user is not active, sign them out
+      if (profile?.is_active === false) {
+        console.log("Admin account is not active, signing out");
+        await supabase.auth.signOut();
+        throw new Error("Your admin account is currently inactive. Please contact a super admin.");
       }
       
       toast({

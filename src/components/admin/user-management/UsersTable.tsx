@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw, Info } from "lucide-react";
 import { UserDetailData, UserSortState } from "@/types/admin";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +19,6 @@ import { supabase } from "@/integrations/supabase/client";
 import UserDetailDialog from "./UserDetailDialog";
 import UserTableHeader from "./table/UserTableHeader";
 import UserTableRows from "./table/UserTableRows";
-import UserTableContainer from "./UserTableContainer";
 import DebugButton from "./table/DebugButton";
 
 interface UsersTableProps {
@@ -40,26 +39,26 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
     setSelectedUser(user);
   };
 
-  const handleSuspendUser = async (userId: string) => {
+  const handleDeactivateUser = async (userId: string) => {
     setIsUpdating(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_suspended: true })
+        .update({ is_active: false })
         .eq('id', userId);
       
       if (error) throw error;
       
       toast({
-        title: "User suspended",
-        description: "The user has been suspended successfully.",
+        title: "User deactivated",
+        description: "The user has been deactivated successfully.",
       });
       
       onRefresh(); // Refresh the user list
     } catch (error) {
-      console.error("Error suspending user:", error);
+      console.error("Error deactivating user:", error);
       toast({
-        title: "Failed to suspend user",
+        title: "Failed to deactivate user",
         description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive",
       });
@@ -68,26 +67,26 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
     }
   };
 
-  const handleUnsuspendUser = async (userId: string) => {
+  const handleActivateUser = async (userId: string) => {
     setIsUpdating(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_suspended: false })
+        .update({ is_active: true })
         .eq('id', userId);
       
       if (error) throw error;
       
       toast({
-        title: "User unsuspended",
-        description: "The user has been unsuspended successfully.",
+        title: "User activated",
+        description: "The user has been activated successfully.",
       });
       
       onRefresh(); // Refresh the user list
     } catch (error) {
-      console.error("Error unsuspending user:", error);
+      console.error("Error activating user:", error);
       toast({
-        title: "Failed to unsuspend user",
+        title: "Failed to activate user",
         description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive",
       });
@@ -164,24 +163,27 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
 
   return (
     <>
-      <UserTableContainer
-        title="User Management"
-        description="View and manage all registered users in the system"
-        headerContent={tableHeaderContent}
-        isLoading={isLoading}
-        loadingRows={5}
-        bordered={true}
-      >
-        <UserTableHeader sortState={sortState} onSort={onSort} />
-        <UserTableRows 
-          users={users} 
-          isLoading={isLoading || isUpdating} 
-          onShowDetails={handleShowDetails} 
-          onSuspendUser={handleSuspendUser}
-          onUnsuspendUser={handleUnsuspendUser}
-          onDeleteUser={confirmDeleteUser}
-        />
-      </UserTableContainer>
+      <div className="bg-white rounded-md border shadow-sm overflow-hidden">
+        <div className="p-4 border-b">
+          <h3 className="text-lg font-medium">User Management</h3>
+          <p className="text-sm text-gray-500">View and manage all registered users in the system</p>
+          {tableHeaderContent}
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <UserTableHeader sortState={sortState} onSort={onSort} />
+            <UserTableRows 
+              users={users} 
+              isLoading={isLoading || isUpdating} 
+              onShowDetails={handleShowDetails} 
+              onDeactivateUser={handleDeactivateUser}
+              onActivateUser={handleActivateUser}
+              onDeleteUser={confirmDeleteUser}
+            />
+          </table>
+        </div>
+      </div>
       
       {/* User Details Dialog */}
       {selectedUser && (

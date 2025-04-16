@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("Session found, fetching profile...");
           const { data: profile } = await supabase
             .from("profiles")
-            .select("username, avatar_url, is_admin")
+            .select("username, avatar_url, is_admin, is_active")
             .eq("id", session.user.id)
             .single();
 
@@ -44,10 +44,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               email: session.user.email,
               username: profile?.username || session.user.email?.split('@')[0],
               avatarUrl: profile?.avatar_url || null,
-              isAdmin: profile?.is_admin || false
+              isAdmin: profile?.is_admin || false,
+              isActive: profile?.is_active !== false // Defaults to true if not set
             });
           }
-          console.log("User profile loaded, isAdmin:", profile?.is_admin);
+          console.log("User profile loaded, isAdmin:", profile?.is_admin, "isActive:", profile?.is_active);
         } else if (isMounted) {
           console.log("No session found");
           setUser(null);
@@ -96,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             const { data: profile } = await supabase
               .from("profiles")
-              .select("username, avatar_url, is_admin")
+              .select("username, avatar_url, is_admin, is_active")
               .eq("id", session.user.id)
               .single();
 
@@ -106,9 +107,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 email: session.user.email,
                 username: profile?.username || session.user.email?.split('@')[0],
                 avatarUrl: profile?.avatar_url || null,
-                isAdmin: profile?.is_admin || false
+                isAdmin: profile?.is_admin || false,
+                isActive: profile?.is_active !== false // Defaults to true if not set
               });
-              console.log("User authenticated, isAdmin:", profile?.is_admin);
+              console.log("User authenticated, isAdmin:", profile?.is_admin, "isActive:", profile?.is_active);
             }
           } catch (error) {
             console.error("Error fetching user profile:", error);
