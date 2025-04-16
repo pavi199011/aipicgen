@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -9,7 +10,6 @@ import {
   Home, 
   Image,
   LogOut, 
-  BookOpenText, 
   Shield, 
   Activity
 } from "lucide-react";
@@ -100,6 +100,12 @@ export function AdminSidebar() {
     return "AD";
   };
 
+  // Handle sign out with proper navigation
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -142,30 +148,13 @@ export function AdminSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupLabel>Access</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => navigate("/dashboard")}
-                  tooltip="User Dashboard"
-                >
-                  <BookOpenText className="h-5 w-5" />
-                  <span>User Dashboard</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
       
       <SidebarFooter className="p-4">
         <Button 
           variant="outline" 
           className="w-full justify-start" 
-          onClick={signOut}
+          onClick={handleSignOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out

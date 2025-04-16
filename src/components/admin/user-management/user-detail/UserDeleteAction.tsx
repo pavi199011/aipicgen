@@ -34,16 +34,17 @@ const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionP
       if (success) {
         toast({
           title: "User Deleted",
-          description: `User${username ? ` ${username}` : ''} has been deleted successfully.`,
+          description: `User${username ? ` ${username}` : ''} has been completely deleted.`,
           variant: "default",
         });
         setIsConfirmOpen(false);
+        
         // Call the callback to update the UI
         onUserDeleted();
       } else {
         toast({
           title: "Delete Failed",
-          description: "There was an error deleting the user.",
+          description: "There was an error deleting the user. Please try again.",
           variant: "destructive",
         });
       }
@@ -51,7 +52,7 @@ const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionP
       console.error("Error deleting user:", error);
       toast({
         title: "Delete Failed",
-        description: "There was an error deleting the user.",
+        description: "There was an error deleting the user. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -77,7 +78,7 @@ const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionP
               Delete User
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the user profile for {username || "this user"} and all associated data. 
+              This will permanently delete the user account for {username || "this user"}, including all profiles, auth data, and generated images.
               This action cannot be undone. Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>

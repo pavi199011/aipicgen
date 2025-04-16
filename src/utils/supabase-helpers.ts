@@ -24,11 +24,13 @@ export async function refreshUserDetailsView() {
 }
 
 /**
- * Deletes a user profile
- * Note: This deletes the profile AND all associated data for the user
+ * Deletes a user profile and all associated data
+ * This includes: profile, generated images, and auth user
  */
 export async function deleteUserProfile(userId: string) {
   try {
+    console.log("Starting deletion process for user:", userId);
+    
     // First, delete all generated images for the user
     const { error: imagesError } = await supabase
       .from('generated_images')
@@ -39,6 +41,8 @@ export async function deleteUserProfile(userId: string) {
       console.error("Error deleting user images:", imagesError);
       return false;
     }
+    
+    console.log("Successfully deleted user's images");
     
     // Delete the user profile
     const { error: profileError } = await supabase
@@ -51,12 +55,52 @@ export async function deleteUserProfile(userId: string) {
       return false;
     }
     
+    console.log("Successfully deleted user's profile");
+    
+    // Delete the auth user (requires admin privileges)
+    // Use service role for this operation
+    const { error: authError } = await supabase.auth.admin.deleteUser(
+      userId
+    );
+    
+    if (authError) {
+      console.error("Error deleting auth user:", authError);
+      return false;
+    }
+    
+    console.log("Successfully deleted auth user");
+    
     // Refresh the materialized view to ensure data consistency
     await refreshUserDetailsView();
     
     return true;
   } catch (error) {
-    console.error("Error deleting user profile:", error);
+    console.error("Error in deleteUserProfile:", error);
+    return false;
+  }
+}
+
+/**
+ * Deletes a generated image completely
+ */
+export async function deleteGeneratedImage(imageId: string) {
+  try {
+    console.log("Deleting generated image:", imageId);
+    
+    const { error } = await supabase
+      .from('generated_images')
+      .delete()
+      .eq('id', imageId);
+    
+    if (error) {
+      console.error("Error deleting image:", error);
+      return false;
+    }
+    
+    console.log("Image deleted successfully");
+    return true;
+  } catch (error) {
+    console.error("Error in deleteGeneratedImage:", error);
     return false;
   }
 }

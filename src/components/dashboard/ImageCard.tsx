@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { deleteGeneratedImage } from "@/utils/supabase-helpers";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,13 +87,10 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
     try {
       setIsDeleting(true);
       
-      const { error } = await supabase
-        .from("generated_images")
-        .delete()
-        .eq("id", id);
+      const success = await deleteGeneratedImage(id);
       
-      if (error) {
-        throw error;
+      if (!success) {
+        throw new Error("Failed to delete image");
       }
       
       toast.success("Image deleted successfully!");
