@@ -29,11 +29,10 @@ serve(async (req) => {
       )
     }
 
-    // Call the database function with explicit table aliasing
-    const { data, error } = await supabaseClient.rpc(
-      'get_user_emails',
-      { user_ids }
-    )
+    // Use explicit SQL query with table aliases to avoid ambiguous column references
+    const { data, error } = await supabaseClient.from('auth.users')
+      .select('id, email')
+      .in('id', user_ids)
 
     if (error) throw error
 

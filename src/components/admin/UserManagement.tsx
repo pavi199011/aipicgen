@@ -41,14 +41,15 @@ const UserManagement = () => {
     }
   }, [error, toast]);
 
-  // Combine user data with emails
+  // Combine user data with emails only when both data sets are ready
   const usersWithEmails = users?.map(user => ({
     ...user,
     email: emails[user.id] || "N/A"
   })) || [];
 
-  // Overall loading state includes both user data and email fetching
-  const isDataLoading = isLoading || emailsLoading;
+  // Only show loading when initially fetching users, not when just fetching emails
+  // This prevents the UI from flashing when only email data is being refreshed
+  const isDataLoading = isLoading || (emailsLoading && usersWithEmails.length === 0);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
