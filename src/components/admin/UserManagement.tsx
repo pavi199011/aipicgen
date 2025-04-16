@@ -4,7 +4,6 @@ import { User, UserDetailData } from "@/types/admin";
 import UsersTable from "./user-management/UsersTable";
 import UserFilters from "./user-management/UserFilters";
 import { useToast } from "@/hooks/use-toast";
-import { useUserEmails } from "@/hooks/admin/useUserEmails";
 import { useUserManagement } from "@/hooks/admin/useUserManagement";
 import UserPagination from "./user-management/UserPagination";
 
@@ -24,13 +23,7 @@ const UserManagement = () => {
     handlePageChange,
   } = useUserManagement();
 
-  // Extract user IDs for email fetching
-  const userIds = users?.map(user => user.id) || [];
-  
-  // Fetch emails for the current users
-  const { emails, loading: emailsLoading } = useUserEmails(userIds);
-
-  // Handle errors from user management only (not email fetching)
+  // Handle errors from user management
   useEffect(() => {
     if (error) {
       toast({
@@ -40,16 +33,6 @@ const UserManagement = () => {
       });
     }
   }, [error, toast]);
-
-  // Combine user data with emails only when both data sets are ready
-  const usersWithEmails = users?.map(user => ({
-    ...user,
-    email: emails[user.id] || "N/A"
-  })) || [];
-
-  // Only show loading when initially fetching users, not when just fetching emails
-  // This prevents the UI from flashing when only email data is being refreshed
-  const isDataLoading = isLoading || (emailsLoading && usersWithEmails.length === 0);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -63,8 +46,8 @@ const UserManagement = () => {
       </div>
       
       <UsersTable 
-        users={usersWithEmails} 
-        isLoading={isDataLoading}
+        users={users || []} 
+        isLoading={isLoading}
         sortState={sortState}
         onSort={handleSort}
         onRefresh={refetch}

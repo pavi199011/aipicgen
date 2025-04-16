@@ -12,15 +12,14 @@ export interface User {
 
 export interface UserStats {
   id: string;
-  email?: string;
   username?: string;
   full_name?: string;
-  image_count: number; // Changed from imageCount to image_count
+  image_count: number;
   avatar_url?: string | null;
 }
 
 export type SortDirection = "asc" | "desc";
-export type SortField = "username" | "created_at" | "image_count" | "full_name" | "email"; // Changed from imageCount to image_count
+export type SortField = "username" | "created_at" | "image_count" | "full_name" | "email";
 
 export interface UserSortState {
   field: SortField;
@@ -31,8 +30,17 @@ export interface UserFilterState {
   username: string;
 }
 
-export interface UserDetailData extends User, UserStats {
-  // Combined interface for user details
+export interface UserDetailData {
+  id: string;
+  username?: string;
+  email?: string;
+  full_name?: string;
+  created_at: string;
+  image_count: number;
+  is_suspended?: boolean;
+  is_active?: boolean;
+  is_admin?: boolean;
+  avatar_url?: string | null;
 }
 
 export interface AdminCredentials {

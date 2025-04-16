@@ -77,6 +77,21 @@ export type Database = {
       }
     }
     Views: {
+      user_details_view: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          image_count: number | null
+          is_active: boolean | null
+          is_admin: boolean | null
+          is_suspended: boolean | null
+          username: string | null
+        }
+        Relationships: []
+      }
       user_statistics: {
         Row: {
           avatar_url: string | null

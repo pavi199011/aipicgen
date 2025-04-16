@@ -23,7 +23,7 @@ export function useUserManagement() {
     queryFn: async () => {
       // First get total count for pagination
       let countQuery = supabase
-        .from("user_statistics")
+        .from("user_details_view")
         .select("id", { count: "exact", head: true });
 
       // Apply filters if provided
@@ -48,7 +48,7 @@ export function useUserManagement() {
 
       // Now fetch the actual data with pagination
       let query = supabase
-        .from("user_statistics")
+        .from("user_details_view")
         .select("*")
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 

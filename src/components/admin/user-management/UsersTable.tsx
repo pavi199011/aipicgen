@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { UserDetailData, UserSortState } from "@/types/admin";
-import { ArrowUpDown, RefreshCcw, Ban, Check } from "lucide-react";
+import { ArrowUpDown, RefreshCcw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import UserDetailDialog from "./UserDetailDialog";
 import { Badge } from "@/components/ui/badge";
 

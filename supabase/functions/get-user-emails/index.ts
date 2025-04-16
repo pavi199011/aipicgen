@@ -29,8 +29,9 @@ serve(async (req) => {
       )
     }
 
-    // Use explicit SQL query with table aliases to avoid ambiguous column references
-    const { data, error } = await supabaseClient.from('auth.users')
+    // Query the user_details_view which already contains emails
+    const { data, error } = await supabaseClient
+      .from('user_details_view')
       .select('id, email')
       .in('id', user_ids)
 
