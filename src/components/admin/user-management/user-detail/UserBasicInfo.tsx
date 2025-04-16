@@ -24,11 +24,11 @@ const UserBasicInfo = ({ user }: UserBasicInfoProps) => {
           </span>
         )}
         <span className={`text-xs px-2.5 py-0.5 rounded ${
-          user.is_suspended 
+          !user.is_active 
             ? "bg-red-100 text-red-800" 
             : "bg-green-100 text-green-800"
         }`}>
-          {user.is_suspended ? "Suspended" : "Active"}
+          {user.is_active === false ? "Inactive" : "Active"}
         </span>
       </div>
     </div>

@@ -5,7 +5,7 @@ export interface User {
   username?: string;
   full_name?: string;
   created_at: string;
-  is_suspended?: boolean;
+  is_active?: boolean;
   is_admin?: boolean;
   avatarUrl?: string | null;
 }
@@ -37,7 +37,6 @@ export interface UserDetailData {
   full_name?: string;
   created_at: string;
   image_count: number;
-  is_suspended?: boolean;
   is_active?: boolean;
   is_admin?: boolean;
   avatar_url?: string | null;

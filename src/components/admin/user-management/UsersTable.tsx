@@ -105,8 +105,8 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
                   </TableCell>
                   <TableCell className="text-right">{user.image_count}</TableCell>
                   <TableCell className="text-right">
-                    {user.is_suspended ? (
-                      <Badge variant="destructive" className="ml-auto">Suspended</Badge>
+                    {!user.is_active ? (
+                      <Badge variant="destructive" className="ml-auto">Inactive</Badge>
                     ) : (
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 ml-auto">Active</Badge>
                     )}

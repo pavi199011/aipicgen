@@ -6,8 +6,10 @@ import { TabsContent, Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserAvatar from "./UserAvatar";
 import UserBasicInfo from "./UserBasicInfo";
 import UserMetadata from "./UserMetadata";
+import UserStatusToggle from "./UserStatusToggle";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface UserDetailContentProps {
   user: UserDetailData;
@@ -16,6 +18,11 @@ interface UserDetailContentProps {
 
 const UserDetailContent = ({ user, onClose }: UserDetailContentProps) => {
   const [activeTab, setActiveTab] = useState("basic");
+  const [userData, setUserData] = useState<UserDetailData>(user);
+
+  const handleStatusChange = (isActive: boolean) => {
+    setUserData(prev => ({ ...prev, is_active: isActive }));
+  };
 
   return (
     <>
@@ -31,16 +38,23 @@ const UserDetailContent = ({ user, onClose }: UserDetailContentProps) => {
         </Button>
         <DialogTitle className="text-xl">User Details</DialogTitle>
         <DialogDescription>
-          View detailed information about {user.username || "this user"}
+          View detailed information about {userData.username || "this user"}
         </DialogDescription>
       </DialogHeader>
 
-      <div className="flex flex-col items-center py-6 gap-4">
-        <UserAvatar user={user} size="xl" />
-        <div className="text-center">
-          <h3 className="text-lg font-medium">{user.username || "Anonymous User"}</h3>
-          <p className="text-sm text-gray-500">{user.email || "No email available"}</p>
-        </div>
+      <div className="flex flex-col sm:flex-row items-center py-6 gap-4">
+        <UserAvatar user={userData} size="xl" />
+        <UserBasicInfo user={userData} />
+      </div>
+      
+      <Separator className="my-4" />
+      
+      <div className="mb-6">
+        <UserStatusToggle 
+          userId={userData.id} 
+          isActive={userData.is_active !== false} 
+          onStatusChange={handleStatusChange}
+        />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -49,10 +63,29 @@ const UserDetailContent = ({ user, onClose }: UserDetailContentProps) => {
           <TabsTrigger value="metadata">Metadata</TabsTrigger>
         </TabsList>
         <TabsContent value="basic" className="py-4">
-          <UserBasicInfo user={user} />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Username</h4>
+                <p>{userData.username || "Not set"}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Full Name</h4>
+                <p>{userData.full_name || "Not set"}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Email</h4>
+                <p>{userData.email || "Not set"}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Joined</h4>
+                <p>{new Date(userData.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
         </TabsContent>
         <TabsContent value="metadata" className="py-4">
-          <UserMetadata user={user} />
+          <UserMetadata user={userData} />
         </TabsContent>
       </Tabs>
     </>
