@@ -43,15 +43,21 @@ export function useUserDataFetching() {
     limit: number
   ) => {
     console.log("Fetching user data with filters:", filters);
+    console.log("Current page:", page, "limit:", limit);
     
     // Calculate the range for pagination
     const start = (page - 1) * limit;
     const end = page * limit - 1;
     
+    // Log the range for debugging
+    console.log("Fetching range:", start, "to", end);
+    
     let query = supabase
       .from("profiles")
-      .select("id, username, full_name, created_at, avatar_url, is_admin, is_active")
-      .range(start, end);
+      .select("id, username, full_name, created_at, avatar_url, is_admin, is_active");
+      
+    // Apply range for pagination
+    query = query.range(start, end);
 
     // Apply filters if provided
     if (filters.username) {
@@ -72,6 +78,7 @@ export function useUserDataFetching() {
       });
     }
 
+    // Execute the query
     const { data, error } = await query;
 
     if (error) {
@@ -79,7 +86,9 @@ export function useUserDataFetching() {
       throw error;
     }
 
+    // Log fetched data
     console.log("Fetched user data from profiles:", data);
+    console.log("Number of users fetched:", data?.length || 0);
 
     // If we have data, fetch image counts for each user
     if (data && data.length > 0) {
