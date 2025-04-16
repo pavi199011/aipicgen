@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { refreshUserDetailsView } from "@/utils/supabase-helpers";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -48,11 +48,9 @@ const UserStatusToggle = ({ userId, isActive, onStatusChange }: UserStatusToggle
       if (updateError) throw updateError;
       
       // Then manually refresh the materialized view to ensure data consistency
-      const { error: refreshError } = await supabase
-        .rpc('refresh_user_details_view');
-        
-      if (refreshError) {
-        console.error("Error refreshing view:", refreshError);
+      const refreshResult = await refreshUserDetailsView();
+      
+      if (!refreshResult) {
         // We don't want to fail the whole operation if just the view refresh fails
         // Just log it and show a warning
         toast({
