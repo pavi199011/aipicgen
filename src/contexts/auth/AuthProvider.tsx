@@ -2,22 +2,19 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthState, AuthUser } from "./types";
-import { useAuthMethods } from "./useAuthMethods";
+import { useSignInMethods } from "./methods/useSignInMethods";
+import { useSignUpMethods } from "./methods/useSignUpMethods";
+import { useAccountMethods } from "./methods/useAccountMethods";
 
 export const AuthContext = createContext<AuthState | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { 
-    user, 
-    setUser, 
-    loading, 
-    setLoading, 
-    signIn, 
-    signUp, 
-    signOut, 
-    resetPassword,
-    adminSignIn 
-  } = useAuthMethods();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  const { signIn, adminSignIn } = useSignInMethods();
+  const { signUp } = useSignUpMethods();
+  const { signOut, resetPassword } = useAccountMethods();
 
   useEffect(() => {
     let isMounted = true;
@@ -127,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [setUser, setLoading]);
+  }, []);
 
   const value = {
     user,
