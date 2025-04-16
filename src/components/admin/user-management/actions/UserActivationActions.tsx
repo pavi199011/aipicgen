@@ -15,6 +15,8 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
   const handleDeactivateUser = async (userId: string) => {
     setIsUpdating(true);
     try {
+      console.log(`Deactivating user with ID: ${userId}`);
+      
       const { error } = await supabase
         .from('profiles')
         .update({ is_active: false })
@@ -27,10 +29,8 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
         description: "The user has been deactivated successfully.",
       });
       
-      // Ensure we refresh the data after updating
-      setTimeout(() => {
-        onRefresh();
-      }, 300);
+      // Immediately refresh the data
+      onRefresh();
     } catch (error) {
       console.error("Error deactivating user:", error);
       toast({
@@ -46,6 +46,8 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
   const handleActivateUser = async (userId: string) => {
     setIsUpdating(true);
     try {
+      console.log(`Activating user with ID: ${userId}`);
+      
       const { error } = await supabase
         .from('profiles')
         .update({ is_active: true })
@@ -58,10 +60,8 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
         description: "The user has been activated successfully.",
       });
       
-      // Ensure we refresh the data after updating
-      setTimeout(() => {
-        onRefresh();
-      }, 300);
+      // Immediately refresh the data
+      onRefresh();
     } catch (error) {
       console.error("Error activating user:", error);
       toast({
