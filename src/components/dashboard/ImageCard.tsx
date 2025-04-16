@@ -37,6 +37,19 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
+  const getImageUrlWithExtension = (url: string) => {
+    if (url.toLowerCase().endsWith('.jpg') || url.toLowerCase().endsWith('.jpeg')) {
+      return url;
+    }
+    
+    if (url.includes('?')) {
+      const [baseUrl, params] = url.split('?');
+      return `${baseUrl}.jpg?${params}`;
+    }
+    
+    return `${url}.jpg`;
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, "MMM d, yyyy");
@@ -50,7 +63,8 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
   const handleDownload = async () => {
     try {
       setDownloading(true);
-      const response = await fetch(imageUrl);
+      const imageUrlWithJpg = getImageUrlWithExtension(imageUrl);
+      const response = await fetch(imageUrlWithJpg);
       if (!response.ok) {
         throw new Error("Failed to download image");
       }
@@ -61,7 +75,6 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
       a.style.display = "none";
       a.href = url;
       
-      // Always use .jpg extension for downloads
       const filename = `ai-image-${new Date().toISOString().slice(0, 10)}.jpg`;
       
       a.download = filename;
@@ -80,7 +93,7 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
   };
 
   const handleViewFullSize = () => {
-    window.open(imageUrl, "_blank");
+    window.open(getImageUrlWithExtension(imageUrl), "_blank");
   };
 
   const handleDelete = async () => {
@@ -95,7 +108,6 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
       
       toast.success("Image deleted successfully!");
       
-      // Call onDelete callback to refresh the parent component
       if (onDelete) {
         onDelete();
       }
@@ -116,7 +128,7 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
     >
       <CardContent className="p-0 relative">
         <img
-          src={imageUrl}
+          src={getImageUrlWithExtension(imageUrl)}
           alt={prompt}
           className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
