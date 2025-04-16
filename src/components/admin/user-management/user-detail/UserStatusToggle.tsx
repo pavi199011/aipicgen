@@ -40,20 +40,27 @@ const UserStatusToggle = ({ userId, isActive, onStatusChange }: UserStatusToggle
     
     setIsUpdating(true);
     try {
+      console.log(`Updating user ${userId} status to ${pendingStatus ? 'active' : 'inactive'}`);
+      
       // First update the profiles table
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ is_active: pendingStatus })
         .eq('id', userId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Error updating profile:", updateError);
+        throw updateError;
+      }
+      
+      console.log("Profile updated successfully, refreshing view...");
       
       // Then manually refresh the materialized view to ensure data consistency
       const refreshResult = await refreshUserDetailsView();
       
       if (!refreshResult) {
+        console.warn("View refresh may have failed, but continuing with status update");
         // We don't want to fail the whole operation if just the view refresh fails
-        // Just log it and show a warning
         toast({
           title: "Warning",
           description: "Status updated, but you might need to refresh to see changes.",

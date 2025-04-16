@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -7,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function refreshUserDetailsView() {
   try {
-    // Use a direct query with @ts-ignore to bypass type checking for this RPC call
-    // @ts-ignore - This function exists in the database but doesn't match any TypeScript definitions
+    console.log("Attempting to refresh user_details_view...");
+    
+    // Use a direct RPC call to the refresh function in the database
     const { error } = await supabase.rpc('refresh_user_details_view');
     
     if (error) {
@@ -16,9 +16,10 @@ export async function refreshUserDetailsView() {
       return false;
     }
     
+    console.log("Successfully refreshed user_details_view");
     return true;
   } catch (error) {
-    console.error("Error refreshing user details view:", error);
+    console.error("Exception refreshing user details view:", error);
     return false;
   }
 }

@@ -9,13 +9,17 @@ export function useAccountMethods() {
 
   const signOut = async () => {
     try {
+      console.log("Signing out user...");
+      setLoading(true);
       await supabase.auth.signOut();
       
+      console.log("Sign out successful");
       toast({
         title: "Signed out",
         description: "You have been signed out successfully.",
       });
       
+      return true;
     } catch (error: any) {
       console.error("Error signing out:", error);
       toast({
@@ -23,6 +27,9 @@ export function useAccountMethods() {
         description: "There was an error signing out.",
         variant: "destructive",
       });
+      return false;
+    } finally {
+      setLoading(false);
     }
   };
 

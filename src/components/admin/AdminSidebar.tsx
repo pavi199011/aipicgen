@@ -103,7 +103,8 @@ export function AdminSidebar() {
   // Handle sign out with proper navigation
   const handleSignOut = async () => {
     await signOut();
-    navigate("/auth");
+    // Redirect to admin login page instead of auth
+    navigate("/admin/login");
   };
 
   return (
