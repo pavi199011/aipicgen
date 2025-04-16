@@ -75,47 +75,48 @@ const UserTableRows = ({
           <TableCell className="text-right">{user.image_count}</TableCell>
           <TableCell>
             {user.is_active === false ? (
-              <Badge variant="destructive" className="ml-auto">Not activated</Badge>
+              <Badge variant="destructive" className="ml-auto">Inactive</Badge>
             ) : (
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 ml-auto">Active</Badge>
             )}
           </TableCell>
           <TableCell className="text-right">
-            <div className="flex items-center justify-end space-x-1">
+            <div className="flex items-center justify-end space-x-2">
               <TooltipProvider>
-                {user.is_active === true ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => onDeactivateUser?.(user.id)}
-                      >
-                        <UserX className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Deactivate user</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => onActivateUser?.(user.id)}
-                      >
-                        <UserCheck className="h-4 w-4 text-green-600" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Activate user</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                {/* Always show both activate and deactivate icons */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => onActivateUser?.(user.id)}
+                      disabled={user.is_active === true}
+                    >
+                      <UserCheck className={`h-4 w-4 ${user.is_active === true ? 'text-gray-400' : 'text-green-600'}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Activate user</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => onDeactivateUser?.(user.id)}
+                      disabled={user.is_active === false}
+                    >
+                      <UserX className={`h-4 w-4 ${user.is_active === false ? 'text-gray-400' : 'text-red-600'}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Deactivate user</p>
+                  </TooltipContent>
+                </Tooltip>
                 
                 <Tooltip>
                   <TooltipTrigger asChild>

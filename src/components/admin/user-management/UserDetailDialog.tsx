@@ -26,22 +26,21 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
     return "U";
   };
 
-  const handleToggleActivation = async () => {
+  const handleActivateUser = async () => {
+    if (user.is_active === true) return; // Already active
     setIsUpdating(true);
+    
     try {
-      // Using the current state to determine the new value
-      const newActiveState = user.is_active === true ? false : true;
-      
       const { error } = await supabase
         .from('profiles')
-        .update({ is_active: newActiveState })
+        .update({ is_active: true })
         .eq('id', user.id);
       
       if (error) throw error;
       
       toast({
-        title: user.is_active ? "User Deactivated" : "User Activated",
-        description: `The user has been ${user.is_active ? "deactivated" : "activated"} successfully.`,
+        title: "User Activated",
+        description: "The user has been activated successfully.",
       });
       
       if (onUserUpdated) {
@@ -49,7 +48,40 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
       }
       onClose();
     } catch (error) {
-      console.error("Error updating user activation status:", error);
+      console.error("Error activating user:", error);
+      toast({
+        title: "Action Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeactivateUser = async () => {
+    if (user.is_active === false) return; // Already inactive
+    setIsUpdating(true);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: false })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "User Deactivated",
+        description: "The user has been deactivated successfully.",
+      });
+      
+      if (onUserUpdated) {
+        onUserUpdated();
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error deactivating user:", error);
       toast({
         title: "Action Failed",
         description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -91,7 +123,7 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
                 : ""
               }
             >
-              {user.is_active === true ? "Active" : "Not activated"}
+              {user.is_active === true ? "Active" : "Inactive"}
             </Badge>
           </div>
         </div>
@@ -119,23 +151,25 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
       </div>
       
       <div className="flex justify-between space-x-2">
-        <Button 
-          variant={user.is_active === true ? "destructive" : "default"} 
-          onClick={handleToggleActivation}
-          disabled={isUpdating}
-        >
-          {user.is_active === true ? (
-            <>
-              <UserX className="h-4 w-4 mr-2" />
-              Deactivate User
-            </>
-          ) : (
-            <>
-              <UserCheck className="h-4 w-4 mr-2" />
-              Activate User
-            </>
-          )}
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            variant={user.is_active ? "outline" : "default"} 
+            onClick={handleActivateUser}
+            disabled={isUpdating || user.is_active === true}
+          >
+            <UserCheck className="h-4 w-4 mr-2" />
+            Activate
+          </Button>
+          
+          <Button 
+            variant="destructive" 
+            onClick={handleDeactivateUser}
+            disabled={isUpdating || user.is_active === false}
+          >
+            <UserX className="h-4 w-4 mr-2" />
+            Deactivate
+          </Button>
+        </div>
         
         <Button variant="ghost" onClick={onClose} disabled={isUpdating}>
           Close
