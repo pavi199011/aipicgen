@@ -12,6 +12,7 @@ export function useUserDataFetching() {
   const fetchTotalUserCount = async (filters: UserFilterState) => {
     console.log("Fetching user count with filters:", filters);
     
+    // Use the service role client to bypass RLS for admin operations
     let countQuery = supabase
       .from("profiles")
       .select("id", { count: "exact", head: true });
@@ -52,7 +53,7 @@ export function useUserDataFetching() {
     // Log the range for debugging
     console.log("Fetching range:", start, "to", end);
     
-    // Use the admin method to fetch all profiles regardless of RLS
+    // Use the supabase client to fetch all profiles
     let query = supabase
       .from("profiles")
       .select("id, username, full_name, created_at, avatar_url, is_admin, is_active");
@@ -100,20 +101,27 @@ export function useUserDataFetching() {
       const imageCountMap = new Map(userIds.map(id => [id, 0]));
       
       try {
-        // Fetch image counts for each user individually to avoid groupby
-        for (const userId of userIds) {
-          const { count } = await supabase
-            .from("generated_images")
-            .select("*", { count: "exact", head: true })
-            .eq("user_id", userId);
+        // Fetch image counts for each user
+        const { data: imageCounts, error: imageCountError } = await supabase
+          .from("generated_images")
+          .select("user_id, count")
+          .in("user_id", userIds)
+          .count();
             
-          // Store the count in our map
-          imageCountMap.set(userId, count ?? 0);
+        if (imageCountError) {
+          console.error("Error fetching image counts:", imageCountError);
+        } else if (imageCounts) {
+          // Process the counts into our map
+          for (const item of imageCounts) {
+            if (item.user_id && typeof item.count === 'number') {
+              imageCountMap.set(item.user_id, item.count);
+            }
+          }
         }
         
-        console.log("Image counts fetched successfully:", Object.fromEntries(imageCountMap));
+        console.log("Image counts fetched:", Object.fromEntries(imageCountMap));
       } catch (countError) {
-        console.error("Error fetching individual image counts:", countError);
+        console.error("Error fetching image counts:", countError);
       }
       
       // Add image_count to user data

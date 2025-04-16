@@ -39,6 +39,7 @@ export function useUserEmails() {
           variant: "destructive",
         });
         
+        // Return the original data without emails
         return userData as UserDetailData[];
       }
       
@@ -70,7 +71,8 @@ export function useUserEmails() {
       return usersWithEmail as UserDetailData[];
     } catch (error) {
       console.error("Error processing emails:", error);
-      return userData as UserDetailData[]; // Return original data if there's an error
+      // Return original data if there's an error
+      return userData as UserDetailData[];
     }
   };
 
