@@ -34,6 +34,7 @@ export interface UserDetailData extends User, UserStats {
   // Combined interface for user details
   // Make email explicitly optional with null possibility
   email?: string | null;
+  is_suspended?: boolean;
 }
 
 export interface AdminCredentials {

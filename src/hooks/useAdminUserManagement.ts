@@ -7,8 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserEmails } from "./admin/useUserEmails";
 import { 
   usePagination, 
-  useUserDataQuery, 
-  useUserDataFetching 
+  useUserDataFetching,
+  useUserDataQuery
 } from "./admin/useUserManagementUtils";
 
 export function useAdminUserManagement() {
