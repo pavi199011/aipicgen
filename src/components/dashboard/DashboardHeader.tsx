@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Settings, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface DashboardHeaderProps {
   user: {
@@ -31,7 +32,7 @@ const DashboardHeader = ({ user, signOut }: DashboardHeaderProps) => {
   };
 
   return (
-    <header className="bg-white border-b sticky top-0 z-50">
+    <header className="bg-white border-b sticky top-0 z-50 dark:bg-slate-900 dark:border-slate-800">
       <div className="container mx-auto py-4 px-4 flex justify-between items-center">
         <div className="flex items-center">
           <h1 
@@ -42,8 +43,10 @@ const DashboardHeader = ({ user, signOut }: DashboardHeaderProps) => {
           </h1>
         </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
+          
           <div className="hidden md:flex">
-            <span className="text-sm text-gray-600 mr-2">
+            <span className="text-sm text-gray-600 dark:text-gray-300 mr-2">
               Signed in as <span className="font-medium">{user.email || "User"}</span>
             </span>
           </div>

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Settings, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface AdminHeaderProps {
   user: AuthUser;
@@ -43,6 +44,8 @@ const AdminHeader = ({ user }: AdminHeaderProps) => {
           </h1>
         </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
+          
           <div className="hidden md:flex">
             <span className="text-sm text-gray-200 mr-2">
               Signed in as <span className="font-medium">{user.email || user.username || "Admin"}</span>
