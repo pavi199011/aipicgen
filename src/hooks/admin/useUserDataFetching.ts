@@ -49,7 +49,7 @@ export function useUserDataFetching() {
     
     let query = supabase
       .from("user_statistics")
-      .select("id, username, full_name, created_at, image_count, avatar_url, is_admin")
+      .select("id, username, full_name, created_at, image_count, avatar_url, is_admin, is_active")
       .range(start, end);
 
     // Apply filters if provided
