@@ -19,7 +19,7 @@ interface UserTableRowsProps {
   onShowDetails: (user: UserDetailData) => void;
   onDeactivateUser?: (userId: string) => void;
   onActivateUser?: (userId: string) => void;
-  onDeleteUser?: (userId: string) => void;
+  onDeleteUser?: (user: UserDetailData) => void;
 }
 
 const UserTableRows = ({ 
@@ -123,7 +123,7 @@ const UserTableRows = ({
                       variant="ghost" 
                       size="sm"
                       className="h-8 w-8 p-0"
-                      onClick={() => onDeleteUser?.(user.id)}
+                      onClick={() => onDeleteUser?.(user)}
                     >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
