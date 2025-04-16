@@ -52,6 +52,7 @@ export function useUserDataFetching() {
     // Log the range for debugging
     console.log("Fetching range:", start, "to", end);
     
+    // Use the admin method to fetch all profiles regardless of RLS
     let query = supabase
       .from("profiles")
       .select("id, username, full_name, created_at, avatar_url, is_admin, is_active");
