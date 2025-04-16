@@ -13,7 +13,7 @@ export function useUserDataFetching() {
     console.log("Fetching user count with filters:", filters);
     
     let countQuery = supabase
-      .from("user_statistics")
+      .from("profiles")
       .select("id", { count: "exact", head: true });
 
     // Apply filters if provided
@@ -48,8 +48,8 @@ export function useUserDataFetching() {
     const end = page * limit - 1;
     
     let query = supabase
-      .from("user_statistics")
-      .select("id, username, full_name, created_at, image_count, avatar_url, is_admin, is_active")
+      .from("profiles")
+      .select("id, username, full_name, created_at, avatar_url, is_admin, is_active")
       .range(start, end);
 
     // Apply filters if provided
@@ -58,9 +58,18 @@ export function useUserDataFetching() {
     }
 
     // Apply sorting
-    query = query.order(sort.field, { 
-      ascending: sort.direction === "asc" 
-    });
+    if (sort.field === "image_count") {
+      // Handle specific case for image_count which might not be in profiles
+      console.log("Sorting by image_count is not directly supported in profiles table");
+      // Default to created_at sorting if image_count is requested
+      query = query.order("created_at", { 
+        ascending: sort.direction === "asc" 
+      });
+    } else {
+      query = query.order(sort.field, { 
+        ascending: sort.direction === "asc" 
+      });
+    }
 
     const { data, error } = await query;
 
@@ -69,8 +78,44 @@ export function useUserDataFetching() {
       throw error;
     }
 
+    // If we have data, fetch image counts for each user
+    if (data && data.length > 0) {
+      // Get user IDs for fetching image counts
+      const userIds = data.map(user => user.id);
+      
+      // Fetch image counts for each user
+      const { data: imageCountData, error: imageCountError } = await supabase
+        .from("generated_images")
+        .select("user_id, count")
+        .in("user_id", userIds)
+        .select("user_id")
+        .count();
+      
+      if (imageCountError) {
+        console.error("Error fetching image counts:", imageCountError);
+      }
+      
+      // Create a map of user_id to image_count
+      const imageCountMap = new Map();
+      imageCountData?.forEach(item => {
+        imageCountMap.set(item.user_id, parseInt(item.count));
+      });
+      
+      // Add image_count to user data
+      const enrichedData = data.map(user => ({
+        ...user,
+        image_count: imageCountMap.get(user.id) || 0
+      }));
+      
+      console.log("Fetched user data with image counts:", enrichedData);
+      return enrichedData;
+    }
+
     console.log("Fetched user data:", data);
-    return data || [];
+    return (data || []).map(user => ({
+      ...user,
+      image_count: 0
+    }));
   };
 
   return {

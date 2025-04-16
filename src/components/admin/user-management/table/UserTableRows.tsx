@@ -72,7 +72,7 @@ const UserTableRows = ({
               ? formatDistanceToNow(new Date(user.created_at), { addSuffix: true }) 
               : "N/A"}
           </TableCell>
-          <TableCell className="text-right">{user.image_count}</TableCell>
+          <TableCell className="text-right">{user.image_count || 0}</TableCell>
           <TableCell>
             {user.is_active === false ? (
               <Badge variant="destructive" className="ml-auto">Inactive</Badge>
@@ -155,6 +155,6 @@ const UserTableRows = ({
       ))}
     </TableBody>
   );
-};
+}
 
 export default UserTableRows;
