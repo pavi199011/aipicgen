@@ -3,10 +3,11 @@ import { UserDetailData } from "@/types/admin";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
-import { Mail, UserX, UserCheck } from "lucide-react";
+import { UserX, UserCheck, Mail } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 interface UserDetailDialogProps {
   user: UserDetailData;
@@ -83,13 +84,15 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
                 Admin
               </span>
             )}
-            <span className={`text-xs px-2.5 py-0.5 rounded ${
-              user.is_active === true
-                ? "bg-green-100 text-green-800" 
-                : "bg-red-100 text-red-800"
-            }`}>
-              {user.is_active === true ? "Active" : "Not Active"}
-            </span>
+            <Badge 
+              variant={user.is_active === true ? "outline" : "destructive"} 
+              className={user.is_active === true 
+                ? "bg-green-50 text-green-700 border-green-200" 
+                : ""
+              }
+            >
+              {user.is_active === true ? "Active" : "Not activated"}
+            </Badge>
           </div>
         </div>
       </div>
@@ -117,7 +120,7 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
       
       <div className="flex justify-between space-x-2">
         <Button 
-          variant={user.is_active === true ? "destructive" : "outline"} 
+          variant={user.is_active === true ? "destructive" : "default"} 
           onClick={handleToggleActivation}
           disabled={isUpdating}
         >
