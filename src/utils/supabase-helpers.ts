@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -9,10 +8,9 @@ export async function refreshUserDetailsView() {
   try {
     console.log("Attempting to refresh user_details_view...");
     
-    // Use a more generic approach to call the RPC function that TypeScript doesn't know about
-    const { error } = await supabase.rpc('refresh_user_details_view', {}, {
-      // Explicitly cast the type to avoid TypeScript errors
-      count: 'exact'
+    // Use the fetch API directly to bypass TypeScript's type checking for RPC
+    const { data, error } = await supabase.functions.invoke('refresh-user-details-view', {
+      method: 'POST',
     });
     
     if (error) {
