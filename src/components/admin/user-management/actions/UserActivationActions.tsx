@@ -23,6 +23,8 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
       
       if (error) throw error;
       
+      console.log("User deactivated successfully, userId:", userId);
+      
       toast({
         title: "User deactivated",
         description: "The user has been deactivated successfully and will not be able to log in.",
@@ -52,6 +54,8 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
         .eq('id', userId);
       
       if (error) throw error;
+      
+      console.log("User activated successfully, userId:", userId);
       
       toast({
         title: "User activated",

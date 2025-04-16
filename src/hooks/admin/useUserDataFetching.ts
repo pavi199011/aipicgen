@@ -21,6 +21,7 @@ export function useUserDataFetching() {
       countQuery = countQuery.ilike("username", `%${filters.username}%`);
     }
 
+    // Use proper type handling for the count response
     const { count, error: countError } = await countQuery;
     
     if (countError) {
@@ -29,7 +30,7 @@ export function useUserDataFetching() {
     }
     
     console.log("Total user count:", count);
-    return count || 0;
+    return count ?? 0; // Use nullish coalescing to handle undefined
   };
 
   /**
@@ -78,6 +79,8 @@ export function useUserDataFetching() {
       throw error;
     }
 
+    console.log("Fetched user data from profiles:", data);
+
     // If we have data, fetch image counts for each user
     if (data && data.length > 0) {
       // Get user IDs for fetching image counts
@@ -86,7 +89,7 @@ export function useUserDataFetching() {
       // Fetch image counts for each user
       const { data: imageCountData, error: imageCountError } = await supabase
         .from("generated_images")
-        .select("user_id, count")
+        .select("user_id")
         .in("user_id", userIds)
         .select("user_id")
         .count();
@@ -97,9 +100,14 @@ export function useUserDataFetching() {
       
       // Create a map of user_id to image_count
       const imageCountMap = new Map();
-      imageCountData?.forEach(item => {
-        imageCountMap.set(item.user_id, parseInt(item.count));
-      });
+      
+      if (imageCountData) {
+        imageCountData.forEach(item => {
+          // Safely access the count property
+          const count = item.count !== undefined ? Number(item.count) : 0;
+          imageCountMap.set(item.user_id, count);
+        });
+      }
       
       // Add image_count to user data
       const enrichedData = data.map(user => ({
