@@ -101,21 +101,18 @@ export function useUserDataFetching() {
       const imageCountMap = new Map(userIds.map(id => [id, 0]));
       
       try {
-        // Fetch image counts for each user
-        const { data: imageCounts, error: imageCountError } = await supabase
-          .from("generated_images")
-          .select("user_id, count")
-          .in("user_id", userIds)
-          .count();
+        // Fix: Instead of using .count() which causes the TypeScript error,
+        // we'll count the entries for each user separately
+        for (const userId of userIds) {
+          const { data: imageData, error: imageError, count } = await supabase
+            .from("generated_images")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", userId);
             
-        if (imageCountError) {
-          console.error("Error fetching image counts:", imageCountError);
-        } else if (imageCounts) {
-          // Process the counts into our map
-          for (const item of imageCounts) {
-            if (item.user_id && typeof item.count === 'number') {
-              imageCountMap.set(item.user_id, item.count);
-            }
+          if (imageError) {
+            console.error(`Error fetching image count for user ${userId}:`, imageError);
+          } else {
+            imageCountMap.set(userId, count || 0);
           }
         }
         
