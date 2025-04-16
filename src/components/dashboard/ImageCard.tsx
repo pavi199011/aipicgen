@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,17 +38,9 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
-  const getImageUrlWithExtension = (url: string) => {
-    if (url.toLowerCase().endsWith('.jpg') || url.toLowerCase().endsWith('.jpeg')) {
-      return url;
-    }
-    
-    if (url.includes('?')) {
-      const [baseUrl, params] = url.split('?');
-      return `${baseUrl}.jpg?${params}`;
-    }
-    
-    return `${url}.jpg`;
+  // Preserve original image URL without modification
+  const getImageUrl = (url: string) => {
+    return url;
   };
 
   const formatDate = (dateString: string) => {
@@ -63,8 +56,7 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
   const handleDownload = async () => {
     try {
       setDownloading(true);
-      const imageUrlWithJpg = getImageUrlWithExtension(imageUrl);
-      const response = await fetch(imageUrlWithJpg);
+      const response = await fetch(imageUrl);
       if (!response.ok) {
         throw new Error("Failed to download image");
       }
@@ -75,7 +67,9 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
       a.style.display = "none";
       a.href = url;
       
-      const filename = `ai-image-${new Date().toISOString().slice(0, 10)}.jpg`;
+      // Extract filename from URL or create a generic one
+      const urlParts = imageUrl.split('/');
+      const filename = urlParts[urlParts.length - 1].split('?')[0] || `ai-image-${new Date().toISOString().slice(0, 10)}.png`;
       
       a.download = filename;
       document.body.appendChild(a);
@@ -93,7 +87,7 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
   };
 
   const handleViewFullSize = () => {
-    window.open(getImageUrlWithExtension(imageUrl), "_blank");
+    window.open(imageUrl, "_blank");
   };
 
   const handleDelete = async () => {
@@ -128,12 +122,13 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
     >
       <CardContent className="p-0 relative">
         <img
-          src={getImageUrlWithExtension(imageUrl)}
+          src={imageUrl}
           alt={prompt}
           className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = "https://via.placeholder.com/512x512?text=Image+Load+Error";
+            console.error("Image failed to load:", imageUrl);
+            (e.target as HTMLImageElement).src = "/placeholder.svg";
           }}
         />
         <div className="absolute top-2 right-2 flex gap-2">
