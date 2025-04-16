@@ -86,33 +86,24 @@ export function useUserDataFetching() {
       // Get user IDs for fetching image counts
       const userIds = data.map(user => user.id);
       
-      // Fetch image counts for each user - fixing the count query
-      const { data: imageCountData, error: imageCountError } = await supabase
-        .from("generated_images")
-        .select("user_id", { count: "exact" })
-        .in("user_id", userIds)
-        .groupby("user_id");
+      // Initialize image counts with default 0 for each user
+      const imageCountMap = new Map(userIds.map(id => [id, 0]));
       
-      if (imageCountError) {
-        console.error("Error fetching image counts:", imageCountError);
-      }
-      
-      // Create a map of user_id to image_count
-      const imageCountMap = new Map();
-      
-      if (imageCountData) {
-        // Process the count data
-        imageCountData.forEach(item => {
-          imageCountMap.set(item.user_id, 1); // Default to 1 for each entry
-        });
+      try {
+        // Fetch image counts for each user individually to avoid groupby
+        for (const userId of userIds) {
+          const { count } = await supabase
+            .from("generated_images")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", userId);
+            
+          // Store the count in our map
+          imageCountMap.set(userId, count ?? 0);
+        }
         
-        // Get the actual count from the count query
-        const { count } = await supabase
-          .from("generated_images")
-          .select("*", { count: "exact", head: true })
-          .in("user_id", userIds);
-          
-        console.log("Total images count for these users:", count);
+        console.log("Image counts fetched successfully:", Object.fromEntries(imageCountMap));
+      } catch (countError) {
+        console.error("Error fetching individual image counts:", countError);
       }
       
       // Add image_count to user data
