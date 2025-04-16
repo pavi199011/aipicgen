@@ -7,6 +7,7 @@ import UserAvatar from "./UserAvatar";
 import UserBasicInfo from "./UserBasicInfo";
 import UserMetadata from "./UserMetadata";
 import UserStatusToggle from "./UserStatusToggle";
+import UserDeleteAction from "./UserDeleteAction";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -15,9 +16,10 @@ interface UserDetailContentProps {
   user: UserDetailData;
   onClose: () => void;
   onUserUpdate?: (updatedUser: UserDetailData) => void;
+  onUserDeleted?: () => void;
 }
 
-const UserDetailContent = ({ user, onClose, onUserUpdate }: UserDetailContentProps) => {
+const UserDetailContent = ({ user, onClose, onUserUpdate, onUserDeleted }: UserDetailContentProps) => {
   const [activeTab, setActiveTab] = useState("basic");
   const [userData, setUserData] = useState<UserDetailData>(user);
 
@@ -28,6 +30,16 @@ const UserDetailContent = ({ user, onClose, onUserUpdate }: UserDetailContentPro
     // Notify parent component about the user update
     if (onUserUpdate) {
       onUserUpdate(updatedUser);
+    }
+  };
+
+  const handleUserDeleted = () => {
+    // Close the dialog and notify parent component
+    onClose();
+    
+    // Notify parent component about the user deletion
+    if (onUserDeleted) {
+      onUserDeleted();
     }
   };
 
@@ -56,12 +68,20 @@ const UserDetailContent = ({ user, onClose, onUserUpdate }: UserDetailContentPro
       
       <Separator className="my-4" />
       
-      <div className="mb-6">
+      <div className="mb-6 space-y-4">
         <UserStatusToggle 
           userId={userData.id} 
           isActive={userData.is_active !== false} 
           onStatusChange={handleStatusChange}
         />
+        
+        <div className="mt-4">
+          <UserDeleteAction 
+            userId={userData.id}
+            username={userData.username}
+            onUserDeleted={handleUserDeleted}
+          />
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

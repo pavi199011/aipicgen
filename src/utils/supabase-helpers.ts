@@ -22,3 +22,29 @@ export async function refreshUserDetailsView() {
     return false;
   }
 }
+
+/**
+ * Deletes a user profile
+ * Note: This only deletes the profile, not the auth user
+ */
+export async function deleteUserProfile(userId: string) {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+    
+    if (error) {
+      console.error("Error deleting user profile:", error);
+      return false;
+    }
+    
+    // Refresh the materialized view to ensure data consistency
+    await refreshUserDetailsView();
+    
+    return true;
+  } catch (error) {
+    console.error("Error deleting user profile:", error);
+    return false;
+  }
+}

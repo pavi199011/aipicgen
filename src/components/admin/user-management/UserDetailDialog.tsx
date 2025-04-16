@@ -8,16 +8,24 @@ interface UserDetailDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onUserUpdate?: (updatedUser: UserDetailData) => void;
+  onUserDeleted?: () => void;
 }
 
-const UserDetailDialog = ({ user, isOpen, onClose, onUserUpdate }: UserDetailDialogProps) => {
+const UserDetailDialog = ({ 
+  user, 
+  isOpen, 
+  onClose, 
+  onUserUpdate,
+  onUserDeleted
+}: UserDetailDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-[600px]">
         <UserDetailContent 
           user={user} 
           onClose={onClose} 
           onUserUpdate={onUserUpdate}
+          onUserDeleted={onUserDeleted}
         />
       </DialogContent>
     </Dialog>

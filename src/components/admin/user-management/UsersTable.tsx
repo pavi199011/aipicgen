@@ -49,6 +49,12 @@ const UsersTable = ({
     }
   };
 
+  const handleUserDeleted = () => {
+    // Clear the selected user and refresh the list
+    setSelectedUser(null);
+    onRefresh();
+  };
+
   const getSortIcon = (field: UserSortState["field"]) => {
     if (sortState.field !== field) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
@@ -150,6 +156,7 @@ const UsersTable = ({
           isOpen={!!selectedUser}
           onClose={() => setSelectedUser(null)} 
           onUserUpdate={handleUserUpdate}
+          onUserDeleted={handleUserDeleted}
         />
       )}
     </div>
