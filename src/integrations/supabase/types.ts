@@ -43,6 +43,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_admin: boolean | null
+          is_suspended: boolean | null
           phone: string | null
           updated_at: string
           username: string | null
@@ -53,6 +54,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_admin?: boolean | null
+          is_suspended?: boolean | null
           phone?: string | null
           updated_at?: string
           username?: string | null
@@ -63,6 +65,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_admin?: boolean | null
+          is_suspended?: boolean | null
           phone?: string | null
           updated_at?: string
           username?: string | null
@@ -79,7 +82,28 @@ export type Database = {
           id: string | null
           image_count: number | null
           is_admin: boolean | null
+          is_suspended: boolean | null
           username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          image_count?: never
+          is_admin?: boolean | null
+          is_suspended?: boolean | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          image_count?: never
+          is_admin?: boolean | null
+          is_suspended?: boolean | null
+          username?: string | null
         }
         Relationships: []
       }

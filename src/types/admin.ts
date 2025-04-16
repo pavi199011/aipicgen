@@ -16,6 +16,7 @@ export interface UserStats {
   full_name?: string;
   image_count: number;
   avatar_url?: string | null;
+  is_suspended?: boolean;
 }
 
 export type SortDirection = "asc" | "desc";
