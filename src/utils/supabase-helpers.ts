@@ -7,12 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function refreshUserDetailsView() {
   try {
-    // Use a type assertion to tell TypeScript to trust us that this function exists
-    const { error } = await supabase.rpc(
-      'refresh_user_details_view' as unknown as 'get_user_emails', 
-      {}, 
-      { count: 'exact' }
-    );
+    // Use a direct query with @ts-ignore to bypass type checking for this RPC call
+    // @ts-ignore - This function exists in the database but doesn't match any TypeScript definitions
+    const { error } = await supabase.rpc('refresh_user_details_view');
     
     if (error) {
       console.error("Error refreshing user details view:", error);
