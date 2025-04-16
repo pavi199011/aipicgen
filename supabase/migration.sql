@@ -53,6 +53,43 @@ BEGIN
 END;
 $function$;
 
+-- Create or replace function to refresh user_details_view
+CREATE OR REPLACE FUNCTION public.refresh_user_details_view()
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Refresh the user_details_view
+  REFRESH MATERIALIZED VIEW CONCURRENTLY IF EXISTS public.user_details_view;
+  -- If it's not a materialized view, this function will do nothing
+  -- Regular views don't need explicit refreshing
+  RETURN;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'Error refreshing view: %', SQLERRM;
+    -- We don't want to fail the transaction if view refresh fails
+    RETURN;
+END;
+$$;
+
+-- Create a trigger to refresh user_details_view after updates to profiles
+DO $$
+BEGIN
+  -- Drop the trigger if it already exists
+  DROP TRIGGER IF EXISTS refresh_user_details_view_trigger ON public.profiles;
+  
+  -- Create the trigger
+  CREATE TRIGGER refresh_user_details_view_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON public.profiles
+  FOR EACH STATEMENT
+  EXECUTE FUNCTION public.refresh_user_details_view();
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'Error creating trigger: %', SQLERRM;
+END;
+$$;
+
 -- Enable real-time for the profiles table
 ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
 

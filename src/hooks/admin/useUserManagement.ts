@@ -71,8 +71,8 @@ export function useUserManagement() {
       console.log("Fetched users data:", data);
       return data as UserDetailData[];
     },
-    // Set a short stale time to ensure frequent refreshes after user status updates
-    staleTime: 1000,
+    // Set a very short stale time to ensure immediate refreshes after user status updates
+    staleTime: 0,
   });
 
   const handleSort = (field: UserSortState["field"]) => {

@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -40,14 +39,32 @@ const UserStatusToggle = ({ userId, isActive, onStatusChange }: UserStatusToggle
     
     setIsUpdating(true);
     try {
-      const { error } = await supabase
+      // First update the profiles table
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({ is_active: pendingStatus })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+      
+      // Then manually refresh the materialized view to ensure data consistency
+      const { error: refreshError } = await supabase
+        .rpc('refresh_user_details_view');
+        
+      if (refreshError) {
+        console.error("Error refreshing view:", refreshError);
+        // We don't want to fail the whole operation if just the view refresh fails
+        // Just log it and show a warning
+        toast({
+          title: "Warning",
+          description: "Status updated, but you might need to refresh to see changes.",
+          variant: "default",
+        });
+      }
 
+      // Update the UI via the callback
       onStatusChange(pendingStatus);
+      
       toast({
         title: pendingStatus ? "User Activated" : "User Deactivated",
         description: `User has been ${pendingStatus ? "activated" : "deactivated"} successfully.`,
