@@ -28,9 +28,12 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
   const handleToggleActivation = async () => {
     setIsUpdating(true);
     try {
+      // Using the current state to determine the new value
+      const newActiveState = user.is_active === true ? false : true;
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ is_active: !user.is_active })
+        .update({ is_active: newActiveState })
         .eq('id', user.id);
       
       if (error) throw error;
@@ -81,11 +84,11 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
               </span>
             )}
             <span className={`text-xs px-2.5 py-0.5 rounded ${
-              user.is_active 
+              user.is_active === true
                 ? "bg-green-100 text-green-800" 
                 : "bg-red-100 text-red-800"
             }`}>
-              {user.is_active ? "Active" : "Not Active"}
+              {user.is_active === true ? "Active" : "Not Active"}
             </span>
           </div>
         </div>
@@ -114,11 +117,11 @@ const UserDetailDialog = ({ user, onClose, onUserUpdated }: UserDetailDialogProp
       
       <div className="flex justify-between space-x-2">
         <Button 
-          variant={user.is_active ? "destructive" : "outline"} 
+          variant={user.is_active === true ? "destructive" : "outline"} 
           onClick={handleToggleActivation}
           disabled={isUpdating}
         >
-          {user.is_active ? (
+          {user.is_active === true ? (
             <>
               <UserX className="h-4 w-4 mr-2" />
               Deactivate User

@@ -27,7 +27,8 @@ export function useSignInMethods() {
       }
       
       // If user is not active, sign them out and show an error
-      if (profileData && profileData.is_active === false) {
+      // Using === false to specifically check for false value, not null or undefined
+      if (profileData?.is_active === false) {
         await supabase.auth.signOut();
         throw new Error("Your account is currently inactive. Please contact an administrator.");
       }
@@ -98,6 +99,7 @@ export function useSignInMethods() {
       }
       
       // If the user is not active, sign them out
+      // Using === false to specifically check for false value, not null or undefined
       if (profile?.is_active === false) {
         console.log("Admin account is not active, signing out");
         await supabase.auth.signOut();

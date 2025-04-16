@@ -23,6 +23,11 @@ UPDATE public.profiles
 SET is_active = true 
 WHERE is_active IS NULL;
 
+-- Set the admin account to active explicitly
+UPDATE public.profiles 
+SET is_active = true 
+WHERE username = 'admin';
+
 -- Enable Row Level Security for the profiles table
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
