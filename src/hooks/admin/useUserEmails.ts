@@ -15,7 +15,9 @@ export function useUserEmails(userIds: string[]) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const previousUserIdsRef = useRef<string[]>([]);
-  const debounceTimerRef = useRef<number | null>(null);
+  
+  // Change type from number to NodeJS.Timeout | null to match setTimeout's return type
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Skip if userIds is the same as the previous one to prevent unnecessary re-fetching
