@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { User, UserDetailData } from "@/types/admin";
+import { UserDetailData } from "@/types/admin";
 import UsersTable from "./user-management/UsersTable";
 import UserFilters from "./user-management/UserFilters";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +34,11 @@ const UserManagement = () => {
     }
   }, [error, toast]);
 
+  const handleUserUpdate = (updatedUser: UserDetailData) => {
+    // After a user is updated, refresh the user list to reflect the changes
+    refetch();
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -51,6 +56,7 @@ const UserManagement = () => {
         sortState={sortState}
         onSort={handleSort}
         onRefresh={refetch}
+        onUserUpdate={handleUserUpdate}
       />
       
       <UserPagination 

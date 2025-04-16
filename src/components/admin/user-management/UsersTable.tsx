@@ -22,13 +22,31 @@ interface UsersTableProps {
   sortState: UserSortState;
   onSort: (field: UserSortState["field"]) => void;
   onRefresh: () => void;
+  onUserUpdate?: (updatedUser: UserDetailData) => void;
 }
 
-const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTableProps) => {
+const UsersTable = ({ 
+  users, 
+  isLoading, 
+  sortState, 
+  onSort, 
+  onRefresh,
+  onUserUpdate 
+}: UsersTableProps) => {
   const [selectedUser, setSelectedUser] = useState<UserDetailData | null>(null);
 
   const handleShowDetails = (user: UserDetailData) => {
     setSelectedUser(user);
+  };
+
+  const handleUserUpdate = (updatedUser: UserDetailData) => {
+    // Update the local state of the selected user
+    setSelectedUser(updatedUser);
+    
+    // Pass the updated user to the parent component
+    if (onUserUpdate) {
+      onUserUpdate(updatedUser);
+    }
   };
 
   const getSortIcon = (field: UserSortState["field"]) => {
@@ -105,7 +123,7 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
                   </TableCell>
                   <TableCell className="text-right">{user.image_count}</TableCell>
                   <TableCell className="text-right">
-                    {!user.is_active ? (
+                    {user.is_active === false ? (
                       <Badge variant="destructive" className="ml-auto">Inactive</Badge>
                     ) : (
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 ml-auto">Active</Badge>
@@ -131,6 +149,7 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
           user={selectedUser}
           isOpen={!!selectedUser}
           onClose={() => setSelectedUser(null)} 
+          onUserUpdate={handleUserUpdate}
         />
       )}
     </div>

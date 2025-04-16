@@ -14,14 +14,21 @@ import { Separator } from "@/components/ui/separator";
 interface UserDetailContentProps {
   user: UserDetailData;
   onClose: () => void;
+  onUserUpdate?: (updatedUser: UserDetailData) => void;
 }
 
-const UserDetailContent = ({ user, onClose }: UserDetailContentProps) => {
+const UserDetailContent = ({ user, onClose, onUserUpdate }: UserDetailContentProps) => {
   const [activeTab, setActiveTab] = useState("basic");
   const [userData, setUserData] = useState<UserDetailData>(user);
 
   const handleStatusChange = (isActive: boolean) => {
-    setUserData(prev => ({ ...prev, is_active: isActive }));
+    const updatedUser = { ...userData, is_active: isActive };
+    setUserData(updatedUser);
+    
+    // Notify parent component about the user update
+    if (onUserUpdate) {
+      onUserUpdate(updatedUser);
+    }
   };
 
   return (

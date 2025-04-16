@@ -68,8 +68,11 @@ export function useUserManagement() {
         throw error;
       }
 
+      console.log("Fetched users data:", data);
       return data as UserDetailData[];
     },
+    // Set a short stale time to ensure frequent refreshes after user status updates
+    staleTime: 1000,
   });
 
   const handleSort = (field: UserSortState["field"]) => {
