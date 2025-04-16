@@ -74,7 +74,7 @@ const UserTableRows = ({
           </TableCell>
           <TableCell className="text-right">{user.image_count}</TableCell>
           <TableCell>
-            {!user.is_active ? (
+            {user.is_active === false ? (
               <Badge variant="destructive" className="ml-auto">Not Active</Badge>
             ) : (
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 ml-auto">Active</Badge>
@@ -83,7 +83,7 @@ const UserTableRows = ({
           <TableCell className="text-right">
             <div className="flex items-center justify-end space-x-1">
               <TooltipProvider>
-                {user.is_active ? (
+                {user.is_active === true ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
