@@ -39,7 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .single();
 
           // If user account is inactive, sign them out
-          if (profile?.is_active === false) {
+          // Use != true to handle both false and null/undefined cases
+          if (profile?.is_active !== true) {
             console.log("User account is inactive, signing out");
             await supabase.auth.signOut();
             if (isMounted) {
@@ -113,7 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               .single();
 
             // If user account is inactive, sign them out
-            if (profile?.is_active === false) {
+            // Use != true to handle both false and null/undefined cases
+            if (profile?.is_active !== true) {
               console.log("User account is inactive, signing out");
               await supabase.auth.signOut();
               if (isMounted) {
