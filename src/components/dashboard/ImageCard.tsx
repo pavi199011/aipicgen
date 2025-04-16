@@ -6,21 +6,37 @@ import {
   Calendar, 
   Clock, 
   Download,
-  ExternalLink
+  ExternalLink,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 interface ImageCardProps {
+  id: string;
   imageUrl: string;
   prompt: string;
   model: string;
   createdAt: string;
+  onDelete?: () => void;
 }
 
-const ImageCard = ({ imageUrl, prompt, model, createdAt }: ImageCardProps) => {
+const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCardProps) => {
   const [isHovering, setIsHovering] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -68,6 +84,34 @@ const ImageCard = ({ imageUrl, prompt, model, createdAt }: ImageCardProps) => {
     window.open(imageUrl, "_blank");
   };
 
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      
+      const { error } = await supabase
+        .from("generated_images")
+        .delete()
+        .eq("id", id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success("Image deleted successfully!");
+      
+      // Call onDelete callback to refresh the parent component
+      if (onDelete) {
+        onDelete();
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      toast.error("Failed to delete image. Please try again.");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <Card 
       className="group overflow-hidden transition-all duration-200 hover:shadow-md"
@@ -108,6 +152,18 @@ const ImageCard = ({ imageUrl, prompt, model, createdAt }: ImageCardProps) => {
           >
             <Download className="h-4 w-4" />
           </Button>
+          <Button
+            size="icon"
+            variant="destructive"
+            className={`transition-opacity duration-200 ${
+              isHovering ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={isDeleting}
+            title="Delete image"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-start p-4">
@@ -115,16 +171,28 @@ const ImageCard = ({ imageUrl, prompt, model, createdAt }: ImageCardProps) => {
           <p className="text-sm font-medium">
             Model: {model.toUpperCase()}
           </p>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-7 w-7" 
-            onClick={handleDownload}
-            disabled={downloading}
-            title="Download image"
-          >
-            <Download className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7" 
+              onClick={handleDownload}
+              disabled={downloading}
+              title="Download image"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50" 
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isDeleting}
+              title="Delete image"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <p className="text-sm line-clamp-2 text-gray-600 mb-2">
           {prompt}
@@ -140,6 +208,30 @@ const ImageCard = ({ imageUrl, prompt, model, createdAt }: ImageCardProps) => {
           </div>
         </div>
       </CardFooter>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Image</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this image? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete Image"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

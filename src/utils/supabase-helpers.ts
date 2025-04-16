@@ -25,17 +25,29 @@ export async function refreshUserDetailsView() {
 
 /**
  * Deletes a user profile
- * Note: This only deletes the profile, not the auth user
+ * Note: This deletes the profile AND all associated data for the user
  */
 export async function deleteUserProfile(userId: string) {
   try {
-    const { error } = await supabase
+    // First, delete all generated images for the user
+    const { error: imagesError } = await supabase
+      .from('generated_images')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (imagesError) {
+      console.error("Error deleting user images:", imagesError);
+      return false;
+    }
+    
+    // Delete the user profile
+    const { error: profileError } = await supabase
       .from('profiles')
       .delete()
       .eq('id', userId);
     
-    if (error) {
-      console.error("Error deleting user profile:", error);
+    if (profileError) {
+      console.error("Error deleting user profile:", profileError);
       return false;
     }
     

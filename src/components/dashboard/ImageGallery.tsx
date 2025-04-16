@@ -70,10 +70,12 @@ const ImageGallery = ({ images, loading, error, onRetry }: ImageGalleryProps) =>
       {images.map((image) => (
         <ImageCard
           key={image.id}
+          id={image.id}
           imageUrl={image.image_url}
           prompt={image.prompt}
           model={image.model}
           createdAt={image.created_at}
+          onDelete={onRetry}
         />
       ))}
     </div>

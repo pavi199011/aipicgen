@@ -37,6 +37,8 @@ const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionP
           description: `User${username ? ` ${username}` : ''} has been deleted successfully.`,
           variant: "default",
         });
+        setIsConfirmOpen(false);
+        // Call the callback to update the UI
         onUserDeleted();
       } else {
         toast({
@@ -54,7 +56,6 @@ const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionP
       });
     } finally {
       setIsDeleting(false);
-      setIsConfirmOpen(false);
     }
   };
 
@@ -76,7 +77,7 @@ const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionP
               Delete User
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the user profile for {username || "this user"}. 
+              This will permanently delete the user profile for {username || "this user"} and all associated data. 
               This action cannot be undone. Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
