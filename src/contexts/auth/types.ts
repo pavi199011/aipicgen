@@ -12,7 +12,7 @@ export interface AuthState {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, username: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<boolean>;
   resetPassword: (email: string) => Promise<void>;
   adminSignIn: (credentials: { identifier: string; password: string }) => Promise<{ success: boolean }>;
 }

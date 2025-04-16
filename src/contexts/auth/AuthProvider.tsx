@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const value = {
+  const value: AuthState = {
     user,
     loading,
     signIn,
