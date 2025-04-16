@@ -31,23 +31,12 @@ serve(async (req) => {
       throw new Error(`Error checking for existing admin: ${searchError.message}`);
     }
     
-    // If admin user exists, just make sure is_admin is set to true and is_active is set to true
+    // If admin user exists, just make sure is_admin is set to true
     if (existingUser) {
-      const updates = {};
-      
       if (!existingUser.is_admin) {
-        updates.is_admin = true;
-      }
-      
-      if (existingUser.is_active === false) {
-        updates.is_active = true;
-      }
-      
-      // Only update if needed
-      if (Object.keys(updates).length > 0) {
         const { error: updateError } = await supabase
           .from('profiles')
-          .update(updates)
+          .update({ is_admin: true })
           .eq('id', existingUser.id);
           
         if (updateError) {
@@ -76,7 +65,7 @@ serve(async (req) => {
       throw new Error(`Error creating admin user: ${signUpError.message}`);
     }
     
-    // Set the is_admin flag to true and is_active to true
+    // Set the is_admin flag to true
     const userId = signUpData.user?.id;
     if (!userId) {
       throw new Error('Failed to get user ID from sign up');
@@ -84,11 +73,11 @@ serve(async (req) => {
     
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ is_admin: true, is_active: true })
+      .update({ is_admin: true })
       .eq('id', userId);
       
     if (updateError) {
-      throw new Error(`Error setting admin flags: ${updateError.message}`);
+      throw new Error(`Error setting admin flag: ${updateError.message}`);
     }
     
     return new Response(

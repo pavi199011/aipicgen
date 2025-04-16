@@ -14,20 +14,6 @@ BEGIN
 END
 $$;
 
--- Make sure is_active is set to true by default for all profiles
-ALTER TABLE public.profiles 
-ALTER COLUMN is_active SET DEFAULT true;
-
--- Update any existing profile records where is_active is null to be true
-UPDATE public.profiles 
-SET is_active = true 
-WHERE is_active IS NULL;
-
--- Set the admin account to active explicitly
-UPDATE public.profiles 
-SET is_active = true 
-WHERE username = 'admin';
-
 -- Enable Row Level Security for the profiles table
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 

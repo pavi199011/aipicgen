@@ -1,26 +1,26 @@
 
 export interface User {
   id: string;
-  email?: string | null;
+  email?: string;
   username?: string;
   full_name?: string;
   created_at: string;
-  is_active?: boolean;
+  is_suspended?: boolean;
   is_admin?: boolean;
   avatarUrl?: string | null;
 }
 
 export interface UserStats {
   id: string;
+  email?: string;
   username?: string;
   full_name?: string;
-  image_count: number;
+  image_count: number; // Changed from imageCount to image_count
   avatar_url?: string | null;
-  is_active?: boolean;
 }
 
 export type SortDirection = "asc" | "desc";
-export type SortField = "username" | "created_at" | "image_count" | "full_name" | "email";
+export type SortField = "username" | "created_at" | "image_count" | "full_name" | "email"; // Changed from imageCount to image_count
 
 export interface UserSortState {
   field: SortField;
@@ -33,9 +33,6 @@ export interface UserFilterState {
 
 export interface UserDetailData extends User, UserStats {
   // Combined interface for user details
-  // Make email explicitly optional with null possibility
-  email?: string | null;
-  is_active?: boolean;
 }
 
 export interface AdminCredentials {

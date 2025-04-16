@@ -22,17 +22,6 @@ export function useSignUpMethods() {
       
       if (error) throw error;
       
-      // Ensure the user is active by default
-      // The profile table should have a trigger that sets is_active to true by default
-      // but we'll set it explicitly here just to be sure
-      const { data: userData } = await supabase.auth.getSession();
-      if (userData.session?.user) {
-        await supabase
-          .from('profiles')
-          .update({ is_active: true })
-          .eq('id', userData.session.user.id);
-      }
-      
       toast({
         title: "Account created",
         description: "Your account has been created successfully!",

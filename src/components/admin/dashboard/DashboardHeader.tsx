@@ -1,46 +1,41 @@
 
-import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExportButton } from "./ExportButton";
-import type { DashboardStats } from "@/types/dashboardStats";
 
 interface DashboardHeaderProps {
   selectedPeriod: string;
   setSelectedPeriod: (period: string) => void;
-  stats?: DashboardStats | null;
 }
 
-export function DashboardHeader({ 
-  selectedPeriod, 
-  setSelectedPeriod,
-  stats = null 
-}: DashboardHeaderProps) {
+export function DashboardHeader({ selectedPeriod, setSelectedPeriod }: DashboardHeaderProps) {
   return (
-    <div className="mb-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome to your admin dashboard, view and export analytics.
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0">
-          <ExportButton stats={stats} selectedPeriod={selectedPeriod} />
-        </div>
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+          Admin Dashboard
+        </h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          Welcome back! Here's what's happening with your platform today.
+        </p>
       </div>
       
-      <Card className="bg-white dark:bg-slate-800">
-        <CardContent className="pt-6">
-          <Tabs defaultValue={selectedPeriod} className="w-full" onValueChange={setSelectedPeriod}>
-            <TabsList className="grid grid-cols-4 w-full max-w-md mx-auto">
-              <TabsTrigger value="day">Day</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="month">Month</TabsTrigger>
-              <TabsTrigger value="year">Year</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+      <Tabs 
+        value={selectedPeriod} 
+        onValueChange={setSelectedPeriod}
+        className="mt-4 md:mt-0"
+      >
+        <TabsList>
+          <TabsTrigger value="day">Day</TabsTrigger>
+          <TabsTrigger value="week">Week</TabsTrigger>
+          <TabsTrigger value="month">Month</TabsTrigger>
+          <TabsTrigger value="year">Year</TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </motion.div>
   );
 }

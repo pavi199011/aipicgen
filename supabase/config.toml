@@ -4,27 +4,23 @@ project_id = "aaivsyxvtpmottrhqzvf"
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "storage", "auth"]
-extra_search_path = ["public", "extensions"]
-max_rows = 1000
+schemas = ["public", "storage", "graphql_public"]
 
 [db]
 port = 54322
-shadow_port = 54320
-major_version = 15
 
 [studio]
 enabled = true
 port = 54323
-api_url = "http://127.0.0.1"
+api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:5173"
-additional_redirect_urls = ["https://127.0.0.1:5173"]
-jwt_expiry = 3600
-enable_refresh_token_rotation = true
-refresh_token_expiry = 43200
+port = 54325
 
 [realtime]
 enabled = true
@@ -32,10 +28,8 @@ enabled = true
 [storage]
 enabled = true
 
-[inbucket]
-enabled = true
-port = 54324
+[edge_functions]
+[edge_functions.create-admin]
+verify_jwt = false
 
-[functions]
-[functions.admin-delete-user]
-verify_jwt = true
+[edge_functions.generate-image]

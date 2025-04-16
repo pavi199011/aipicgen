@@ -34,22 +34,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("Session found, fetching profile...");
           const { data: profile } = await supabase
             .from("profiles")
-            .select("username, avatar_url, is_admin, is_active")
+            .select("username, avatar_url, is_admin")
             .eq("id", session.user.id)
             .single();
-
-          // If user account is inactive, sign them out
-          // Handle both false and null/undefined cases
-          const isAccountActive = profile?.is_active === true;
-          if (!isAccountActive) {
-            console.log("User account is inactive, signing out");
-            await supabase.auth.signOut();
-            if (isMounted) {
-              setUser(null);
-              setLoading(false);
-            }
-            return;
-          }
 
           if (isMounted) {
             setUser({
@@ -57,11 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               email: session.user.email,
               username: profile?.username || session.user.email?.split('@')[0],
               avatarUrl: profile?.avatar_url || null,
-              isAdmin: profile?.is_admin || false,
-              isActive: profile?.is_active !== false // Defaults to true if not set
+              isAdmin: profile?.is_admin || false
             });
           }
-          console.log("User profile loaded, isAdmin:", profile?.is_admin, "isActive:", profile?.is_active);
+          console.log("User profile loaded, isAdmin:", profile?.is_admin);
         } else if (isMounted) {
           console.log("No session found");
           setUser(null);
@@ -110,22 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             const { data: profile } = await supabase
               .from("profiles")
-              .select("username, avatar_url, is_admin, is_active")
+              .select("username, avatar_url, is_admin")
               .eq("id", session.user.id)
               .single();
-
-            // If user account is inactive, sign them out
-            // Handle both false and null/undefined cases
-            const isAccountActive = profile?.is_active === true;
-            if (!isAccountActive) {
-              console.log("User account is inactive, signing out");
-              await supabase.auth.signOut();
-              if (isMounted) {
-                setUser(null);
-                setLoading(false);
-              }
-              return;
-            }
 
             if (isMounted) {
               setUser({
@@ -133,10 +106,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 email: session.user.email,
                 username: profile?.username || session.user.email?.split('@')[0],
                 avatarUrl: profile?.avatar_url || null,
-                isAdmin: profile?.is_admin || false,
-                isActive: profile?.is_active !== false // Defaults to true if not set
+                isAdmin: profile?.is_admin || false
               });
-              console.log("User authenticated, isAdmin:", profile?.is_admin, "isActive:", profile?.is_active);
+              console.log("User authenticated, isAdmin:", profile?.is_admin);
             }
           } catch (error) {
             console.error("Error fetching user profile:", error);
