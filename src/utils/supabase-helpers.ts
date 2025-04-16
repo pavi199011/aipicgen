@@ -9,8 +9,11 @@ export async function refreshUserDetailsView() {
   try {
     console.log("Attempting to refresh user_details_view...");
     
-    // Use a direct RPC call to the refresh function in the database
-    const { error } = await supabase.rpc('refresh_user_details_view');
+    // Use a more generic approach to call the RPC function that TypeScript doesn't know about
+    const { error } = await supabase.rpc('refresh_user_details_view', {}, {
+      // Explicitly cast the type to avoid TypeScript errors
+      count: 'exact'
+    });
     
     if (error) {
       console.error("Error refreshing user details view:", error);
