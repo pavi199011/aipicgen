@@ -29,6 +29,30 @@ ON public.profiles
 FOR ALL
 USING (auth.jwt() ->> 'email' = 'admin@example.com');
 
+-- Fix get_user_emails function with explicit column references
+CREATE OR REPLACE FUNCTION public.get_user_emails(user_ids uuid[])
+ RETURNS TABLE(id uuid, email text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'auth'
+AS $function$
+BEGIN
+  -- Check if the current user is an admin
+  IF NOT EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() AND is_admin = true
+  ) THEN
+    RAISE EXCEPTION 'Access denied: Only administrators can access user emails';
+  END IF;
+
+  -- Return emails for the provided user IDs with explicit table reference
+  RETURN QUERY
+  SELECT au.id AS id, au.email::TEXT AS email
+  FROM auth.users au
+  WHERE au.id = ANY(user_ids);
+END;
+$function$;
+
 -- Enable real-time for the profiles table
 ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
 
