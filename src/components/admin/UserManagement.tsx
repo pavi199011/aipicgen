@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +5,7 @@ import { User, UserDetailData, UserSortState, UserFilterState } from "@/types/ad
 import UsersTable from "./user-management/UsersTable";
 import UserFilters from "./user-management/UserFilters";
 import { useToast } from "@/hooks/use-toast";
+import { useUserEmails } from "@/hooks/admin/useUserEmails";
 import {
   Pagination,
   PaginationContent,
@@ -84,6 +84,12 @@ const UserManagement = () => {
     },
   });
 
+  // Extract user IDs for email fetching
+  const userIds = users?.map(user => user.id) || [];
+  
+  // Fetch emails for the current users
+  const { emails } = useUserEmails(userIds);
+
   // Handle errors
   useEffect(() => {
     if (error) {
@@ -160,6 +166,12 @@ const UserManagement = () => {
     return pageNumbers;
   };
 
+  // Combine user data with emails
+  const usersWithEmails = users?.map(user => ({
+    ...user,
+    email: emails[user.id] || user.email || "N/A"
+  })) || [];
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -172,7 +184,7 @@ const UserManagement = () => {
       </div>
       
       <UsersTable 
-        users={users || []} 
+        users={usersWithEmails} 
         isLoading={isLoading}
         sortState={sortState}
         onSort={handleSort}

@@ -3,7 +3,7 @@ import { UserDetailData } from "@/types/admin";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
-import { Ban, CheckCircle2 } from "lucide-react";
+import { Ban, CheckCircle2, Mail } from "lucide-react";
 
 interface UserDetailDialogProps {
   user: UserDetailData;
@@ -28,8 +28,13 @@ const UserDetailDialog = ({ user, onClose }: UserDetailDialogProps) => {
         
         <div className="flex-1 text-center sm:text-left">
           <h3 className="text-xl font-semibold">{user.username || "Anonymous"}</h3>
-          <p className="text-gray-500">{user.email || "No email"}</p>
-          {user.full_name && <p>{user.full_name}</p>}
+          {user.email && (
+            <div className="flex items-center mt-1 text-gray-500">
+              <Mail className="h-4 w-4 mr-1" />
+              <a href={`mailto:${user.email}`} className="hover:underline">{user.email}</a>
+            </div>
+          )}
+          {user.full_name && <p className="mt-1">{user.full_name}</p>}
           <div className="mt-2 flex flex-wrap justify-center sm:justify-start gap-2">
             {user.is_admin && (
               <span className="bg-purple-100 text-purple-800 text-xs px-2.5 py-0.5 rounded">

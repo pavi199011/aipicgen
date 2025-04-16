@@ -42,7 +42,9 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_active: boolean | null
           is_admin: boolean | null
+          is_suspended: boolean | null
           phone: string | null
           updated_at: string
           username: string | null
@@ -52,7 +54,9 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_active?: boolean | null
           is_admin?: boolean | null
+          is_suspended?: boolean | null
           phone?: string | null
           updated_at?: string
           username?: string | null
@@ -62,7 +66,9 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_active?: boolean | null
           is_admin?: boolean | null
+          is_suspended?: boolean | null
           phone?: string | null
           updated_at?: string
           username?: string | null
@@ -78,14 +84,22 @@ export type Database = {
           full_name: string | null
           id: string | null
           image_count: number | null
+          is_active: boolean | null
           is_admin: boolean | null
+          is_suspended: boolean | null
           username: string | null
         }
         Relationships: []
       }
     }
     Functions: {
-      [_ in never]: never
+      get_user_emails: {
+        Args: { user_ids: string[] }
+        Returns: {
+          id: string
+          email: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
