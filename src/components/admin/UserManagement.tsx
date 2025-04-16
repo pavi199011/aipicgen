@@ -28,9 +28,9 @@ const UserManagement = () => {
   const userIds = users?.map(user => user.id) || [];
   
   // Fetch emails for the current users
-  const { emails } = useUserEmails(userIds);
+  const { emails, loading: emailsLoading } = useUserEmails(userIds);
 
-  // Handle errors
+  // Handle errors from user management only (not email fetching)
   useEffect(() => {
     if (error) {
       toast({
@@ -44,8 +44,11 @@ const UserManagement = () => {
   // Combine user data with emails
   const usersWithEmails = users?.map(user => ({
     ...user,
-    email: emails[user.id] || user.email || "N/A"
+    email: emails[user.id] || "N/A"
   })) || [];
+
+  // Overall loading state includes both user data and email fetching
+  const isDataLoading = isLoading || emailsLoading;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -60,7 +63,7 @@ const UserManagement = () => {
       
       <UsersTable 
         users={usersWithEmails} 
-        isLoading={isLoading}
+        isLoading={isDataLoading}
         sortState={sortState}
         onSort={handleSort}
         onRefresh={refetch}
