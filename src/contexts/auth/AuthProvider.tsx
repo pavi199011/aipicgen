@@ -38,6 +38,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq("id", session.user.id)
             .single();
 
+          // If user account is inactive, sign them out
+          if (profile?.is_active === false) {
+            console.log("User account is inactive, signing out");
+            await supabase.auth.signOut();
+            if (isMounted) {
+              setUser(null);
+              setLoading(false);
+            }
+            return;
+          }
+
           if (isMounted) {
             setUser({
               id: session.user.id,
@@ -100,6 +111,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               .select("username, avatar_url, is_admin, is_active")
               .eq("id", session.user.id)
               .single();
+
+            // If user account is inactive, sign them out
+            if (profile?.is_active === false) {
+              console.log("User account is inactive, signing out");
+              await supabase.auth.signOut();
+              if (isMounted) {
+                setUser(null);
+                setLoading(false);
+              }
+              return;
+            }
 
             if (isMounted) {
               setUser({
