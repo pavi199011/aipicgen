@@ -127,14 +127,11 @@ const UsersTable = ({ users, isLoading, sortState, onSort, onRefresh }: UsersTab
       </div>
 
       {selectedUser && (
-        <Dialog open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>User Details</DialogTitle>
-            </DialogHeader>
-            <UserDetailDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
-          </DialogContent>
-        </Dialog>
+        <UserDetailDialog
+          user={selectedUser}
+          isOpen={!!selectedUser}
+          onClose={() => setSelectedUser(null)} 
+        />
       )}
     </div>
   );
