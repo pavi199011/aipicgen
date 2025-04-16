@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAdminDashboardStats } from "@/hooks/useAdminDashboardStats";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { DashboardSummary } from "./dashboard/DashboardSummary";
+import { StatsCards } from "./dashboard/StatsCards";
 import { ChartsSection } from "./dashboard/ChartsSection";
 import { ActivityCard } from "./dashboard/ActivityCard";
 import { DashboardLoading } from "./dashboard/DashboardLoading";
@@ -32,6 +33,8 @@ export function AdminOverview() {
       />
       
       {stats && <DashboardSummary stats={stats} selectedPeriod={selectedPeriod} />}
+      
+      {stats && <StatsCards stats={stats} selectedPeriod={selectedPeriod} />}
       
       {stats && <ChartsSection stats={stats} period={selectedPeriod} />}
       

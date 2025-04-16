@@ -22,7 +22,7 @@ const UserEmail = ({ email }: UserEmailProps) => {
       <Tooltip>
         <TooltipTrigger className="cursor-help">
           <div className="flex items-center text-muted-foreground">
-            <AlertCircle className="h-4 w-4 text-amber-500 mr-1" />
+            <AlertCircle className="h-4 w-4 text-red-500 mr-1" />
             <span>Email unavailable</span>
           </div>
         </TooltipTrigger>

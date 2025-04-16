@@ -13,7 +13,6 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
   const { toast } = useToast();
 
   const handleDeactivateUser = async (userId: string) => {
-    console.log("Deactivating user:", userId);
     setIsUpdating(true);
     try {
       const { error } = await supabase
@@ -23,15 +22,15 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
       
       if (error) throw error;
       
-      console.log("User deactivated successfully, userId:", userId);
-      
       toast({
         title: "User deactivated",
-        description: "The user has been deactivated successfully and will not be able to log in.",
+        description: "The user has been deactivated successfully.",
       });
       
-      // Immediately refresh the data after updating
-      onRefresh();
+      // Ensure we refresh the data after updating
+      setTimeout(() => {
+        onRefresh();
+      }, 300);
     } catch (error) {
       console.error("Error deactivating user:", error);
       toast({
@@ -45,7 +44,6 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
   };
 
   const handleActivateUser = async (userId: string) => {
-    console.log("Activating user:", userId);
     setIsUpdating(true);
     try {
       const { error } = await supabase
@@ -55,15 +53,15 @@ export const useUserActivation = ({ onRefresh }: UserActivationActionsProps) => 
       
       if (error) throw error;
       
-      console.log("User activated successfully, userId:", userId);
-      
       toast({
         title: "User activated",
-        description: "The user has been activated successfully and can now log in.",
+        description: "The user has been activated successfully.",
       });
       
-      // Immediately refresh the data after updating
-      onRefresh();
+      // Ensure we refresh the data after updating
+      setTimeout(() => {
+        onRefresh();
+      }, 300);
     } catch (error) {
       console.error("Error activating user:", error);
       toast({
