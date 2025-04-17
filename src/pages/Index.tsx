@@ -69,14 +69,6 @@ const Index = () => {
       <TestimonialsSection testimonials={testimonials} />
       <CTASection />
       
-      <div className="container mx-auto px-4 py-6 text-center">
-        <Link to="/admin/login">
-          <Button variant="outline" size="sm" className="text-xs">
-            <ShieldCheck className="h-3.5 w-3.5 mr-1" />
-            Admin Portal
-          </Button>
-        </Link>
-      </div>
       
       <HomeFooter />
     </div>
