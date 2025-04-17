@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/home/Navbar";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
+import ShowcaseSection from "@/components/home/ShowcaseSection";
 import HowItWorksSection from "@/components/home/HowItWorksSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import CTASection from "@/components/home/CTASection";
@@ -32,6 +33,30 @@ const Index = () => {
       url: "https://media-hosting.imagekit.io/bb4c689db50e46f1/amm2efcncsrma0cp88381nmg74.png?q=80&w=1000&auto=format&fit=crop",
       alt: "Portrait with artistic style",
       style: "portrait"
+    }
+  ];
+
+  // Sample showcase images
+  const showcaseImages = [
+    {
+      url: "https://images.unsplash.com/photo-1686505228577-9f42b639dfa6?q=80&w=1000&auto=format&fit=crop",
+      alt: "Digital portrait of a woman with geometric elements",
+      title: "Digital Portrait"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1679511932846-4c3d8774693a?q=80&w=1000&auto=format&fit=crop",
+      alt: "Surreal landscape with floating islands and purple sky",
+      title: "Fantasy Landscape"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1680991155475-3f3fabe33c31?q=80&w=1000&auto=format&fit=crop",
+      alt: "Abstract composition with vibrant colors and fluid shapes",
+      title: "Abstract Composition"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1680990459284-2c1752680d31?q=80&w=1000&auto=format&fit=crop",
+      alt: "Futuristic city skyline with neon lights",
+      title: "Cyberpunk City"
     }
   ];
 
@@ -65,11 +90,10 @@ const Index = () => {
       <Navbar />
       <HeroSection aiGeneratedImages={aiGeneratedImages} />
       <FeaturesSection />
+      <ShowcaseSection showcaseImages={showcaseImages} />
       <HowItWorksSection />
       <TestimonialsSection testimonials={testimonials} />
       <CTASection />
-      
-      
       <HomeFooter />
     </div>
   );
