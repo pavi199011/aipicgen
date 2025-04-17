@@ -14,7 +14,7 @@ const Index = () => {
   // Sample data for AI generated images
   const aiGeneratedImages = [
     {
-      url: "https://images.unsplash.com/photo-1655635949212-1d8f4f126670?q=80&w=1000&auto=format&fit=crop",
+      url: "https://media-hosting.imagekit.io/bd50a897d7744c51/x5s1p0gv2hrmc0cp880r8z5shm.png?Expires=1839472424&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=LUuivlJa63OaZ27aTM0xw-SzqdLQ0Qz-VshyFtwCNJ1Th6BlJpp43eWMGFkxPhw3kv~N6EaQweD07ACyyEnASbox~CEUEuR5P7ESlmada460UVbbt1o~2GfDZyMLsVzmXzKWGarCp5okzFsJovjDK75VBI4TztDIbbNb9BSdYM58m35kfCQkGCNfKVVcWv7dwB5x0yv09S2lzIwFvCAFSCjXQfSOg13fNIpt0rugB2R968Vb4BUrdeoVR2UxKCX3EMjqOyrHk~yF3X0sSpcwkMovMV18XXw4eQXquM~NzqCjj9qyPEFLXFTgUIgFSMNJaQkaLKMvS2WEUzepB~~W7w__?q=80&w=1000&auto=format&fit=crop",
       alt: "Abstract digital art with vibrant colors",
       style: "abstract"
     },
