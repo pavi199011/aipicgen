@@ -29,7 +29,7 @@ const Index = () => {
       style: "nature"
     },
     {
-      url: "https://images.unsplash.com/photo-1686104882986-e52d1e3351ff?q=80&w=1000&auto=format&fit=crop",
+      url: "https://media-hosting.imagekit.io/bb4c689db50e46f1/amm2efcncsrma0cp88381nmg74.png?q=80&w=1000&auto=format&fit=crop",
       alt: "Portrait with artistic style",
       style: "portrait"
     }
