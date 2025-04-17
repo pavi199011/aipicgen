@@ -33,3 +33,7 @@ enabled = true
 verify_jwt = false
 
 [edge_functions.generate-image]
+
+[edge_functions.refresh-user-details-view]
+
+[edge_functions.delete-user]

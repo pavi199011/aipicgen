@@ -24,11 +24,15 @@ interface UserDeleteActionProps {
 const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionProps) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleDelete = async () => {
     setIsDeleting(true);
+    setDeleteError(null);
+    
     try {
+      console.log("Initiating user deletion process for:", userId);
       const success = await deleteUserProfile(userId);
       
       if (success) {
@@ -42,17 +46,21 @@ const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionP
         // Call the callback to update the UI
         onUserDeleted();
       } else {
+        const errorMsg = "There was an error deleting the user. Please try again.";
+        setDeleteError(errorMsg);
         toast({
           title: "Delete Failed",
-          description: "There was an error deleting the user. Please try again.",
+          description: errorMsg,
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Exception in handleDelete:", error);
+      const errorMsg = error instanceof Error ? error.message : "An unknown error occurred";
+      setDeleteError(errorMsg);
       toast({
         title: "Delete Failed",
-        description: "There was an error deleting the user. Please try again.",
+        description: `There was an error deleting the user: ${errorMsg}`,
         variant: "destructive",
       });
     } finally {
@@ -82,6 +90,13 @@ const UserDeleteAction = ({ userId, username, onUserDeleted }: UserDeleteActionP
               This action cannot be undone. Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
+          
+          {deleteError && (
+            <div className="text-destructive text-sm bg-destructive/10 p-3 rounded-md mb-3">
+              Error: {deleteError}
+            </div>
+          )}
+          
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -34,48 +35,24 @@ export async function deleteUserProfile(userId: string) {
   try {
     console.log("Starting deletion process for user:", userId);
     
-    // First, delete all generated images for the user
-    const { error: imagesError } = await supabase
-      .from('generated_images')
-      .delete()
-      .eq('user_id', userId);
+    // Call the admin edge function to delete the user
+    const { data, error } = await supabase.functions.invoke('delete-user', {
+      method: 'POST',
+      body: { userId }
+    });
     
-    if (imagesError) {
-      console.error("Error deleting user images:", imagesError);
+    if (error) {
+      console.error("Error calling delete-user function:", error);
       return false;
     }
     
-    console.log("Successfully deleted user's images");
-    
-    // Delete the user profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userId);
-    
-    if (profileError) {
-      console.error("Error deleting user profile:", profileError);
+    // Check the response from the function
+    if (!data?.success) {
+      console.error("User deletion failed:", data?.error || "Unknown error");
       return false;
     }
     
-    console.log("Successfully deleted user's profile");
-    
-    // Delete the auth user (requires admin privileges)
-    // Use service role for this operation
-    const { error: authError } = await supabase.auth.admin.deleteUser(
-      userId
-    );
-    
-    if (authError) {
-      console.error("Error deleting auth user:", authError);
-      return false;
-    }
-    
-    console.log("Successfully deleted auth user");
-    
-    // Refresh the materialized view to ensure data consistency
-    await refreshUserDetailsView();
-    
+    console.log("User deletion completed successfully");
     return true;
   } catch (error) {
     console.error("Error in deleteUserProfile:", error);
