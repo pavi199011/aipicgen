@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
+import { useState } from "react";
 import { 
   Carousel,
   CarouselContent,
@@ -21,6 +22,22 @@ interface ShowcaseSectionProps {
 }
 
 const ShowcaseSection = ({ showcaseImages }: ShowcaseSectionProps) => {
+  // Track loading state for each image
+  const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
+
+  const handleImageLoad = (index: number) => {
+    setLoadedImages(prev => ({ ...prev, [index]: true }));
+  };
+
+  const handleImageError = (index: number) => {
+    console.error(`Failed to load image at index ${index}`);
+    // Use a placeholder image on error
+    const imgElement = document.getElementById(`showcase-img-${index}`) as HTMLImageElement;
+    if (imgElement) {
+      imgElement.src = "https://images.unsplash.com/photo-1486718448742-163732cd1544";
+    }
+  };
+
   return (
     <section className="py-20 bg-gradient-to-b from-white to-purple-50 dark:from-gray-950 dark:to-gray-900">
       <div className="container mx-auto px-4">
@@ -49,11 +66,16 @@ const ShowcaseSection = ({ showcaseImages }: ShowcaseSectionProps) => {
             >
               <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white dark:bg-gray-800 border-none shadow-md">
                 <CardContent className="p-0">
-                  <div className="relative">
+                  <div className="relative aspect-[4/3]">
                     <img 
+                      id={`showcase-img-${index}`}
                       src={image.url} 
-                      alt={image.alt} 
-                      className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
+                      alt={image.alt}
+                      onLoad={() => handleImageLoad(index)}
+                      onError={() => handleImageError(index)}
+                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                        loadedImages[index] ? 'opacity-100' : 'opacity-0'
+                      }`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
                       <h3 className="text-white font-medium">{image.title}</h3>
@@ -74,11 +96,16 @@ const ShowcaseSection = ({ showcaseImages }: ShowcaseSectionProps) => {
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                   <Card className="overflow-hidden shadow-md border-none">
                     <CardContent className="p-0">
-                      <div className="relative">
+                      <div className="relative aspect-[4/3]">
                         <img 
+                          id={`showcase-mobile-img-${index}`}
                           src={image.url} 
-                          alt={image.alt} 
-                          className="w-full h-64 object-cover"
+                          alt={image.alt}
+                          onLoad={() => handleImageLoad(index + showcaseImages.length)}
+                          onError={() => handleImageError(index + showcaseImages.length)}
+                          className={`w-full h-full object-cover ${
+                            loadedImages[index + showcaseImages.length] ? 'opacity-100' : 'opacity-0'
+                          }`}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent flex flex-col justify-end p-4">
                           <h3 className="text-white font-medium">{image.title}</h3>
