@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import {
   Sidebar,
@@ -26,24 +25,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
   const menuItems = [
     {
-      title: "Home",
+      title: "Dashboard",
       icon: Home,
       onClick: () => navigate("/dashboard"),
-    },
-    {
-      title: "Generate",
-      icon: ImageIcon,
-      onClick: () => navigate("/dashboard/generate"),
     },
     {
       title: "Profile",
       icon: User,
       onClick: () => navigate("/profile"),
-    },
-    {
-      title: "Settings",
-      icon: Settings,
-      onClick: () => navigate("/settings"),
     },
   ];
 

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,7 +19,6 @@ const HeroSection = ({ aiGeneratedImages = [] }: HeroSectionProps) => {
   return (
     <header className="bg-gradient-to-br from-violet-800 via-purple-700 to-indigo-800 text-white overflow-hidden">
       <div className="container mx-auto px-4 py-20 flex flex-col md:flex-row items-center justify-between relative">
-        {/* Animated background elements */}
         <motion.div 
           className="absolute top-0 left-0 w-full h-full opacity-10"
           initial={{ opacity: 0 }}
@@ -77,8 +75,6 @@ const HeroSection = ({ aiGeneratedImages = [] }: HeroSectionProps) => {
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             )}
-            
-            
           </motion.div>
         </div>
         
@@ -86,24 +82,27 @@ const HeroSection = ({ aiGeneratedImages = [] }: HeroSectionProps) => {
           className="mt-12 md:mt-0 md:w-1/2 grid grid-cols-2 gap-4 z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.3 }}
         >
           {aiGeneratedImages.map((image, index) => (
             <motion.div
               key={index}
               className="relative rounded-lg overflow-hidden shadow-lg group"
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 * index + 0.4 }}
+              transition={{ duration: 0.2, delay: index * 0.1 }}
               whileHover={{ y: -5, scale: 1.02 }}
             >
               <img 
                 src={image.url} 
                 alt={image.alt} 
-                className="w-full h-52 object-cover transition-transform duration-500 group-hover:scale-110"
+                className="w-full h-52 object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                <span className="text-white text-sm p-3">{image.alt}</span>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span className="text-white text-sm p-3 absolute bottom-0">{image.alt}</span>
               </div>
             </motion.div>
           ))}

@@ -4,8 +4,6 @@ import { useAuth } from "@/contexts/auth";
 import { useFetchImages } from "@/hooks/useFetchImages";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import TabsContainer from "@/components/dashboard/TabsContainer";
-import CreateTabContent from "@/components/dashboard/CreateTabContent";
 import GalleryTabContent from "@/components/dashboard/GalleryTabContent";
 
 const Dashboard = () => {
@@ -17,37 +15,23 @@ const Dashboard = () => {
   
   const { images, loading: imagesLoading, error: fetchError, fetchImages } = useFetchImages(user.id);
   const { 
-    generateImage, 
-    generating, 
-    error: generationError, 
+    generateImage,
+    generating,
+    error: generationError,
     retryLastGeneration,
     hasLastPrompt
   } = useImageGeneration(user.id, fetchImages);
 
   return (
     <DashboardLayout>
-      <TabsContainer 
-        createContent={
-          <CreateTabContent 
-            images={images}
-            imagesLoading={imagesLoading}
-            fetchError={fetchError}
-            generateImage={generateImage}
-            generating={generating}
-            generationError={generationError}
-            retryLastGeneration={retryLastGeneration}
-            hasLastPrompt={hasLastPrompt}
-          />
-        }
-        galleryContent={
-          <GalleryTabContent 
-            images={images}
-            loading={imagesLoading}
-            error={fetchError}
-            onRetry={fetchImages}
-          />
-        }
-      />
+      <div className="container mx-auto px-4">
+        <GalleryTabContent 
+          images={images}
+          loading={imagesLoading}
+          error={fetchError}
+          onRetry={fetchImages}
+        />
+      </div>
     </DashboardLayout>
   );
 };

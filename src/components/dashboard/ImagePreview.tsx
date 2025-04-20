@@ -1,10 +1,12 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Download,
-  ExternalLink,
+  ZoomIn,
   Trash2
 } from "lucide-react";
+import ImageZoom from "@/components/common/ImageZoom";
 
 interface ImagePreviewProps {
   imageUrl: string;
@@ -13,7 +15,6 @@ interface ImagePreviewProps {
   downloading: boolean;
   isDeleting: boolean;
   onDownload: () => void;
-  onViewFullSize: () => void;
   onDeleteClick: () => void;
 }
 
@@ -24,9 +25,10 @@ const ImagePreview = ({
   downloading, 
   isDeleting, 
   onDownload, 
-  onViewFullSize, 
   onDeleteClick 
 }: ImagePreviewProps) => {
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+
   return (
     <div className="relative">
       <img
@@ -46,10 +48,10 @@ const ImagePreview = ({
           className={`transition-opacity duration-200 ${
             isHovering ? "opacity-100" : "opacity-0"
           }`}
-          onClick={onViewFullSize}
-          title="View full size"
+          onClick={() => setIsZoomOpen(true)}
+          title="Zoom image"
         >
-          <ExternalLink className="h-4 w-4" />
+          <ZoomIn className="h-4 w-4" />
         </Button>
         <Button
           size="icon"
@@ -76,6 +78,13 @@ const ImagePreview = ({
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
+
+      <ImageZoom
+        imageUrl={imageUrl}
+        alt={prompt}
+        isOpen={isZoomOpen}
+        onOpenChange={setIsZoomOpen}
+      />
     </div>
   );
 };
