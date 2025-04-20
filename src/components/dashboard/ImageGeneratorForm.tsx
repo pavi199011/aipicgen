@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { motion } from "framer-motion"; // Adding the missing import
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,7 +38,6 @@ const ImageGeneratorForm = ({
   const [inferenceSteps, setInferenceSteps] = useState(4);
   const [progress, setProgress] = useState(0);
 
-  // Simulated progress for better UX
   const startProgressSimulation = () => {
     setProgress(0);
     const interval = setInterval(() => {
@@ -64,15 +62,16 @@ const ImageGeneratorForm = ({
     });
     cleanupProgress();
     setProgress(100);
-    // Reset progress after a delay
     setTimeout(() => setProgress(0), 2000);
   };
 
   return (
-    <Card className="mb-8">
+    <Card className="mb-8 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-purple-100 dark:border-purple-900/20">
       <CardHeader>
-        <CardTitle>Create New Image</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-xl bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+          Create New Image
+        </CardTitle>
+        <CardDescription className="text-gray-600 dark:text-gray-300">
           Transform your ideas into stunning visuals with AI
         </CardDescription>
       </CardHeader>
@@ -103,14 +102,14 @@ const ImageGeneratorForm = ({
           className="space-y-4"
         >
           <div className="space-y-2">
-            <Label htmlFor="prompt">Prompt</Label>
+            <Label htmlFor="prompt" className="text-purple-700 dark:text-purple-300">Prompt</Label>
             <Input
               id="prompt"
               placeholder="A serene lake at sunset with mountains in the background..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               disabled={generating}
-              className="h-20 resize-none py-2"
+              className="h-20 resize-none py-2 bg-white dark:bg-gray-900 border-purple-100 dark:border-purple-900/20 focus:ring-purple-500"
             />
           </div>
 
@@ -162,7 +161,9 @@ const ImageGeneratorForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="num-outputs">Number of Images: {numOutputs}</Label>
+            <Label htmlFor="num-outputs" className="text-purple-700 dark:text-purple-300">
+              Number of Images: {numOutputs}
+            </Label>
             <Slider 
               id="num-outputs"
               min={1} 
@@ -171,6 +172,7 @@ const ImageGeneratorForm = ({
               value={[numOutputs]} 
               onValueChange={(value) => setNumOutputs(value[0])}
               disabled={generating}
+              className="[&>span]:bg-purple-500"
             />
           </div>
           
@@ -181,10 +183,10 @@ const ImageGeneratorForm = ({
               className="space-y-2"
             >
               <div className="flex justify-between mb-1">
-                <span className="text-sm text-muted-foreground">Generating image...</span>
-                <span className="text-sm text-muted-foreground">{progress}%</span>
+                <span className="text-sm text-purple-600 dark:text-purple-400">Generating image...</span>
+                <span className="text-sm text-purple-600 dark:text-purple-400">{progress}%</span>
               </div>
-              <Progress value={progress} className="w-full" />
+              <Progress value={progress} className="bg-purple-100 dark:bg-purple-900/20 [&>div]:bg-purple-500" />
             </motion.div>
           )}
         </motion.div>
@@ -193,7 +195,7 @@ const ImageGeneratorForm = ({
         <Button 
           onClick={handleGenerate} 
           disabled={generating || !prompt.trim()}
-          className="w-full"
+          className="w-full bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white"
         >
           {generating ? (
             <>
