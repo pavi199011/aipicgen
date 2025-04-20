@@ -70,12 +70,12 @@ const ImageGeneratorForm = ({
   return (
     <Card className="mb-8">
       <CardHeader>
-        <CardTitle>Generate New Image</CardTitle>
+        <CardTitle>Create New Image</CardTitle>
         <CardDescription>
-          Enter a prompt and customize settings to create your AI-generated image
+          Transform your ideas into stunning visuals with AI
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -95,88 +95,98 @@ const ImageGeneratorForm = ({
           </Alert>
         )}
         
-        <div className="space-y-2">
-          <Label htmlFor="prompt">Prompt</Label>
-          <Input
-            id="prompt"
-            placeholder="A serene lake at sunset with mountains in the background"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            disabled={generating}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
           <div className="space-y-2">
-            <Label htmlFor="model">Model</Label>
-            <Select value={model} onValueChange={setModel} disabled={generating}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="flux">Flux (Fastest)</SelectItem>
-                <SelectItem value="sdxl-turbo">SDXL Turbo (Fast)</SelectItem>
-                <SelectItem value="sdxl">SDXL (High Quality)</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="prompt">Prompt</Label>
+            <Input
+              id="prompt"
+              placeholder="A serene lake at sunset with mountains in the background..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              disabled={generating}
+              className="h-20 resize-none py-2"
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="aspect-ratio">Aspect Ratio</Label>
-            <Select value={aspectRatio} onValueChange={setAspectRatio} disabled={generating}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select aspect ratio" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1:1">Square (1:1)</SelectItem>
-                <SelectItem value="16:9">Landscape (16:9)</SelectItem>
-                <SelectItem value="9:16">Portrait (9:16)</SelectItem>
-                <SelectItem value="4:3">Standard (4:3)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label htmlFor="inference-steps">Quality (Inference Steps: {inferenceSteps})</Label>
-            <span className="text-xs text-muted-foreground">Higher = Better Quality, Slower</span>
-          </div>
-          <Slider 
-            id="inference-steps"
-            min={1} 
-            max={20} 
-            step={1} 
-            value={[inferenceSteps]} 
-            onValueChange={(value) => setInferenceSteps(value[0])}
-            disabled={generating}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label htmlFor="num-outputs">Number of Images: {numOutputs}</Label>
-          </div>
-          <Slider 
-            id="num-outputs"
-            min={1} 
-            max={4} 
-            step={1} 
-            value={[numOutputs]} 
-            onValueChange={(value) => setNumOutputs(value[0])}
-            disabled={generating}
-          />
-        </div>
-        
-        {generating && (
-          <div className="space-y-2">
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Generating image...</span>
-              <span className="text-sm text-muted-foreground">{progress}%</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="model">Model</Label>
+              <Select value={model} onValueChange={setModel} disabled={generating}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="flux">Flux (Fastest)</SelectItem>
+                  <SelectItem value="sdxl-turbo">SDXL Turbo (Fast)</SelectItem>
+                  <SelectItem value="sdxl">SDXL (High Quality)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Progress value={progress} className="w-full" />
+
+            <div className="space-y-2">
+              <Label htmlFor="aspect-ratio">Aspect Ratio</Label>
+              <Select value={aspectRatio} onValueChange={setAspectRatio} disabled={generating}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select aspect ratio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1:1">Square (1:1)</SelectItem>
+                  <SelectItem value="16:9">Landscape (16:9)</SelectItem>
+                  <SelectItem value="9:16">Portrait (9:16)</SelectItem>
+                  <SelectItem value="4:3">Standard (4:3)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        )}
+
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <Label htmlFor="inference-steps">Quality (Inference Steps: {inferenceSteps})</Label>
+              <span className="text-xs text-muted-foreground">Higher = Better Quality, Slower</span>
+            </div>
+            <Slider 
+              id="inference-steps"
+              min={1} 
+              max={20} 
+              step={1} 
+              value={[inferenceSteps]} 
+              onValueChange={(value) => setInferenceSteps(value[0])}
+              disabled={generating}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="num-outputs">Number of Images: {numOutputs}</Label>
+            <Slider 
+              id="num-outputs"
+              min={1} 
+              max={4} 
+              step={1} 
+              value={[numOutputs]} 
+              onValueChange={(value) => setNumOutputs(value[0])}
+              disabled={generating}
+            />
+          </div>
+          
+          {generating && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-2"
+            >
+              <div className="flex justify-between mb-1">
+                <span className="text-sm text-muted-foreground">Generating image...</span>
+                <span className="text-sm text-muted-foreground">{progress}%</span>
+              </div>
+              <Progress value={progress} className="w-full" />
+            </motion.div>
+          )}
+        </motion.div>
       </CardContent>
       <CardFooter>
         <Button 
