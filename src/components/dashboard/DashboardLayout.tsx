@@ -97,7 +97,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           </SidebarContent>
           
           <SidebarFooter className="p-4 space-y-2">
-            <ThemeToggle className="w-full" />
+            <ThemeToggle />
             <button
               onClick={signOut}
               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
