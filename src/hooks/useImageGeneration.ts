@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -57,9 +58,9 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         throw new Error(errorData.error || "Failed to generate image");
       }
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      if (!data.image_url) {
+      if (!responseData.image_url) {
         throw new Error("Image URL not found in response");
       }
 
@@ -70,13 +71,13 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
       });
 
       // Convert image to JPG if it's not already
-      const imageUrl = response.data?.image_url;
+      const imageUrl = responseData.image_url;
       if (imageUrl && !imageUrl.toLowerCase().endsWith('.jpg')) {
         const imgResponse = await fetch(imageUrl);
         const blob = await imgResponse.blob();
         const jpgBlob = new Blob([blob], { type: 'image/jpeg' });
         const jpgUrl = URL.createObjectURL(jpgBlob);
-        response.data.image_url = jpgUrl;
+        responseData.image_url = jpgUrl;
       }
 
       // After successful generation, trigger onSuccess to refresh images
@@ -84,7 +85,11 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         await onSuccess();
       }
       
-      toast.success("Image generated successfully!");
+      toast({
+        title: "Success",
+        description: "Image generated successfully!",
+        variant: "default",
+      });
     } catch (error: any) {
       console.error("Image generation error:", error);
       setError(error.message || "Failed to generate image");
