@@ -33,7 +33,7 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
       console.error("User ID is required to generate images.");
       return;
     }
-    
+
     setGenerating(true);
     setError(null);
     setLastPrompt(prompt);
@@ -53,18 +53,26 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate image");
+      let responseData: any = null;
+
+      // Try reading valid JSON or parse error safely
+      try {
+        responseData = await response.json();
+      } catch (jsonErr) {
+        // Sometimes response is empty or not JSON. Try to read as text and print it.
+        const rawText = await response.text();
+        console.error("Generation API returned malformed JSON or empty body. Raw response:", rawText);
+        throw new Error("Unexpected response from image generation API. Please try again.");
       }
 
-      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData?.error || "Failed to generate image");
+      }
 
       if (!responseData.image_url) {
         throw new Error("Image URL not found in response");
       }
 
-      // Optimistically update the UI
       toast({
         title: "Image generation started!",
         description: "Your image is being generated. This may take a moment.",
@@ -73,18 +81,21 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
       // Convert image to JPG if it's not already
       const imageUrl = responseData.image_url;
       if (imageUrl && !imageUrl.toLowerCase().endsWith('.jpg')) {
-        const imgResponse = await fetch(imageUrl);
-        const blob = await imgResponse.blob();
-        const jpgBlob = new Blob([blob], { type: 'image/jpeg' });
-        const jpgUrl = URL.createObjectURL(jpgBlob);
-        responseData.image_url = jpgUrl;
+        try {
+          const imgResponse = await fetch(imageUrl);
+          const blob = await imgResponse.blob();
+          const jpgBlob = new Blob([blob], { type: 'image/jpeg' });
+          const jpgUrl = URL.createObjectURL(jpgBlob);
+          responseData.image_url = jpgUrl;
+        } catch (e) {
+          // If we fail to re-fetch or convert image, just proceed with original URL
+        }
       }
 
-      // After successful generation, trigger onSuccess to refresh images
       if (onSuccess) {
         await onSuccess();
       }
-      
+
       toast({
         title: "Success",
         description: "Image generated successfully!",
@@ -93,7 +104,7 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
     } catch (error: any) {
       console.error("Image generation error:", error);
       setError(error.message || "Failed to generate image");
-      
+
       toast({
         title: "Error generating image",
         description: error.message || "Failed to generate image. Please try again.",
@@ -104,11 +115,11 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
     }
   };
 
-  return { 
-    generateImage, 
-    generating, 
-    error, 
-    retryLastGeneration, 
-    hasLastPrompt: !!lastPrompt 
+  return {
+    generateImage,
+    generating,
+    error,
+    retryLastGeneration,
+    hasLastPrompt: !!lastPrompt,
   };
 }
