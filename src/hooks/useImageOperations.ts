@@ -42,10 +42,6 @@ export const useImageOperations = (id: string, imageUrl: string, onDelete?: () =
     }
   };
 
-  const handleViewFullSize = () => {
-    window.open(imageUrl, "_blank");
-  };
-
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
@@ -76,7 +72,6 @@ export const useImageOperations = (id: string, imageUrl: string, onDelete?: () =
     showDeleteConfirm,
     setShowDeleteConfirm,
     handleDownload,
-    handleViewFullSize,
     handleDelete
   };
 };

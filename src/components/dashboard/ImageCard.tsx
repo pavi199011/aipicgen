@@ -24,7 +24,6 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
     showDeleteConfirm,
     setShowDeleteConfirm,
     handleDownload,
-    handleViewFullSize,
     handleDelete
   } = useImageOperations(id, imageUrl, onDelete);
 
@@ -42,7 +41,6 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
           downloading={downloading}
           isDeleting={isDeleting}
           onDownload={handleDownload}
-          onViewFullSize={handleViewFullSize}
           onDeleteClick={() => setShowDeleteConfirm(true)}
         />
       </CardContent>
