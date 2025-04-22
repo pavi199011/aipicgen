@@ -38,42 +38,21 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
     try {
       console.log("Sending request with settings:", settings);
       
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      // Call the Supabase Edge Function directly using the client
+      const { data: responseData, error: functionError } = await supabase.functions.invoke('generate-image', {
+        body: {
           userId,
           prompt,
           settings,
-        }),
+        },
       });
 
-      let responseData;
-      let errorMessage = null;
+      console.log("Response from edge function:", responseData);
 
-      try {
-        // Try to parse as JSON first
-        responseData = await response.json();
-        console.log("Response data:", responseData);
-      } catch (jsonErr) {
-        console.warn("Failed to parse JSON response, attempting to read as text");
-        try {
-          const rawText = await response.clone().text();
-          console.error("Raw response:", rawText);
-          errorMessage = "Unexpected response format from image generation service";
-        } catch (textErr) {
-          console.error("Failed to read response as text:", textErr);
-          errorMessage = "Failed to read server response";
-        }
+      if (functionError) {
+        throw new Error(functionError.message || "Failed to generate image");
       }
 
-      if (!response.ok) {
-        throw new Error(responseData?.error || errorMessage || "Failed to generate image");
-      }
-
-      // Check if the response includes images array
       if (!responseData?.images || !Array.isArray(responseData.images)) {
         throw new Error("Invalid response format: expected array of images");
       }
@@ -88,7 +67,7 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         }
 
         try {
-          const { data, error: insertError } = await supabase
+          const { error: insertError } = await supabase
             .from('generated_images')
             .insert([
               {
