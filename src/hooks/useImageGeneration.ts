@@ -53,23 +53,33 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         }),
       });
 
-      let responseData: any = null;
+      // Clone the response so we can try both JSON and text
+      const responseClone = response.clone();
 
-      // Try reading valid JSON or parse error safely
+      let responseData: any = null;
+      let errorMessage: string | null = null;
+
+      // First try to parse as JSON
       try {
         responseData = await response.json();
       } catch (jsonErr) {
-        // Sometimes response is empty or not JSON. Try to read as text and print it.
-        const rawText = await response.text();
-        console.error("Generation API returned malformed JSON or empty body. Raw response:", rawText);
-        throw new Error("Unexpected response from image generation API. Please try again.");
+        console.warn("Failed to parse JSON response, attempting to read as text");
+        try {
+          // If JSON fails, try to read as text from the cloned response
+          const rawText = await responseClone.text();
+          console.error("Raw response:", rawText);
+          errorMessage = "Unexpected response format from image generation service";
+        } catch (textErr) {
+          console.error("Failed to read response as text:", textErr);
+          errorMessage = "Failed to read server response";
+        }
       }
 
       if (!response.ok) {
-        throw new Error(responseData?.error || "Failed to generate image");
+        throw new Error(responseData?.error || errorMessage || "Failed to generate image");
       }
 
-      if (!responseData.image_url) {
+      if (!responseData?.image_url) {
         throw new Error("Image URL not found in response");
       }
 
@@ -88,7 +98,8 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
           const jpgUrl = URL.createObjectURL(jpgBlob);
           responseData.image_url = jpgUrl;
         } catch (e) {
-          // If we fail to re-fetch or convert image, just proceed with original URL
+          console.warn("Failed to convert image to JPG:", e);
+          // Continue with original URL if conversion fails
         }
       }
 
