@@ -24,11 +24,7 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
     await generateImage(lastPrompt, "sdxl", lastSettings);
   };
 
-  const generateImage = async (prompt: string, model: string, settings: {
-    aspectRatio: string;
-    numOutputs: number;
-    inferenceSteps: number;
-  }) => {
+  const generateImage = async (prompt: string, model: string, settings: GenerationSettings) => {
     if (!userId) {
       console.error("User ID is required to generate images.");
       return;
@@ -48,7 +44,6 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         body: JSON.stringify({
           userId,
           prompt,
-          model,
           settings,
         }),
       });
@@ -65,7 +60,6 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
       } catch (jsonErr) {
         console.warn("Failed to parse JSON response, attempting to read as text");
         try {
-          // If JSON fails, try to read as text from the cloned response
           const rawText = await responseClone.text();
           console.error("Raw response:", rawText);
           errorMessage = "Unexpected response format from image generation service";
@@ -79,39 +73,48 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         throw new Error(responseData?.error || errorMessage || "Failed to generate image");
       }
 
-      if (!responseData?.image_url) {
-        throw new Error("Image URL not found in response");
+      // Handle the new response format which includes an array of images
+      if (!responseData?.images || !Array.isArray(responseData.images)) {
+        throw new Error("Invalid response format: expected array of images");
+      }
+
+      // Store each generated image in Supabase
+      for (const image of responseData.images) {
+        if (!image.image_url) {
+          console.warn("Image URL not found in response item, skipping");
+          continue;
+        }
+
+        try {
+          const { data, error: insertError } = await supabase
+            .from('generated_images')
+            .insert([
+              {
+                user_id: userId,
+                prompt: prompt,
+                image_url: image.image_url,
+                model: model,
+              }
+            ]);
+
+          if (insertError) {
+            console.error("Error saving image to database:", insertError);
+          }
+        } catch (dbError) {
+          console.error("Database error:", dbError);
+        }
       }
 
       toast({
-        title: "Image generation started!",
-        description: "Your image is being generated. This may take a moment.",
+        title: "Success",
+        description: `Generated ${responseData.images.length} image${responseData.images.length > 1 ? 's' : ''} successfully!`,
+        variant: "default",
       });
-
-      // Convert image to JPG if it's not already
-      const imageUrl = responseData.image_url;
-      if (imageUrl && !imageUrl.toLowerCase().endsWith('.jpg')) {
-        try {
-          const imgResponse = await fetch(imageUrl);
-          const blob = await imgResponse.blob();
-          const jpgBlob = new Blob([blob], { type: 'image/jpeg' });
-          const jpgUrl = URL.createObjectURL(jpgBlob);
-          responseData.image_url = jpgUrl;
-        } catch (e) {
-          console.warn("Failed to convert image to JPG:", e);
-          // Continue with original URL if conversion fails
-        }
-      }
 
       if (onSuccess) {
         await onSuccess();
       }
 
-      toast({
-        title: "Success",
-        description: "Image generated successfully!",
-        variant: "default",
-      });
     } catch (error: any) {
       console.error("Image generation error:", error);
       setError(error.message || "Failed to generate image");
