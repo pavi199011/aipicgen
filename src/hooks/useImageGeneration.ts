@@ -36,6 +36,8 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
     setLastSettings(settings);
 
     try {
+      console.log("Sending request with settings:", settings);
+      
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: {
@@ -48,19 +50,17 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         }),
       });
 
-      // Clone the response so we can try both JSON and text
-      const responseClone = response.clone();
+      let responseData;
+      let errorMessage = null;
 
-      let responseData: any = null;
-      let errorMessage: string | null = null;
-
-      // First try to parse as JSON
       try {
+        // Try to parse as JSON first
         responseData = await response.json();
+        console.log("Response data:", responseData);
       } catch (jsonErr) {
         console.warn("Failed to parse JSON response, attempting to read as text");
         try {
-          const rawText = await responseClone.text();
+          const rawText = await response.clone().text();
           console.error("Raw response:", rawText);
           errorMessage = "Unexpected response format from image generation service";
         } catch (textErr) {
@@ -73,12 +73,14 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
         throw new Error(responseData?.error || errorMessage || "Failed to generate image");
       }
 
-      // Handle the new response format which includes an array of images
+      // Check if the response includes images array
       if (!responseData?.images || !Array.isArray(responseData.images)) {
         throw new Error("Invalid response format: expected array of images");
       }
 
       // Store each generated image in Supabase
+      const successfulUploads = [];
+      
       for (const image of responseData.images) {
         if (!image.image_url) {
           console.warn("Image URL not found in response item, skipping");
@@ -99,10 +101,16 @@ export function useImageGeneration(userId: string | undefined, onSuccess?: () =>
 
           if (insertError) {
             console.error("Error saving image to database:", insertError);
+          } else {
+            successfulUploads.push(image);
           }
         } catch (dbError) {
           console.error("Database error:", dbError);
         }
+      }
+
+      if (successfulUploads.length === 0) {
+        throw new Error("Failed to save any generated images to the database");
       }
 
       toast({
