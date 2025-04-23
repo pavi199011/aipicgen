@@ -1,12 +1,7 @@
 
-import { AlertCircle, Download, Eye } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import ImageGeneratorForm from "@/components/dashboard/ImageGeneratorForm";
 import { GeneratedImage } from "@/hooks/useFetchImages";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import ImageZoom from "@/components/common/ImageZoom";
-import { useImageOperations } from "@/hooks/useImageOperations";
+import GeneratorSection from "./GeneratorSection";
+import RecentImages from "./RecentImages";
 
 interface CreateTabContentProps {
   images: GeneratedImage[];
@@ -33,125 +28,26 @@ const CreateTabContent = ({
   retryLastGeneration,
   hasLastPrompt,
 }: CreateTabContentProps) => {
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const recentImages = images.slice(0, 4);
-
-  // Create a map of image operations for each image
-  const imageOperationsMap = recentImages.reduce((acc, image) => {
-    acc[image.id] = useImageOperations(image.id, image.image_url);
-    return acc;
-  }, {} as Record<string, ReturnType<typeof useImageOperations>>);
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="col-span-1">
-        <div className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500 mb-4">
-            Generate New Image
-          </h2>
-          <ImageGeneratorForm 
-            onGenerate={generateImage} 
-            generating={generating} 
-            error={generationError}
-            retryGeneration={retryLastGeneration}
-            hasLastPrompt={hasLastPrompt}
-          />
-        </div>
+        <GeneratorSection
+          generating={generating}
+          generationError={generationError}
+          generateImage={generateImage}
+          retryLastGeneration={retryLastGeneration}
+          hasLastPrompt={hasLastPrompt}
+        />
       </div>
       <div className="col-span-2">
         <div className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl shadow-lg min-h-[420px] flex flex-col">
           <h2 className="text-xl font-bold mb-6 dark:text-white">Recently Created</h2>
           <div className="flex-1">
-            {imagesLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {Array(4).fill(null).map((_, i) => (
-                  <div key={i} className="border rounded-xl overflow-hidden animate-pulse bg-white dark:bg-gray-800 shadow-sm">
-                    <div className="bg-gray-200 dark:bg-gray-700 w-full h-48 rounded-t-xl" />
-                    <div className="p-4">
-                      <div className="h-4 w-1/3 bg-gray-200 dark:bg-gray-700 mb-2 rounded"></div>
-                      <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : fetchError ? (
-              <Alert variant="destructive" className="mt-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{fetchError}</AlertDescription>
-              </Alert>
-            ) : recentImages.length === 0 ? (
-              <div className="col-span-2 text-center py-10 bg-white/50 dark:bg-gray-800/50 rounded-xl">
-                <p className="text-gray-500 dark:text-gray-400">
-                  No images generated yet. Create your first image!
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {recentImages.map((image) => {
-                  const operations = imageOperationsMap[image.id];
-                  const isSelected = selectedImageId === image.id;
-
-                  return (
-                    <div
-                      key={image.id}
-                      className="border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-gray-800"
-                    >
-                      <div className="relative h-48 group">
-                        <img
-                          src={image.image_url}
-                          alt={image.prompt}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          onError={(e) => {
-                            console.error("Image failed to load:", image.image_url);
-                            (e.target as HTMLImageElement).src = "/placeholder.svg";
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="absolute bottom-4 left-4 right-4 flex gap-2">
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="flex-1"
-                              onClick={() => setSelectedImageId(image.id)}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              Preview
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="flex-1"
-                              onClick={() => operations.handleDownload()}
-                              disabled={operations.downloading}
-                            >
-                              <Download className="mr-2 h-4 w-4" />
-                              Download
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
-                          {image.prompt}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(image.created_at).toLocaleString()}
-                        </p>
-                      </div>
-
-                      {isSelected && (
-                        <ImageZoom
-                          imageUrl={image.image_url}
-                          alt={image.prompt}
-                          isOpen={isSelected}
-                          onOpenChange={() => setSelectedImageId(null)}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <RecentImages
+              images={images}
+              loading={imagesLoading}
+              error={fetchError}
+            />
           </div>
         </div>
       </div>
