@@ -1,16 +1,14 @@
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Download, Loader2, RefreshCcw } from "lucide-react";
+import { Loader2, RefreshCcw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { Slider } from "@/components/ui/slider";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ImageGeneratorFormProps {
   onGenerate: (prompt: string, model: string, settings: {
@@ -35,7 +33,6 @@ const ImageGeneratorForm = ({
   const [model, setModel] = useState("flux");
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [numOutputs, setNumOutputs] = useState(1);
-  const [inferenceSteps, setInferenceSteps] = useState(4);
   const [progress, setProgress] = useState(0);
 
   const startProgressSimulation = () => {
@@ -58,7 +55,7 @@ const ImageGeneratorForm = ({
     await onGenerate(prompt, model, {
       aspectRatio,
       numOutputs,
-      inferenceSteps
+      inferenceSteps: 4 // Fixed value since we removed the slider
     });
     cleanupProgress();
     setProgress(100);
@@ -78,7 +75,6 @@ const ImageGeneratorForm = ({
       <CardContent className="space-y-6">
         {error && (
           <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
             {hasLastPrompt && (
               <Button 
@@ -103,31 +99,17 @@ const ImageGeneratorForm = ({
         >
           <div className="space-y-2">
             <Label htmlFor="prompt" className="text-purple-700 dark:text-purple-300">Prompt</Label>
-            <Input
+            <Textarea
               id="prompt"
               placeholder="A serene lake at sunset with mountains in the background..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               disabled={generating}
-              className="h-20 resize-none py-2 bg-white dark:bg-gray-900 border-purple-100 dark:border-purple-900/20 focus:ring-purple-500"
+              className="min-h-[100px] resize-none bg-white dark:bg-gray-900 border-purple-100 dark:border-purple-900/20 focus:ring-purple-500"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="model">Model</Label>
-              <Select value={model} onValueChange={setModel} disabled={generating}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="flux">Flux (Fastest)</SelectItem>
-                  <SelectItem value="sdxl-turbo">SDXL Turbo (Fast)</SelectItem>
-                  <SelectItem value="sdxl">SDXL (High Quality)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="aspect-ratio">Aspect Ratio</Label>
               <Select value={aspectRatio} onValueChange={setAspectRatio} disabled={generating}>
@@ -142,38 +124,6 @@ const ImageGeneratorForm = ({
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor="inference-steps">Quality (Inference Steps: {inferenceSteps})</Label>
-              <span className="text-xs text-muted-foreground">Higher = Better Quality, Slower</span>
-            </div>
-            <Slider 
-              id="inference-steps"
-              min={1} 
-              max={20} 
-              step={1} 
-              value={[inferenceSteps]} 
-              onValueChange={(value) => setInferenceSteps(value[0])}
-              disabled={generating}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="num-outputs" className="text-purple-700 dark:text-purple-300">
-              Number of Images: {numOutputs}
-            </Label>
-            <Slider 
-              id="num-outputs"
-              min={1} 
-              max={4} 
-              step={1} 
-              value={[numOutputs]} 
-              onValueChange={(value) => setNumOutputs(value[0])}
-              disabled={generating}
-              className="[&>span]:bg-purple-500"
-            />
           </div>
           
           {generating && (

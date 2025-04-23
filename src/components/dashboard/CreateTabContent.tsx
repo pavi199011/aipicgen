@@ -1,8 +1,12 @@
 
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Download, Eye } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ImageGeneratorForm from "@/components/dashboard/ImageGeneratorForm";
 import { GeneratedImage } from "@/hooks/useFetchImages";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import ImageZoom from "@/components/common/ImageZoom";
+import { useImageOperations } from "@/hooks/useImageOperations";
 
 interface CreateTabContentProps {
   images: GeneratedImage[];
@@ -29,8 +33,14 @@ const CreateTabContent = ({
   retryLastGeneration,
   hasLastPrompt,
 }: CreateTabContentProps) => {
-  // We will display "recent" images, or an empty state
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const recentImages = images.slice(0, 4);
+
+  // Create a map of image operations for each image
+  const imageOperationsMap = recentImages.reduce((acc, image) => {
+    acc[image.id] = useImageOperations(image.id, image.image_url);
+    return acc;
+  }, {} as Record<string, ReturnType<typeof useImageOperations>>);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -60,10 +70,6 @@ const CreateTabContent = ({
                     <div className="p-4">
                       <div className="h-4 w-1/3 bg-gray-200 dark:bg-gray-700 mb-2 rounded"></div>
                       <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      <div className="flex justify-between mt-3">
-                        <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -81,35 +87,69 @@ const CreateTabContent = ({
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {recentImages.map((image) => (
-                  <div
-                    key={image.id}
-                    className="border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-gray-800"
-                  >
-                    <div className="relative h-48 group">
-                      <img
-                        src={image.image_url}
-                        alt={image.prompt}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/placeholder.svg";
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <p className="text-white text-sm line-clamp-2">
-                            {image.prompt}
-                          </p>
+                {recentImages.map((image) => {
+                  const operations = imageOperationsMap[image.id];
+                  const isSelected = selectedImageId === image.id;
+
+                  return (
+                    <div
+                      key={image.id}
+                      className="border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-gray-800"
+                    >
+                      <div className="relative h-48 group">
+                        <img
+                          src={image.image_url}
+                          alt={image.prompt}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => {
+                            console.error("Image failed to load:", image.image_url);
+                            (e.target as HTMLImageElement).src = "/placeholder.svg";
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="absolute bottom-4 left-4 right-4 flex gap-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => setSelectedImageId(image.id)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              Preview
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => operations.handleDownload()}
+                              disabled={operations.downloading}
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              Download
+                            </Button>
+                          </div>
                         </div>
                       </div>
+                      <div className="p-4">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
+                          {image.prompt}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(image.created_at).toLocaleString()}
+                        </p>
+                      </div>
+
+                      {isSelected && (
+                        <ImageZoom
+                          imageUrl={image.image_url}
+                          alt={image.prompt}
+                          isOpen={isSelected}
+                          onOpenChange={() => setSelectedImageId(null)}
+                        />
+                      )}
                     </div>
-                    <div className="p-4">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(image.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -120,4 +160,3 @@ const CreateTabContent = ({
 };
 
 export default CreateTabContent;
-

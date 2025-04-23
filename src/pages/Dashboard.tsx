@@ -29,7 +29,6 @@ const Dashboard = () => {
     hasLastPrompt
   } = useImageGeneration(user.id, fetchImages);
 
-  // Show image count and recently generated images summary at top
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4">
@@ -41,21 +40,8 @@ const Dashboard = () => {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {imagesLoading
                 ? "Loading your image count..."
-                : `You have generated ${
-                    images.length
-                  } image${images.length === 1 ? "" : "s"}.`}
+                : `You have generated ${images.length} image${images.length === 1 ? "" : "s"}.`}
             </p>
-          </div>
-          {/* Recently generated images thumbnails */}
-          <div className="flex items-center gap-2">
-            {images.slice(0, 3).map((img) => (
-              <img
-                key={img.id}
-                src={img.image_url}
-                alt={img.prompt}
-                className="w-14 h-14 object-cover rounded-md border border-gray-200 dark:border-gray-700 shadow-sm"
-              />
-            ))}
           </div>
         </div>
 
@@ -87,4 +73,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
