@@ -49,8 +49,8 @@ serve(async (req) => {
       megapixels: "1",
       num_outputs: body.settings.numOutputs || 1,
       aspect_ratio: body.settings.aspectRatio || "1:1",
-      output_format: "webp",
-      output_quality: 80,
+      output_format: "png",
+      output_quality: 100,
       num_inference_steps: body.settings.inferenceSteps || 4
     }
 
@@ -72,11 +72,18 @@ serve(async (req) => {
         ? output.map(url => ({ image_url: url })) 
         : [{ image_url: output }];
 
+      // Add cache control headers to prevent image expiration
+      const responseHeaders = {
+        ...corsHeaders,
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=31536000, immutable'
+      };
+
       return new Response(JSON.stringify({ 
         images: formattedResponse,
         message: "Images generated successfully" 
       }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: responseHeaders,
         status: 200,
       });
     } catch (modelError) {

@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { 
   Download,
   ZoomIn,
-  Trash2
+  Trash2,
+  ImageOff
 } from "lucide-react";
 import ImageZoom from "@/components/common/ImageZoom";
 
@@ -28,19 +29,32 @@ const ImagePreview = ({
   onDeleteClick 
 }: ImagePreviewProps) => {
   const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error("Image failed to load:", imageUrl);
+    setImageError(true);
+  };
 
   return (
     <div className="relative">
-      <img
-        src={imageUrl}
-        alt={prompt}
-        className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
-        loading="lazy"
-        onError={(e) => {
-          console.error("Image failed to load:", imageUrl);
-          (e.target as HTMLImageElement).src = "/placeholder.svg";
-        }}
-      />
+      {imageError ? (
+        <div className="w-full h-64 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div className="text-center">
+            <ImageOff className="h-12 w-12 mx-auto text-gray-400" />
+            <p className="mt-2 text-sm text-gray-500">Image not available</p>
+          </div>
+        </div>
+      ) : (
+        <img
+          src={imageUrl}
+          alt={prompt}
+          className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+          onError={handleImageError}
+        />
+      )}
+      
       <div className="absolute top-2 right-2 flex gap-2">
         <Button
           size="icon"
@@ -50,6 +64,7 @@ const ImagePreview = ({
           }`}
           onClick={() => setIsZoomOpen(true)}
           title="Zoom image"
+          disabled={imageError}
         >
           <ZoomIn className="h-4 w-4" />
         </Button>
@@ -60,7 +75,7 @@ const ImagePreview = ({
             isHovering ? "opacity-100" : "opacity-0"
           }`}
           onClick={onDownload}
-          disabled={downloading}
+          disabled={downloading || imageError}
           title="Download image"
         >
           <Download className="h-4 w-4" />
@@ -79,12 +94,14 @@ const ImagePreview = ({
         </Button>
       </div>
 
-      <ImageZoom
-        imageUrl={imageUrl}
-        alt={prompt}
-        isOpen={isZoomOpen}
-        onOpenChange={setIsZoomOpen}
-      />
+      {!imageError && (
+        <ImageZoom
+          imageUrl={imageUrl}
+          alt={prompt}
+          isOpen={isZoomOpen}
+          onOpenChange={setIsZoomOpen}
+        />
+      )}
     </div>
   );
 };

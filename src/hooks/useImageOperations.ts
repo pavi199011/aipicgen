@@ -22,10 +22,8 @@ export const useImageOperations = (id: string, imageUrl: string, onDelete?: () =
       a.style.display = "none";
       a.href = url;
       
-      // Extract filename from URL or create a generic one
-      const urlParts = imageUrl.split('/');
-      const filename = urlParts[urlParts.length - 1].split('?')[0] || 
-                      `ai-image-${new Date().toISOString().slice(0, 10)}.png`;
+      // Use PNG extension for downloaded files
+      const filename = `ai-image-${new Date().toISOString().slice(0, 10)}.png`;
       
       a.download = filename;
       document.body.appendChild(a);
