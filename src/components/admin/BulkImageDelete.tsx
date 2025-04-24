@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -32,7 +31,7 @@ const BulkImageDelete = () => {
           model, 
           created_at, 
           user_id,
-          profiles:user_id(username)
+          profiles(username)
         `)
         .order("created_at", { ascending: false });
         
