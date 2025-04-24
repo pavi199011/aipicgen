@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,11 +20,9 @@ interface ImageItem {
   model: string;
   created_at: string;
   user_id: string;
-  // Make profiles optional since it might not be properly joined
   profiles?: {
     username: string | null;
   } | null;
-  // Explicitly add username as an optional property
   username?: string | null;
 }
 
@@ -42,7 +39,6 @@ const BulkImageDelete = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
-  // Fetch images
   const { data: images, isLoading: imagesLoading, refetch: refetchImages } = useQuery({
     queryKey: ["admin-images", searchTerm, selectedUser],
     queryFn: async () => {
@@ -73,10 +69,7 @@ const BulkImageDelete = () => {
         throw error;
       }
       
-      // Handle the case where the profiles relation might be an error
-      // Safeguard the transformation with proper type checking
       const formattedData = data.map(item => {
-        // Create a new object with the right shape
         const imageItem: ImageItem = {
           id: item.id,
           image_url: item.image_url,
@@ -84,13 +77,11 @@ const BulkImageDelete = () => {
           model: item.model,
           created_at: item.created_at,
           user_id: item.user_id,
-          // Only add profiles if it's not an error object
           profiles: typeof item.profiles === 'object' && item.profiles !== null 
             ? item.profiles 
             : null,
-          // Extract username safely or set to null
           username: typeof item.profiles === 'object' && item.profiles !== null 
-            ? item.profiles.username 
+            ? (item.profiles?.username ?? null) 
             : null
         };
         return imageItem;
@@ -100,7 +91,6 @@ const BulkImageDelete = () => {
     }
   });
   
-  // Fetch users
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ["admin-users-list"],
     queryFn: async () => {
@@ -116,7 +106,6 @@ const BulkImageDelete = () => {
     }
   });
   
-  // Toggle all images selection
   const toggleSelectAll = () => {
     if (images) {
       if (selectedImages.length === images.length) {
@@ -127,7 +116,6 @@ const BulkImageDelete = () => {
     }
   };
   
-  // Toggle single image selection
   const toggleImageSelection = (id: string) => {
     if (selectedImages.includes(id)) {
       setSelectedImages(selectedImages.filter(imgId => imgId !== id));
@@ -136,7 +124,6 @@ const BulkImageDelete = () => {
     }
   };
   
-  // Handle bulk delete
   const handleBulkDelete = async () => {
     if (selectedImages.length === 0) {
       toast({
@@ -164,7 +151,6 @@ const BulkImageDelete = () => {
         });
       }
       
-      // Clear selection and refresh data
       setSelectedImages([]);
       refetchImages();
     } catch (error) {
@@ -192,7 +178,6 @@ const BulkImageDelete = () => {
         <CardContent>
           <div className="flex flex-col space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
-              {/* Search */}
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                 <Input
@@ -203,7 +188,6 @@ const BulkImageDelete = () => {
                 />
               </div>
               
-              {/* User Filter */}
               <div className="w-full sm:w-64">
                 <Select
                   value={selectedUser}
@@ -224,7 +208,6 @@ const BulkImageDelete = () => {
                 </Select>
               </div>
               
-              {/* Refresh button */}
               <Button 
                 variant="outline" 
                 size="icon" 
@@ -236,7 +219,6 @@ const BulkImageDelete = () => {
               </Button>
             </div>
             
-            {/* Action Buttons */}
             <div className="flex gap-2 justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox 
@@ -266,7 +248,6 @@ const BulkImageDelete = () => {
             
             <Separator className="my-4" />
             
-            {/* Images Grid */}
             {imagesLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((_, i) => (
@@ -329,7 +310,6 @@ const BulkImageDelete = () => {
         </CardContent>
       </Card>
       
-      {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
