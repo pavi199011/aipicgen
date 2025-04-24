@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -31,7 +32,7 @@ const BulkImageDelete = () => {
           model, 
           created_at, 
           user_id,
-          profiles(username)
+          profiles!generated_images_user_id_fkey(username)
         `)
         .order("created_at", { ascending: false });
         
@@ -46,6 +47,7 @@ const BulkImageDelete = () => {
       const { data, error } = await query;
       
       if (error) {
+        console.error("Error fetching images:", error);
         throw error;
       }
       
