@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -9,7 +10,7 @@ import { SearchFilters } from "./bulk-image-delete/SearchFilters";
 import { SelectionControls } from "./bulk-image-delete/SelectionControls";
 import { ImageGrid } from "./bulk-image-delete/ImageGrid";
 import { DeleteConfirmDialog } from "./bulk-image-delete/DeleteConfirmDialog";
-import { ImageItem } from "./bulk-image-delete/types";
+import { ImageItem, User } from "./bulk-image-delete/types";
 
 const BulkImageDelete = () => {
   const { toast } = useToast();
@@ -31,7 +32,7 @@ const BulkImageDelete = () => {
           model, 
           created_at, 
           user_id,
-          profiles (username)
+          profiles:user_id(username)
         `)
         .order("created_at", { ascending: false });
         
