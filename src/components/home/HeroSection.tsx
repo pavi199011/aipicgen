@@ -1,12 +1,14 @@
+
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 interface HeroImageProps {
   url: string;
   alt: string;
   style: string;
+  description: string;
 }
 
 interface HeroSectionProps {
@@ -102,7 +104,7 @@ const HeroSection = ({ aiGeneratedImages = [] }: HeroSectionProps) => {
                 fetchPriority="high"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <span className="text-white text-sm p-3 absolute bottom-0">{image.alt}</span>
+                <span className="text-white text-sm p-3 absolute bottom-0">{image.description}</span>
               </div>
             </motion.div>
           ))}

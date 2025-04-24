@@ -21,6 +21,10 @@ interface ImageItem {
   model: string;
   created_at: string;
   user_id: string;
+  profiles?: {
+    username: string | null;
+  };
+  // Explicitly add username as an optional property
   username?: string;
 }
 
@@ -68,10 +72,10 @@ const BulkImageDelete = () => {
         throw error;
       }
       
-      // Format the results
+      // Format the results - ensure we map username properly
       return data.map(item => ({
         ...item,
-        username: item.profiles?.username
+        username: item.profiles?.username || undefined
       })) as ImageItem[];
     }
   });

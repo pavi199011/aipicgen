@@ -12,23 +12,31 @@ import CTASection from "@/components/home/CTASection";
 import HomeFooter from "@/components/home/HomeFooter";
 
 const Index = () => {
-  // Sample data for AI generated images - Updated with text placeholders
+  // Sample data for AI generated images - Updated with text placeholders and added url and alt props
   const aiGeneratedImages = [
     {
       description: "Vibrant abstract desert landscape",
-      style: "abstract"
+      style: "abstract",
+      url: "/placeholder.svg",
+      alt: "Abstract desert landscape"
     },
     {
       description: "Modern architecture in grayscale",
-      style: "futuristic"
+      style: "futuristic",
+      url: "/placeholder.svg",
+      alt: "Futuristic architecture"
     },
     {
       description: "Nature wildlife scene with deer",
-      style: "nature"
+      style: "nature",
+      url: "/placeholder.svg",
+      alt: "Wildlife nature scene"
     },
     {
       description: "Portrait of a cat in soft lighting",
-      style: "portrait"
+      style: "portrait",
+      url: "/placeholder.svg",
+      alt: "Cat portrait"
     }
   ];
 
