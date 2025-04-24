@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -23,43 +22,48 @@ const BulkImageDelete = () => {
   const { data: images, isLoading: imagesLoading, refetch: refetchImages } = useQuery({
     queryKey: ["admin-images", searchTerm, selectedUser],
     queryFn: async () => {
-      let query = supabase
-        .from("generated_images")
-        .select(`
-          id, 
-          image_url, 
-          prompt, 
-          model, 
-          created_at, 
-          user_id,
-          profiles!generated_images_user_id_fkey(username)
-        `)
-        .order("created_at", { ascending: false });
+      try {
+        let query = supabase
+          .from("generated_images")
+          .select(`
+            id, 
+            image_url, 
+            prompt, 
+            model, 
+            created_at, 
+            user_id,
+            profiles (username)
+          `)
+          .order("created_at", { ascending: false });
+          
+        if (selectedUser !== "all") {
+          query = query.eq("user_id", selectedUser);
+        }
         
-      if (selectedUser !== "all") {
-        query = query.eq("user_id", selectedUser);
-      }
-      
-      if (searchTerm) {
-        query = query.ilike("prompt", `%${searchTerm}%`);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error("Error fetching images:", error);
+        if (searchTerm) {
+          query = query.ilike("prompt", `%${searchTerm}%`);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error("Error fetching images:", error);
+          throw error;
+        }
+        
+        return data.map(item => ({
+          id: item.id,
+          image_url: item.image_url,
+          prompt: item.prompt,
+          model: item.model,
+          created_at: item.created_at,
+          user_id: item.user_id,
+          username: item.profiles?.username || null
+        })) as ImageItem[];
+      } catch (error) {
+        console.error("Error in query execution:", error);
         throw error;
       }
-      
-      return data.map(item => ({
-        id: item.id,
-        image_url: item.image_url,
-        prompt: item.prompt,
-        model: item.model,
-        created_at: item.created_at,
-        user_id: item.user_id,
-        username: item.profiles?.username || null
-      })) as ImageItem[];
     }
   });
   
