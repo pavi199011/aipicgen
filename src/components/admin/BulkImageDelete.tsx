@@ -7,13 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { bulkDeleteGeneratedImages } from "@/utils/supabase-helpers";
 import { SearchFilters } from "./bulk-image-delete/SearchFilters";
 import { SelectionControls } from "./bulk-image-delete/SelectionControls";
-import { ImageGrid, ImageItem } from "./bulk-image-delete/ImageGrid";
+import { ImageGrid } from "./bulk-image-delete/ImageGrid";
 import { DeleteConfirmDialog } from "./bulk-image-delete/DeleteConfirmDialog";
-
-interface User {
-  id: string;
-  username?: string;
-}
+import { ImageItem } from "./bulk-image-delete/types";
 
 const BulkImageDelete = () => {
   const { toast } = useToast();
@@ -35,7 +31,7 @@ const BulkImageDelete = () => {
           model, 
           created_at, 
           user_id,
-          profiles(username)
+          profiles (username)
         `)
         .order("created_at", { ascending: false });
         
@@ -53,18 +49,15 @@ const BulkImageDelete = () => {
         throw error;
       }
       
-      const formattedData = data.map(item => ({
+      return data.map(item => ({
         id: item.id,
         image_url: item.image_url,
         prompt: item.prompt,
         model: item.model,
         created_at: item.created_at,
         user_id: item.user_id,
-        profiles: item.profiles ?? null,
-        username: item.profiles?.username ?? null
-      }));
-      
-      return formattedData as ImageItem[];
+        username: item.profiles?.username || null
+      })) as ImageItem[];
     }
   });
   

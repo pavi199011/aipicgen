@@ -1,19 +1,7 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-export interface ImageItem {
-  id: string;
-  image_url: string;
-  prompt: string;
-  model: string;
-  created_at: string;
-  user_id: string;
-  profiles?: {
-    username: string | null;
-  } | null;
-  username?: string | null;
-}
+import { ImageItem } from "./types";
 
 interface ImageGridProps {
   images?: ImageItem[];

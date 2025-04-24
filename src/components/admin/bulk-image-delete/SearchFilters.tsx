@@ -1,25 +1,9 @@
 
-import { Search } from "lucide-react";
+import { Search, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-
-interface User {
-  id: string;
-  username?: string;
-}
-
-interface SearchFiltersProps {
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
-  selectedUser: string;
-  onUserChange: (value: string) => void;
-  users?: User[];
-  usersLoading: boolean;
-  onRefresh: () => void;
-  isLoading: boolean;
-}
+import { SearchFiltersProps } from "./types";
 
 export const SearchFilters = ({
   searchTerm,
