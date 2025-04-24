@@ -60,9 +60,8 @@ const BulkImageDelete = () => {
         model: item.model,
         created_at: item.created_at,
         user_id: item.user_id,
-        // Fix: Add null check for profiles and properly access username with optional chaining
-        profiles: typeof item.profiles === 'object' ? item.profiles : null,
-        username: typeof item.profiles === 'object' ? item.profiles?.username ?? null : null
+        profiles: item.profiles ?? null,
+        username: item.profiles?.username ?? null
       }));
       
       return formattedData as ImageItem[];
