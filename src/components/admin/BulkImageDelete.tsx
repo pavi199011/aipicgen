@@ -21,11 +21,12 @@ interface ImageItem {
   model: string;
   created_at: string;
   user_id: string;
+  // Make profiles optional since it might not be properly joined
   profiles?: {
     username: string | null;
-  };
+  } | null;
   // Explicitly add username as an optional property
-  username?: string;
+  username?: string | null;
 }
 
 interface User {
@@ -72,11 +73,30 @@ const BulkImageDelete = () => {
         throw error;
       }
       
-      // Format the results - ensure we map username properly
-      return data.map(item => ({
-        ...item,
-        username: item.profiles?.username || undefined
-      })) as ImageItem[];
+      // Handle the case where the profiles relation might be an error
+      // Safeguard the transformation with proper type checking
+      const formattedData = data.map(item => {
+        // Create a new object with the right shape
+        const imageItem: ImageItem = {
+          id: item.id,
+          image_url: item.image_url,
+          prompt: item.prompt,
+          model: item.model,
+          created_at: item.created_at,
+          user_id: item.user_id,
+          // Only add profiles if it's not an error object
+          profiles: typeof item.profiles === 'object' && item.profiles !== null 
+            ? item.profiles 
+            : null,
+          // Extract username safely or set to null
+          username: typeof item.profiles === 'object' && item.profiles !== null 
+            ? item.profiles.username 
+            : null
+        };
+        return imageItem;
+      });
+      
+      return formattedData;
     }
   });
   
