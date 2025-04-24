@@ -17,12 +17,7 @@ interface RecentImagesProps {
 const RecentImages = ({ images, loading, error }: RecentImagesProps) => {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const recentImages = images.slice(0, 4);
-
-  const imageOperationsMap = recentImages.reduce((acc, image) => {
-    acc[image.id] = useImageOperations(image.id, image.image_url);
-    return acc;
-  }, {} as Record<string, ReturnType<typeof useImageOperations>>);
-
+  
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -60,69 +55,86 @@ const RecentImages = ({ images, loading, error }: RecentImagesProps) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {recentImages.map((image) => {
-        const operations = imageOperationsMap[image.id];
-        const isSelected = selectedImageId === image.id;
+      {recentImages.map((image) => (
+        <RecentImageCard
+          key={image.id}
+          image={image}
+          isSelected={selectedImageId === image.id}
+          onPreview={() => setSelectedImageId(image.id)}
+          onDismissPreview={() => setSelectedImageId(null)}
+        />
+      ))}
+    </div>
+  );
+};
 
-        return (
-          <div
-            key={image.id}
-            className="border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-gray-800"
-          >
-            <div className="relative h-48 group">
-              <img
-                src={image.image_url}
-                alt={image.prompt}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  console.error("Image failed to load:", image.image_url);
-                  (e.target as HTMLImageElement).src = "/placeholder.svg";
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-4 left-4 right-4 flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => setSelectedImageId(image.id)}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Preview
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => operations.handleDownload()}
-                    disabled={operations.downloading}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
-                  </Button>
-                </div>
-              </div>
-            </div>
-            <div className="p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
-                {image.prompt}
-              </p>
-              <p className="text-xs text-gray-400">
-                {new Date(image.created_at).toLocaleString()}
-              </p>
-            </div>
+interface RecentImageCardProps {
+  image: GeneratedImage;
+  isSelected: boolean;
+  onPreview: () => void;
+  onDismissPreview: () => void;
+}
 
-            {isSelected && (
-              <ImageZoom
-                imageUrl={image.image_url}
-                alt={image.prompt}
-                isOpen={isSelected}
-                onOpenChange={() => setSelectedImageId(null)}
-              />
-            )}
+const RecentImageCard = ({ image, isSelected, onPreview, onDismissPreview }: RecentImageCardProps) => {
+  const { downloading, handleDownload } = useImageOperations(image.id, image.image_url);
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <div 
+      className="border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-gray-800"
+    >
+      <div className="relative h-48 group">
+        <img
+          src={image.image_url}
+          alt={image.prompt}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={(e) => {
+            console.error("Image failed to load:", image.image_url);
+            setImageError(true);
+            (e.target as HTMLImageElement).src = "/placeholder.svg";
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-4 left-4 right-4 flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="flex-1"
+              onClick={onPreview}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              Preview
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="flex-1"
+              onClick={() => handleDownload()}
+              disabled={downloading || imageError}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
           </div>
-        );
-      })}
+        </div>
+      </div>
+      <div className="p-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
+          {image.prompt}
+        </p>
+        <p className="text-xs text-gray-400">
+          {new Date(image.created_at).toLocaleString()}
+        </p>
+      </div>
+
+      {isSelected && (
+        <ImageZoom
+          imageUrl={image.image_url}
+          alt={image.prompt}
+          isOpen={isSelected}
+          onOpenChange={onDismissPreview}
+        />
+      )}
     </div>
   );
 };
