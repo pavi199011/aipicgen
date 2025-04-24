@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -23,7 +24,8 @@ const BulkImageDelete = () => {
     queryKey: ["admin-images", searchTerm, selectedUser],
     queryFn: async () => {
       try {
-        let query = supabase
+        // First fetch images
+        let imagesQuery = supabase
           .from("generated_images")
           .select(`
             id, 
@@ -31,34 +33,60 @@ const BulkImageDelete = () => {
             prompt, 
             model, 
             created_at, 
-            user_id,
-            profiles (username)
+            user_id
           `)
           .order("created_at", { ascending: false });
           
         if (selectedUser !== "all") {
-          query = query.eq("user_id", selectedUser);
+          imagesQuery = imagesQuery.eq("user_id", selectedUser);
         }
         
         if (searchTerm) {
-          query = query.ilike("prompt", `%${searchTerm}%`);
+          imagesQuery = imagesQuery.ilike("prompt", `%${searchTerm}%`);
         }
         
-        const { data, error } = await query;
+        const { data: imagesData, error: imagesError } = await imagesQuery;
         
-        if (error) {
-          console.error("Error fetching images:", error);
-          throw error;
+        if (imagesError) {
+          console.error("Error fetching images:", imagesError);
+          throw imagesError;
         }
         
-        return data.map(item => ({
+        // If there's no images data, return an empty array
+        if (!imagesData || imagesData.length === 0) {
+          return [];
+        }
+        
+        // Fetch usernames separately for the user IDs we have
+        const userIds = [...new Set(imagesData.map(img => img.user_id))];
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, username")
+          .in("id", userIds);
+          
+        if (profilesError) {
+          console.error("Error fetching profiles:", profilesError);
+          // Don't throw error here, we'll just use null for username
+        }
+        
+        // Create a map of user IDs to usernames
+        const usernameMap = new Map();
+        if (profilesData) {
+          profilesData.forEach(profile => {
+            usernameMap.set(profile.id, profile.username);
+          });
+        }
+        
+        // Map the images data with usernames from our map
+        return imagesData.map(item => ({
           id: item.id,
           image_url: item.image_url,
           prompt: item.prompt,
           model: item.model,
           created_at: item.created_at,
           user_id: item.user_id,
-          username: item.profiles?.username || null
+          username: usernameMap.get(item.user_id) || null
         })) as ImageItem[];
       } catch (error) {
         console.error("Error in query execution:", error);
