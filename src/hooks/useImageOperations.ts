@@ -44,6 +44,7 @@ export const useImageOperations = (id: string, imageUrl: string, onDelete?: () =
     try {
       setIsDeleting(true);
       
+      // Call the improved deleteGeneratedImage function that handles complete removal
       const success = await deleteGeneratedImage(id);
       
       if (!success) {

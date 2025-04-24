@@ -7,6 +7,7 @@ import { useImageOperations } from "@/hooks/useImageOperations";
 import { GeneratedImage } from "@/hooks/useFetchImages";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface RecentImagesProps {
   images: GeneratedImage[];
@@ -15,8 +16,8 @@ interface RecentImagesProps {
 }
 
 const RecentImages = ({ images, loading, error }: RecentImagesProps) => {
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const recentImages = images.slice(0, 4);
+  const isMobile = useIsMobile();
   
   if (loading) {
     return (
@@ -59,9 +60,6 @@ const RecentImages = ({ images, loading, error }: RecentImagesProps) => {
         <RecentImageCard
           key={image.id}
           image={image}
-          isSelected={selectedImageId === image.id}
-          onPreview={() => setSelectedImageId(image.id)}
-          onDismissPreview={() => setSelectedImageId(null)}
         />
       ))}
     </div>
@@ -70,14 +68,13 @@ const RecentImages = ({ images, loading, error }: RecentImagesProps) => {
 
 interface RecentImageCardProps {
   image: GeneratedImage;
-  isSelected: boolean;
-  onPreview: () => void;
-  onDismissPreview: () => void;
 }
 
-const RecentImageCard = ({ image, isSelected, onPreview, onDismissPreview }: RecentImageCardProps) => {
+const RecentImageCard = ({ image }: RecentImageCardProps) => {
+  const [isSelected, setIsSelected] = useState(false);
   const { downloading, handleDownload } = useImageOperations(image.id, image.image_url);
   const [imageError, setImageError] = useState(false);
+  const isMobile = useIsMobile();
 
   return (
     <div 
@@ -95,25 +92,26 @@ const RecentImageCard = ({ image, isSelected, onPreview, onDismissPreview }: Rec
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute bottom-4 left-4 right-4 flex gap-2">
+          {/* Mobile-optimized buttons that are always visible on mobile */}
+          <div className={`${isMobile ? 'opacity-100 flex' : 'absolute opacity-0 group-hover:opacity-100 flex'} bottom-4 left-4 right-4 gap-2`}>
             <Button
               variant="secondary"
-              size="sm"
-              className="flex-1"
-              onClick={onPreview}
+              size={isMobile ? "default" : "sm"}
+              className={`flex-1 ${isMobile ? 'py-3 text-base' : ''}`}
+              onClick={() => setIsSelected(true)}
             >
-              <Eye className="mr-2 h-4 w-4" />
+              <Eye className={`${isMobile ? 'mr-3 h-5 w-5' : 'mr-2 h-4 w-4'}`} />
               Preview
             </Button>
             <Button
               variant="secondary"
-              size="sm"
-              className="flex-1"
+              size={isMobile ? "default" : "sm"}
+              className={`flex-1 ${isMobile ? 'py-3 text-base' : ''}`}
               onClick={() => handleDownload()}
               disabled={downloading || imageError}
             >
-              <Download className="mr-2 h-4 w-4" />
-              Download
+              <Download className={`${isMobile ? 'mr-3 h-5 w-5' : 'mr-2 h-4 w-4'}`} />
+              {downloading ? "..." : "Download"}
             </Button>
           </div>
         </div>
@@ -132,7 +130,7 @@ const RecentImageCard = ({ image, isSelected, onPreview, onDismissPreview }: Rec
           imageUrl={image.image_url}
           alt={image.prompt}
           isOpen={isSelected}
-          onOpenChange={onDismissPreview}
+          onOpenChange={() => setIsSelected(false)}
         />
       )}
     </div>

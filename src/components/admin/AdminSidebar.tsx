@@ -4,14 +4,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { motion } from "framer-motion";
 import { 
-  BarChart3, 
-  Users, 
-  Settings, 
   Home, 
+  Users, 
   Image,
   LogOut, 
-  Shield, 
-  Activity
+  Shield 
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -38,9 +35,6 @@ export function AdminSidebar() {
     if (path === "/admin") return "overview";
     if (path.startsWith("/admin/users")) return "users";
     if (path.startsWith("/admin/content")) return "content";
-    if (path.startsWith("/admin/analytics")) return "analytics";
-    if (path.startsWith("/admin/activity")) return "activity";
-    if (path.startsWith("/admin/settings")) return "settings";
     return "overview";
   };
   
@@ -51,6 +45,7 @@ export function AdminSidebar() {
     setActiveSection(getActiveSection(location.pathname));
   }, [location.pathname]);
 
+  // Simplified menu with only necessary items
   const menuItems = [
     {
       id: "overview",
@@ -66,27 +61,9 @@ export function AdminSidebar() {
     },
     {
       id: "content",
-      label: "Content",
+      label: "Content Management",
       icon: Image,
       onClick: () => navigate("/admin/content")
-    },
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      onClick: () => navigate("/admin/analytics")
-    },
-    {
-      id: "activity",
-      label: "Activity Log",
-      icon: Activity,
-      onClick: () => navigate("/admin/activity")
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-      onClick: () => navigate("/admin/settings")
     }
   ];
 
@@ -100,10 +77,8 @@ export function AdminSidebar() {
     return "AD";
   };
 
-  // Handle sign out with proper navigation
   const handleSignOut = async () => {
     await signOut();
-    // Redirect to admin login page instead of auth
     navigate("/admin/login");
   };
 

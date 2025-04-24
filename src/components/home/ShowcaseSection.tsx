@@ -10,11 +10,12 @@ import {
   CarouselNext,
   CarouselPrevious 
 } from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ShowcaseImage {
-  url: string;
-  alt: string;
   title: string;
+  description: string;
+  style: string;
 }
 
 interface ShowcaseSectionProps {
@@ -22,21 +23,34 @@ interface ShowcaseSectionProps {
 }
 
 const ShowcaseSection = ({ showcaseImages }: ShowcaseSectionProps) => {
-  // Track loading state for each image
-  const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
-
-  const handleImageLoad = (index: number) => {
-    setLoadedImages(prev => ({ ...prev, [index]: true }));
-  };
-
-  const handleImageError = (index: number) => {
-    console.error(`Failed to load image at index ${index}`);
-    // Use a placeholder image on error
-    const imgElement = document.getElementById(`showcase-img-${index}`) as HTMLImageElement;
-    if (imgElement) {
-      imgElement.src = "https://images.unsplash.com/photo-1486718448742-163732cd1544";
+  const isMobile = useIsMobile();
+  
+  // Sample showcase images with text instead of URLs
+  const sampleShowcaseImages: ShowcaseImage[] = [
+    {
+      title: "Architectural Abstract",
+      description: "Minimalist architectural detail",
+      style: "abstract"
+    },
+    {
+      title: "Contemporary Design",
+      description: "Modern building against blue sky",
+      style: "modern"
+    },
+    {
+      title: "Urban Perspective",
+      description: "Bottom view of glass building",
+      style: "urban"
+    },
+    {
+      title: "Geometric Patterns",
+      description: "Striking architectural lines",
+      style: "geometric"
     }
-  };
+  ];
+
+  // Use the sample data instead of props
+  const displayImages = sampleShowcaseImages;
 
   return (
     <section className="py-20 bg-gradient-to-b from-white to-purple-50 dark:from-gray-950 dark:to-gray-900">
@@ -55,7 +69,7 @@ const ShowcaseSection = ({ showcaseImages }: ShowcaseSectionProps) => {
 
         {/* Desktop Layout - Grid */}
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {showcaseImages.map((image, index) => (
+          {displayImages.map((image, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -67,19 +81,16 @@ const ShowcaseSection = ({ showcaseImages }: ShowcaseSectionProps) => {
               <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white dark:bg-gray-800 border-none shadow-md">
                 <CardContent className="p-0">
                   <div className="relative aspect-[4/3]">
-                    <img 
-                      id={`showcase-img-${index}`}
-                      src={image.url} 
-                      alt={image.alt}
-                      onLoad={() => handleImageLoad(index)}
-                      onError={() => handleImageError(index)}
-                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                        loadedImages[index] ? 'opacity-100' : 'opacity-0'
-                      }`}
-                    />
+                    {/* Replace image with styled text placeholder */}
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30">
+                      <div className="text-center p-4">
+                        <p className="text-lg font-medium text-purple-800 dark:text-purple-300">{image.style}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Sample Image</p>
+                      </div>
+                    </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
                       <h3 className="text-white font-medium">{image.title}</h3>
-                      <p className="text-white/80 text-sm">{image.alt}</p>
+                      <p className="text-white/80 text-sm">{image.description}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -92,24 +103,21 @@ const ShowcaseSection = ({ showcaseImages }: ShowcaseSectionProps) => {
         <div className="md:hidden">
           <Carousel className="w-full">
             <CarouselContent>
-              {showcaseImages.map((image, index) => (
+              {displayImages.map((image, index) => (
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                   <Card className="overflow-hidden shadow-md border-none">
                     <CardContent className="p-0">
                       <div className="relative aspect-[4/3]">
-                        <img 
-                          id={`showcase-mobile-img-${index}`}
-                          src={image.url} 
-                          alt={image.alt}
-                          onLoad={() => handleImageLoad(index + showcaseImages.length)}
-                          onError={() => handleImageError(index + showcaseImages.length)}
-                          className={`w-full h-full object-cover ${
-                            loadedImages[index + showcaseImages.length] ? 'opacity-100' : 'opacity-0'
-                          }`}
-                        />
+                        {/* Replace image with styled text placeholder */}
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30">
+                          <div className="text-center p-4">
+                            <p className="text-lg font-medium text-purple-800 dark:text-purple-300">{image.style}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Sample Image</p>
+                          </div>
+                        </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent flex flex-col justify-end p-4">
                           <h3 className="text-white font-medium">{image.title}</h3>
-                          <p className="text-white/80 text-sm">{image.alt}</p>
+                          <p className="text-white/80 text-sm">{image.description}</p>
                         </div>
                       </div>
                     </CardContent>

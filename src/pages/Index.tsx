@@ -12,51 +12,47 @@ import CTASection from "@/components/home/CTASection";
 import HomeFooter from "@/components/home/HomeFooter";
 
 const Index = () => {
-  // Sample data for AI generated images - Updated with reliable Unsplash images
+  // Sample data for AI generated images - Updated with text placeholders
   const aiGeneratedImages = [
     {
-      url: "https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151",
-      alt: "Vibrant abstract desert landscape",
+      description: "Vibrant abstract desert landscape",
       style: "abstract"
     },
     {
-      url: "https://images.unsplash.com/photo-1527576539890-dfa815648363",
-      alt: "Modern architecture in grayscale",
+      description: "Modern architecture in grayscale",
       style: "futuristic"
     },
     {
-      url: "https://images.unsplash.com/photo-1472396961693-142e6e269027",
-      alt: "Nature wildlife scene with deer",
+      description: "Nature wildlife scene with deer",
       style: "nature"
     },
     {
-      url: "https://images.unsplash.com/photo-1582562124811-c09040d0a901",
-      alt: "Portrait of a cat in soft lighting",
+      description: "Portrait of a cat in soft lighting",
       style: "portrait"
     }
   ];
 
-  // Sample showcase images - Updated with reliable architecture/design images
+  // Sample showcase images - Updated with text descriptions
   const showcaseImages = [
     {
-      url: "https://images.unsplash.com/photo-1486718448742-163732cd1544",
-      alt: "Minimalist architectural detail",
-      title: "Architectural Abstract"
+      description: "Minimalist architectural detail",
+      title: "Architectural Abstract",
+      style: "abstract"
     },
     {
-      url: "https://images.unsplash.com/photo-1551038247-3d9af20df552",
-      alt: "Modern building against blue sky",
-      title: "Contemporary Design"
+      description: "Modern building against blue sky",
+      title: "Contemporary Design",
+      style: "modern"
     },
     {
-      url: "https://images.unsplash.com/photo-1496307653780-42ee777d4833",
-      alt: "Bottom view of glass building",
-      title: "Urban Perspective"
+      description: "Bottom view of glass building",
+      title: "Urban Perspective",
+      style: "urban"
     },
     {
-      url: "https://images.unsplash.com/photo-1460574283810-2aab119d8511",
-      alt: "Striking architectural lines",
-      title: "Geometric Patterns"
+      description: "Striking architectural lines",
+      title: "Geometric Patterns",
+      style: "geometric"
     }
   ];
 
