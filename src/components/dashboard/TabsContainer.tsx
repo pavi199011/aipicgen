@@ -1,24 +1,23 @@
-
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 interface TabsContainerProps {
   createContent: ReactNode;
   galleryContent: ReactNode;
 }
-
-const TabsContainer = ({ createContent, galleryContent }: TabsContainerProps) => {
+const TabsContainer = ({
+  createContent,
+  galleryContent
+}: TabsContainerProps) => {
   const isMobile = useIsMobile();
-  
-  return (
-    <motion.div 
-      className="container mx-auto px-3 md:px-4 py-4 md:py-6 max-w-7xl"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+  return <motion.div initial={{
+    opacity: 0
+  }} animate={{
+    opacity: 1
+  }} transition={{
+    duration: 0.5
+  }} className="container mx-auto md:px-4 py-4 md:py-6 max-w-7xl px-0">
       <Tabs defaultValue="create" className="space-y-4 md:space-y-6">
         <TabsList className="w-full grid grid-cols-2 sm:inline-flex">
           <TabsTrigger value="create" className="flex-1 sm:flex-none text-sm md:text-base">Create</TabsTrigger>
@@ -33,8 +32,6 @@ const TabsContainer = ({ createContent, galleryContent }: TabsContainerProps) =>
           {galleryContent}
         </TabsContent>
       </Tabs>
-    </motion.div>
-  );
+    </motion.div>;
 };
-
 export default TabsContainer;
