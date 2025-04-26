@@ -11,8 +11,8 @@ interface GalleryTabContentProps {
 
 const GalleryTabContent = ({ images, loading, error, onRetry }: GalleryTabContentProps) => {
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
-      <h2 className="text-xl font-bold mb-6 dark:text-white">Your Generated Images</h2>
+    <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm">
+      <h2 className="text-xl font-bold mb-4 sm:mb-6 dark:text-white">Your Generated Images</h2>
       <ImageGallery 
         images={images} 
         loading={loading} 
