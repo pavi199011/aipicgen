@@ -7,9 +7,11 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import CreateTabContent from "@/components/dashboard/CreateTabContent";
 import GalleryTabContent from "@/components/dashboard/GalleryTabContent";
 import TabsContainer from "@/components/dashboard/TabsContainer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const isMobile = useIsMobile();
 
   if (!user) {
     return <Navigate to="/auth" replace />;
@@ -31,13 +33,13 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-3 md:px-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
           <div>
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+            <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
               Welcome{user?.email ? `, ${user.email.split("@")[0]}` : ""}!
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
               {imagesLoading
                 ? "Loading your image count..."
                 : `You have generated ${images.length} image${images.length === 1 ? "" : "s"}.`}

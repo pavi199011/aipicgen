@@ -11,9 +11,11 @@ import { SelectionControls } from "./bulk-image-delete/SelectionControls";
 import { ImageGrid } from "./bulk-image-delete/ImageGrid";
 import { DeleteConfirmDialog } from "./bulk-image-delete/DeleteConfirmDialog";
 import { ImageItem, User } from "./bulk-image-delete/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const BulkImageDelete = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -172,14 +174,14 @@ const BulkImageDelete = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden">
+        <CardHeader className={isMobile ? "px-3 py-4" : ""}>
           <CardTitle>Bulk Image Management</CardTitle>
           <CardDescription>
             Delete multiple images from the system
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className={isMobile ? "px-3 py-3" : ""}>
           <div className="flex flex-col space-y-4">
             <SearchFilters 
               searchTerm={searchTerm}

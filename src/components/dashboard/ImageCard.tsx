@@ -5,6 +5,7 @@ import ImagePreview from "./ImagePreview";
 import ImageDetails from "./ImageDetails";
 import DeleteImageDialog from "./DeleteImageDialog";
 import { useImageOperations } from "@/hooks/useImageOperations";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ImageCardProps {
   id: string;
@@ -17,6 +18,7 @@ interface ImageCardProps {
 
 const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCardProps) => {
   const [isHovering, setIsHovering] = useState(false);
+  const isMobile = useIsMobile();
   
   const {
     downloading,
@@ -32,12 +34,13 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
       className="group overflow-hidden transition-all duration-200 hover:shadow-md"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
+      onClick={() => isMobile && setIsHovering(!isHovering)}
     >
       <CardContent className="p-0 relative">
         <ImagePreview
           imageUrl={imageUrl}
           prompt={prompt}
-          isHovering={isHovering}
+          isHovering={isHovering || isMobile}
           downloading={downloading}
           isDeleting={isDeleting}
           onDownload={handleDownload}
@@ -45,7 +48,7 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
         />
       </CardContent>
       
-      <CardFooter className="flex flex-col items-start p-4">
+      <CardFooter className="flex flex-col items-start p-3 md:p-4">
         <ImageDetails
           prompt={prompt}
           model={model}
@@ -54,6 +57,7 @@ const ImageCard = ({ id, imageUrl, prompt, model, createdAt, onDelete }: ImageCa
           isDeleting={isDeleting}
           onDownload={handleDownload}
           onDeleteClick={() => setShowDeleteConfirm(true)}
+          compact={isMobile}
         />
       </CardFooter>
 
