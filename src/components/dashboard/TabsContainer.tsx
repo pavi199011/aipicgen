@@ -14,24 +14,22 @@ const TabsContainer = ({ createContent, galleryContent }: TabsContainerProps) =>
   
   return (
     <motion.div 
-      className={`container mx-auto ${isMobile ? 'py-4 px-2' : 'py-8 px-4'} max-w-7xl`}
+      className="container mx-auto px-3 md:px-4 py-4 md:py-6 max-w-7xl"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <Tabs defaultValue="create" className="space-y-6 md:space-y-8">
-        <div className="flex justify-between items-center mb-2">
-          <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex">
-            <TabsTrigger value="create" className="flex-1 sm:flex-none">Create</TabsTrigger>
-            <TabsTrigger value="gallery" className="flex-1 sm:flex-none">Your Gallery</TabsTrigger>
-          </TabsList>
-        </div>
+      <Tabs defaultValue="create" className="space-y-4 md:space-y-6">
+        <TabsList className="w-full grid grid-cols-2 sm:inline-flex">
+          <TabsTrigger value="create" className="flex-1 sm:flex-none text-sm md:text-base">Create</TabsTrigger>
+          <TabsTrigger value="gallery" className="flex-1 sm:flex-none text-sm md:text-base">Your Gallery</TabsTrigger>
+        </TabsList>
         
-        <TabsContent value="create">
+        <TabsContent value="create" className="mt-4">
           {createContent}
         </TabsContent>
         
-        <TabsContent value="gallery">
+        <TabsContent value="gallery" className="mt-4">
           {galleryContent}
         </TabsContent>
       </Tabs>

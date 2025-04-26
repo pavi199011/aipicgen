@@ -32,8 +32,8 @@ const CreateTabContent = ({
   const isMobile = useIsMobile();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-      <div className={`${isMobile ? "col-span-1" : "col-span-1"}`}>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="col-span-1">
         <GeneratorSection
           generating={generating}
           generationError={generationError}
@@ -42,9 +42,9 @@ const CreateTabContent = ({
           hasLastPrompt={hasLastPrompt}
         />
       </div>
-      <div className={`${isMobile ? "col-span-1" : "col-span-2"}`}>
-        <div className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-gray-900 p-4 md:p-6 rounded-xl shadow-lg min-h-[420px] flex flex-col">
-          <h2 className="text-xl font-bold mb-4 md:mb-6 dark:text-white">Recently Created</h2>
+      <div className="col-span-1 lg:col-span-2">
+        <div className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-gray-900 p-3 md:p-6 rounded-xl shadow-lg min-h-[420px] flex flex-col">
+          <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-6 dark:text-white">Recently Created</h2>
           <div className="flex-1">
             <RecentImages
               images={images}
