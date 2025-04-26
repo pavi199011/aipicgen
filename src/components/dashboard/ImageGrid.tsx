@@ -3,6 +3,7 @@ import { useState } from "react";
 import ImageCard from "./ImageCard";
 import { GeneratedImage } from "@/hooks/useFetchImages";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { cn } from "@/lib/utils";
 
 interface ImageGridProps {
   images: GeneratedImage[];
@@ -17,6 +18,23 @@ const ImageGrid = ({ images, onDelete }: ImageGridProps) => {
   const indexOfFirstImage = indexOfLastImage - imagesPerPage;
   const currentImages = images.slice(indexOfFirstImage, indexOfLastImage);
   const totalPages = Math.ceil(images.length / imagesPerPage);
+
+  // Go to the previous page if not on first page
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(p => p - 1);
+    }
+  };
+
+  // Go to the next page if not on last page
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(p => p + 1);
+    }
+  };
+
+  const isFirstPage = currentPage === 1;
+  const isLastPage = currentPage === totalPages;
 
   return (
     <div className="space-y-6">
@@ -40,15 +58,15 @@ const ImageGrid = ({ images, onDelete }: ImageGridProps) => {
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious 
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
+                  onClick={goToPrevPage}
+                  className={cn(isFirstPage && "pointer-events-none opacity-50")}
                 />
               </PaginationItem>
               
               <PaginationItem>
                 <PaginationNext 
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
+                  onClick={goToNextPage}
+                  className={cn(isLastPage && "pointer-events-none opacity-50")}
                 />
               </PaginationItem>
             </PaginationContent>
