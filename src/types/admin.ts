@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email?: string;
@@ -40,6 +39,15 @@ export interface UserDetailData {
   is_active?: boolean;
   is_admin?: boolean;
   avatar_url?: string | null;
+  credits: number;
+}
+
+export interface UserCreditTransaction {
+  id: string;
+  amount: number;
+  description: string;
+  transaction_type: string;
+  created_at: string;
 }
 
 export interface AdminCredentials {

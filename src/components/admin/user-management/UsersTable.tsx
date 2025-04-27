@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Table, 
@@ -40,17 +39,14 @@ const UsersTable = ({
   };
 
   const handleUserUpdate = (updatedUser: UserDetailData) => {
-    // Update the local state of the selected user
     setSelectedUser(updatedUser);
     
-    // Pass the updated user to the parent component
     if (onUserUpdate) {
       onUserUpdate(updatedUser);
     }
   };
 
   const handleUserDeleted = () => {
-    // Clear the selected user and refresh the list
     setSelectedUser(null);
     onRefresh();
   };
@@ -102,6 +98,7 @@ const UsersTable = ({
               </TableHead>
               <TableHead className="text-right">Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">Credits</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -142,6 +139,11 @@ const UsersTable = ({
                     }}>
                       Details
                     </Button>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                      {user.credits || 0}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))

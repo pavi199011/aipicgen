@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { UserDetailData } from "@/types/admin";
 import { DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
@@ -11,6 +10,7 @@ import UserDeleteAction from "./UserDeleteAction";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { UserCreditManagement } from "./UserCreditManagement";
 
 interface UserDetailContentProps {
   user: UserDetailData;
@@ -19,7 +19,12 @@ interface UserDetailContentProps {
   onUserDeleted?: () => void;
 }
 
-const UserDetailContent = ({ user, onClose, onUserUpdate, onUserDeleted }: UserDetailContentProps) => {
+const UserDetailContent = ({ 
+  user, 
+  onClose, 
+  onUserUpdate,
+  onUserDeleted 
+}: UserDetailContentProps) => {
   const [activeTab, setActiveTab] = useState("basic");
   const [userData, setUserData] = useState<UserDetailData>(user);
 
@@ -27,19 +32,25 @@ const UserDetailContent = ({ user, onClose, onUserUpdate, onUserDeleted }: UserD
     const updatedUser = { ...userData, is_active: isActive };
     setUserData(updatedUser);
     
-    // Notify parent component about the user update
     if (onUserUpdate) {
       onUserUpdate(updatedUser);
     }
   };
 
   const handleUserDeleted = () => {
-    // Close the dialog and notify parent component
     onClose();
     
-    // Notify parent component about the user deletion
     if (onUserDeleted) {
       onUserDeleted();
+    }
+  };
+
+  const handleCreditUpdate = (newCredits: number) => {
+    const updatedUser = { ...userData, credits: newCredits };
+    setUserData(updatedUser);
+    
+    if (onUserUpdate) {
+      onUserUpdate(updatedUser);
     }
   };
 
@@ -85,9 +96,10 @@ const UserDetailContent = ({ user, onClose, onUserUpdate, onUserDeleted }: UserD
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2">
+        <TabsList className="grid grid-cols-3">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="metadata">Metadata</TabsTrigger>
+          <TabsTrigger value="credits">Credits</TabsTrigger>
         </TabsList>
         <TabsContent value="basic" className="py-4">
           <div className="space-y-4">
@@ -113,6 +125,13 @@ const UserDetailContent = ({ user, onClose, onUserUpdate, onUserDeleted }: UserD
         </TabsContent>
         <TabsContent value="metadata" className="py-4">
           <UserMetadata user={userData} />
+        </TabsContent>
+        <TabsContent value="credits" className="py-4">
+          <UserCreditManagement 
+            userId={userData.id} 
+            currentCredits={userData.credits || 0}
+            onCreditUpdate={handleCreditUpdate}
+          />
         </TabsContent>
       </Tabs>
     </>
