@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserDetailData, UserFilterState, UserSortState } from "@/types/admin";
 import { useToast } from "@/hooks/use-toast";
+import { refreshUserDetailsView } from "@/utils/supabase-helpers";
 
 export function useUserManagement() {
   const { toast } = useToast();
@@ -71,27 +71,6 @@ export function useUserManagement() {
       console.log("Fetched users data:", data);
       
       // Transform the data to conform to UserDetailData interface
-      // We need to handle the credits field since it might not be in the view yet
-      // Get the profiles data for credits
-      const userIds = data.map(user => user.id);
-      
-      let credits = {};
-      if (userIds.length > 0) {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, credits")
-          .in("id", userIds);
-        
-        if (!profilesError && profilesData) {
-          // Create a lookup map for credits by user id
-          credits = profilesData.reduce((acc, profile) => {
-            acc[profile.id] = profile.credits || 0;
-            return acc;
-          }, {});
-        }
-      }
-      
-      // Transform the data to include credits
       const transformedData: UserDetailData[] = data.map(user => ({
         id: user.id || "",
         username: user.username,
@@ -102,7 +81,7 @@ export function useUserManagement() {
         is_active: user.is_active,
         is_admin: user.is_admin,
         avatar_url: user.avatar_url,
-        credits: credits[user.id] || 0
+        credits: user.credits || 0
       }));
       
       return transformedData;

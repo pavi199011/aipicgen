@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthState, AuthUser } from "./types";
@@ -31,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("Session found, fetching profile...");
           const { data: profile } = await supabase
             .from("profiles")
-            .select("username, avatar_url, is_admin")
+            .select("username, avatar_url, is_admin, credits")
             .eq("id", session.user.id)
             .single();
 
@@ -41,7 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               email: session.user.email,
               username: profile?.username || session.user.email?.split('@')[0],
               avatarUrl: profile?.avatar_url || null,
-              isAdmin: profile?.is_admin || false
+              isAdmin: profile?.is_admin || false,
+              credits: profile?.credits || 0
             });
           }
           console.log("User profile loaded, isAdmin:", profile?.is_admin);
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             const { data: profile } = await supabase
               .from("profiles")
-              .select("username, avatar_url, is_admin")
+              .select("username, avatar_url, is_admin, credits")
               .eq("id", session.user.id)
               .single();
 
@@ -103,7 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 email: session.user.email,
                 username: profile?.username || session.user.email?.split('@')[0],
                 avatarUrl: profile?.avatar_url || null,
-                isAdmin: profile?.is_admin || false
+                isAdmin: profile?.is_admin || false,
+                credits: profile?.credits || 0
               });
               console.log("User authenticated, isAdmin:", profile?.is_admin);
             }

@@ -1,10 +1,10 @@
-
 export interface AuthUser {
   id: string;
   email?: string;
   avatarUrl?: string | null;
   username?: string;
   isAdmin?: boolean;
+  credits?: number;
 }
 
 export interface AuthState {

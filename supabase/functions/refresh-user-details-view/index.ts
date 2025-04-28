@@ -14,7 +14,7 @@ const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return new Response(

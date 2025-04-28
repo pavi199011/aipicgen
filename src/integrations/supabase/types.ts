@@ -17,6 +17,7 @@ export type Database = {
           created_by: string
           description: string
           id: string
+          processed_at: string | null
           transaction_type: string
           user_id: string
         }
@@ -27,6 +28,7 @@ export type Database = {
           created_by: string
           description: string
           id?: string
+          processed_at?: string | null
           transaction_type: string
           user_id: string
         }
@@ -37,6 +39,7 @@ export type Database = {
           created_by?: string
           description?: string
           id?: string
+          processed_at?: string | null
           transaction_type?: string
           user_id?: string
         }
@@ -242,6 +245,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          credits: number | null
           email: string | null
           full_name: string | null
           id: string | null
