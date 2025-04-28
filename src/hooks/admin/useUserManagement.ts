@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,7 +69,14 @@ export function useUserManagement() {
       }
 
       console.log("Fetched users data:", data);
-      return data as UserDetailData[];
+      
+      // Transform the data to ensure it conforms to UserDetailData
+      const transformedData = data.map(user => ({
+        ...user,
+        credits: user.credits || 0 // Ensure credits is always present with a default of 0
+      })) as UserDetailData[];
+      
+      return transformedData;
     },
     // Set a very short stale time to ensure immediate refreshes after user status updates
     staleTime: 0,

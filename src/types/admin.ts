@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email?: string;
@@ -39,7 +40,7 @@ export interface UserDetailData {
   is_active?: boolean;
   is_admin?: boolean;
   avatar_url?: string | null;
-  credits: number;
+  credits?: number; // Make credits optional
 }
 
 export interface UserCreditTransaction {

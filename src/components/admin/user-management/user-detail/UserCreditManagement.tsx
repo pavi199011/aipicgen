@@ -30,11 +30,20 @@ export const UserCreditManagement: React.FC<UserCreditManagementProps> = ({
     }
 
     try {
-      const { data, error } = await supabase.rpc('add_user_credits', {
-        user_id_param: userId,
-        amount_param: creditAmount,
-        description_param: 'Admin credit adjustment',
-        admin_id_param: supabase.auth.user()?.id
+      const session = await supabase.auth.getSession();
+      const adminId = session.data.session?.user.id;
+      
+      if (!adminId) {
+        throw new Error("You must be logged in to add credits");
+      }
+
+      const { data, error } = await supabase.functions.invoke("add-user-credits", {
+        body: {
+          userId: userId,
+          amount: creditAmount,
+          description: 'Admin credit adjustment',
+          adminId: adminId
+        }
       });
 
       if (error) throw error;
