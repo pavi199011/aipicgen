@@ -1,119 +1,109 @@
 
-import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
+import { serve } from "https://deno.land/std@0.170.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-interface RequestBody {
+interface AddCreditsRequest {
   userId: string;
   amount: number;
   description: string;
   adminId: string;
 }
 
-serve(async (req) => {
-  // Handle CORS preflight request
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders, status: 204 });
+serve(async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: corsHeaders,
+      status: 204,
+    });
   }
-
+  
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    );
-
-    // Get the request data
-    const { userId, amount, description, adminId } = await req.json() as RequestBody;
-
+    const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = Deno.env.toObject();
+    
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Missing Supabase environment variables");
+    }
+    
+    // Create a Supabase client with the service role key for admin-level operations
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    
+    // Get user authorization from the request headers
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("Missing Authorization header");
+    }
+    
+    // Verify the JWT token first
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !user) {
+      throw new Error("Invalid authorization");
+    }
+    
+    // Parse the request body
+    const body: AddCreditsRequest = await req.json();
+    const { userId, amount, description, adminId } = body;
+    
     if (!userId || !amount || !description || !adminId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required parameters' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
+      throw new Error("Missing required parameters");
     }
-
-    // Verify admin status
-    const { data: adminData, error: adminError } = await supabaseClient
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', adminId)
+    
+    // Check if the admin exists and has admin rights
+    const { data: adminData, error: adminError } = await supabaseAdmin
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", adminId)
       .single();
-
-    if (adminError || !adminData || !adminData.is_admin) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Admin privileges required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
-      );
+    
+    if (adminError || !adminData || adminData.is_admin !== true) {
+      throw new Error("Not authorized to perform admin actions");
     }
-
-    // Add credits to user
-    const { data: userData, error: userError } = await supabaseClient
-      .from('profiles')
-      .select('credits')
-      .eq('id', userId)
-      .single();
-
-    if (userError) {
-      return new Response(
-        JSON.stringify({ error: 'User not found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-      );
+    
+    // Call the add_user_credits function
+    const { data, error } = await supabaseAdmin.rpc(
+      "add_user_credits",
+      {
+        user_id_param: userId,
+        amount_param: amount,
+        description_param: description,
+        admin_id_param: adminId
+      }
+    );
+    
+    if (error) {
+      throw error;
     }
-
-    // Update user credits
-    const newCredits = (userData.credits || 0) + amount;
-    const { error: updateError } = await supabaseClient
-      .from('profiles')
-      .update({ credits: newCredits })
-      .eq('id', userId);
-
-    if (updateError) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to update credits' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      );
-    }
-
-    // Log transaction
-    const { data: adminUser } = await supabaseClient
-      .from('profiles')
-      .select('username')
-      .eq('id', adminId)
-      .single();
-
-    const adminUsername = adminUser?.username || 'admin';
-
-    const { error: transactionError } = await supabaseClient
-      .from('credit_transactions')
-      .insert({
-        user_id: userId,
-        amount: amount,
-        description: description,
-        transaction_type: 'admin_add',
-        admin_id: adminId,
-        created_by: adminUsername
-      });
-
-    if (transactionError) {
-      console.error('Failed to log transaction:', transactionError);
-      // Continue anyway since credits were added successfully
-    }
-
+    
+    // Return success response
     return new Response(
-      JSON.stringify({ success: true, credits: newCredits }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      JSON.stringify({
+        success: true,
+        data
+      }), 
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200 
+      }
     );
   } catch (error) {
-    console.error('Error in add-user-credits function:', error);
-    
+    // Return error response
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({
+        success: false,
+        error: error.message
+      }), 
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400 
+      }
     );
   }
 });

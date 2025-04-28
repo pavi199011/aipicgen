@@ -70,11 +70,20 @@ export function useUserManagement() {
 
       console.log("Fetched users data:", data);
       
-      // Transform the data to ensure it conforms to UserDetailData
-      const transformedData = data.map(user => ({
-        ...user,
-        credits: user.credits || 0 // Ensure credits is always present with a default of 0
-      })) as UserDetailData[];
+      // Transform the data to conform to UserDetailData interface
+      // We need to explicitly handle the credits field since it might not be in the view yet
+      const transformedData: UserDetailData[] = data.map(user => ({
+        id: user.id || "",
+        username: user.username,
+        email: user.email,
+        full_name: user.full_name,
+        created_at: user.created_at || "",
+        image_count: user.image_count || 0,
+        is_active: user.is_active,
+        is_admin: user.is_admin,
+        avatar_url: user.avatar_url,
+        credits: typeof user.credits === 'number' ? user.credits : 0
+      }));
       
       return transformedData;
     },
