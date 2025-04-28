@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Settings, Shield } from "lucide-react";
+import { LogOut, User, Settings, Shield, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -18,6 +18,7 @@ interface DashboardHeaderProps {
     email?: string;
     id: string;
     isAdmin?: boolean;
+    credits?: number;
   };
   signOut: () => void;
 }
@@ -46,8 +47,14 @@ const DashboardHeader = ({ user, signOut }: DashboardHeaderProps) => {
         <div className="flex items-center gap-4">
           <ThemeToggle />
           
-          <div className="hidden md:flex">
-            <span className="text-sm text-gray-600 dark:text-gray-300 mr-2">
+          <div className="hidden md:flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                Credits: <span className="font-medium">{user.credits || 0}</span>
+              </span>
+            </div>
+            <span className="text-sm text-gray-600 dark:text-gray-300">
               Signed in as <span className="font-medium">{user.email || "User"}</span>
             </span>
           </div>
@@ -62,6 +69,12 @@ const DashboardHeader = ({ user, signOut }: DashboardHeaderProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <div className="md:hidden px-2 py-1.5">
+                <div className="flex items-center gap-2 text-sm">
+                  <CreditCard className="h-4 w-4 text-gray-500" />
+                  Credits: <span className="font-medium">{user.credits || 0}</span>
+                </div>
+              </div>
               <DropdownMenuItem onClick={() => navigate('/profile')}>
                 <User className="mr-2 h-4 w-4" />
                 Profile
