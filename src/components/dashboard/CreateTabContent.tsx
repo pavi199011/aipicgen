@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RecentImages } from "@/components/dashboard/RecentImages";
+import RecentImages from "@/components/dashboard/RecentImages";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const formSchema = z.object({

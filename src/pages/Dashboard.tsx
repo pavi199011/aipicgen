@@ -19,12 +19,22 @@ const Dashboard = () => {
 
   const { images, loading: imagesLoading, error: fetchError, fetchImages } = useFetchImages(user.id);
   const {
-    generateImage,
+    generateImage: originalGenerateImage,
     generating,
     error: generationError,
     retryLastGeneration,
     hasLastPrompt
   } = useImageGeneration(user.id, fetchImages);
+
+  // Create a wrapper function that adapts the signature
+  const generateImage = (prompt: string) => {
+    // Default values for model and settings
+    return originalGenerateImage(prompt, "sdxl", {
+      aspectRatio: "1:1",
+      numOutputs: 1,
+      inferenceSteps: 30
+    });
+  };
 
   const { data: creditsPerImage } = useQuery({
     queryKey: ["creditsPerImage"],
