@@ -1,4 +1,6 @@
+
 import ImageGeneratorForm from "@/components/dashboard/ImageGeneratorForm";
+
 interface GeneratorSectionProps {
   generating: boolean;
   generationError: string | null;
@@ -10,6 +12,7 @@ interface GeneratorSectionProps {
   retryLastGeneration: () => Promise<void>;
   hasLastPrompt: boolean;
 }
+
 const GeneratorSection = ({
   generating,
   generationError,
@@ -24,4 +27,5 @@ const GeneratorSection = ({
       <ImageGeneratorForm onGenerate={generateImage} generating={generating} error={generationError} retryGeneration={retryLastGeneration} hasLastPrompt={hasLastPrompt} />
     </div>;
 };
+
 export default GeneratorSection;
